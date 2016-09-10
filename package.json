@@ -4,6 +4,6 @@
     "documentationWebsite": {
         "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
         "trackingCode": "TODO",
-        "language": {"selection": ["deDE", "enUS"]}
+        "languages": ["deDE", "enUS"]
     }
 }
