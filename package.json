@@ -1,0 +1,9 @@
+{
+    "name": "bashLink",
+    "version": "1.0.0",
+    "documentationWebsite": {
+        "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
+        "trackingCode": "TODO",
+        "language": {"selection": ["deDE", "enUS"]}
+    }
+}
