@@ -5,5 +5,11 @@
         "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
         "trackingCode": "TODO",
         "languages": ["deDE", "enUS"]
+    },
+    "scripts": {
+        "updateDocumentation": "documentationWebsite"
+    },
+    "devDependencies": {
+        "documentation-website": "latest"
     }
 }
