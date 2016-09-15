@@ -13,5 +13,19 @@
     },
     "devDependencies": {
         "documentation-website": "latest"
-    }
+    },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/thaibault/bashLink"
+      },
+  "keywords": [
+    "bash",
+    "framework",
+    "utility",
+    "tool",
+    "testing"
+  ],
+  "homepage": "http://torben.website/bashLink",
+
+  "license": "CC-BY-3.0"
 }
