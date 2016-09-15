@@ -7,6 +7,7 @@
         "trackingCode": "UA-40192634-14",
         "languages": ["deDE", "enUS"]
     },
+    "main": "bashLink.sh",
     "scripts": {
         "updateDocumentation": "documentationWebsite --log-level info"
     },
