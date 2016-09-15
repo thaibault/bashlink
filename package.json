@@ -4,7 +4,7 @@
     "documentationWebsite": {
         "name": "bashLink",
         "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
-        "trackingCode": "TODO",
+        "trackingCode": "UA-40192634-14",
         "languages": ["deDE", "enUS"]
     },
     "scripts": {
