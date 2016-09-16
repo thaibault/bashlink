@@ -1,6 +1,7 @@
 {
     "name": "bashlink",
     "version": "1.0.0",
+    "description": "a high reliable bash library",
     "documentationWebsite": {
         "name": "bashLink",
         "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
