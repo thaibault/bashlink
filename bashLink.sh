@@ -641,18 +641,18 @@ function sendEMail() {
     #
     # >>> sendEMail subject content address
     # >>> sendEMail subject content address "Sun, 2 Feb 1986 14:23:56 +0100"
-    local emailAddress="$ILU_ALTERNATE_USER_EMAIL_ADDRESS" && \
+    local eMailAddress="$ILU_ALTERNATE_USER_EMAIL_ADDRESS" && \
     if [ "$3" ]; then
-        emailAddress="$3"
+        eMailAddress="$3"
     fi
-    local date=$(date) && \
+    local date="$(date)" && \
     if [ "$4" ]; then
         date="$4"
     fi
     msmtp -t <<EOF
-From: $emailAddress
-To: $emailAddress
-Reply-To: $emailAddress
+From: $eMailAddress
+To: $eMailAddress
+Reply-To: $eMailAddress
 Date: $date
 Subject: $1
 

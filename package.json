@@ -1,0 +1,31 @@
+{
+    "name": "bashlink",
+    "version": "1.0.0",
+    "documentationWebsite": {
+        "name": "bashLink",
+        "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
+        "trackingCode": "UA-40192634-14",
+        "languages": ["deDE", "enUS"]
+    },
+    "main": "bashLink.sh",
+    "scripts": {
+        "updateDocumentation": "documentationWebsite --log-level info"
+    },
+    "devDependencies": {
+        "documentation-website": "latest"
+    },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/thaibault/bashLink"
+      },
+  "keywords": [
+    "bash",
+    "framework",
+    "utility",
+    "tool",
+    "testing"
+  ],
+  "homepage": "http://torben.website/bashLink",
+
+  "license": "CC-BY-3.0"
+}
