@@ -1183,20 +1183,6 @@ function pack() {
 }
 # endregion
 # region handle display
-function loadXINITSources() {
-    # This functions loads all xinit source scripts.
-    #
-    # Examples:
-    #
-    # >>> loadXINITSources
-    local xinitRCPath='/etc/X11/xinit/xinitrc.d' && \
-    if [ -d "$XINIT_RC_PATH" ]; then
-        for filePath in "${XINIT_RC_PATH}/"*; do
-            [ -x "$filePath" ] && source "$filePath"
-        done
-        unset filePath
-    fi
-}
 setWacomToLVDS1() {
     # This function maps wacom input devices to given rotation.
     #
