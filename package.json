@@ -10,7 +10,9 @@
     },
     "main": "bashLink.sh",
     "scripts": {
-        "updateDocumentation": "documentationWebsite --log-level info"
+        "update": "npm version patch && npm publish",
+        "updateDocumentation": "documentationWebsite --log-level info",
+        "lint": "shellcheck bashLink.sh"
     },
     "devDependencies": {
         "documentation-website": "latest"
