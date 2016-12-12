@@ -1,26 +1,15 @@
 {
-    "name": "bashlink",
-    "version": "1.0.0",
-    "description": "a high reliable bash library",
-    "documentationWebsite": {
-        "name": "bashLink",
-        "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
-        "trackingCode": "UA-40192634-14",
-        "languages": ["deDE", "enUS"]
-    },
-    "main": "bashLink.sh",
-    "scripts": {
-        "update": "npm version patch && npm publish",
-        "updateDocumentation": "documentationWebsite --log-level info",
-        "lint": "shellcheck bashLink.sh"
-    },
-    "devDependencies": {
-        "documentation-website": "latest"
-    },
-      "repository": {
-        "type": "git",
-        "url": "https://github.com/thaibault/bashLink"
-      },
+  "name": "bashlink",
+  "version": "1.0.0",
+  "license": "CC-BY-3.0",
+  "description": "a high reliable bash library",
+  "homepage": "http://torben.website/bashLink",
+  "documentationWebsite": {
+    "name": "bashLink",
+    "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
+    "trackingCode": "UA-40192634-14",
+    "languages": ["deDE", "enUS"]
+  },
   "keywords": [
     "bash",
     "framework",
@@ -28,7 +17,17 @@
     "tool",
     "testing"
   ],
-  "homepage": "http://torben.website/bashLink",
-
-  "license": "CC-BY-3.0"
+  "main": "bashLink.sh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thaibault/bashLink"
+  },
+  "scripts": {
+    "update": "npm version patch && npm publish",
+    "updateDocumentation": "documentationWebsite --log-level info",
+    "lint": "shellcheck bashLink.sh"
+  },
+  "devDependencies": {
+    "documentation-website": "latest"
+  }
 }
