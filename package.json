@@ -5,7 +5,10 @@
   "description": "a high reliable bash library",
   "homepage": "http://torben.website/bashLink",
   "documentationWebsite": {
-    "languages": ["deDE", "enUS"],
+    "languages": [
+      "deDE",
+      "enUS"
+    ],
     "name": "bashLink",
     "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
     "trackingCode": "UA-40192634-14"
