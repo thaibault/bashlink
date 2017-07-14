@@ -31,6 +31,6 @@
     "lint": "shellcheck bashLink.sh"
   },
   "devDependencies": {
-    "documentation-website": "latest"
+    "documentation-website": "^1.0.61"
   }
 }
