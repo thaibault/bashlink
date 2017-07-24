@@ -1,24 +1,18 @@
 {
-    "name": "bashlink",
-    "version": "1.0.0",
-    "description": "a high reliable bash library",
-    "documentationWebsite": {
-        "name": "bashLink",
-        "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
-        "trackingCode": "UA-40192634-14",
-        "languages": ["deDE", "enUS"]
-    },
-    "main": "bashLink.sh",
-    "scripts": {
-        "updateDocumentation": "documentationWebsite --log-level info"
-    },
-    "devDependencies": {
-        "documentation-website": "latest"
-    },
-      "repository": {
-        "type": "git",
-        "url": "https://github.com/thaibault/bashLink"
-      },
+  "name": "bashlink",
+  "version": "1.0.0",
+  "license": "CC-BY-3.0",
+  "description": "a high reliable bash library",
+  "homepage": "http://torben.website/bashLink",
+  "documentationWebsite": {
+    "languages": [
+      "deDE",
+      "enUS"
+    ],
+    "name": "bashLink",
+    "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
+    "trackingCode": "UA-40192634-14"
+  },
   "keywords": [
     "bash",
     "framework",
@@ -26,7 +20,18 @@
     "tool",
     "testing"
   ],
-  "homepage": "http://torben.website/bashLink",
-
-  "license": "CC-BY-3.0"
+  "main": "bashLink.sh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thaibault/bashLink"
+  },
+  "scripts": {
+    "lint": "hash shellcheck && shellcheck bashLink.sh || echo Please install \"shellcheck\". || true",
+    "test": "npm run lint && ./bashLink.sh",
+    "update": "npm version patch && npm publish",
+    "updateDocumentation": "documentationWebsite --log-level info"
+  },
+  "devDependencies": {
+    "documentation-website": "^1.0.61"
+  }
 }
