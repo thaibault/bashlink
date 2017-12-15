@@ -29,7 +29,7 @@
     "lint": "hash shellcheck && shellcheck bashLink.sh || echo Please install \"shellcheck\". || true",
     "test": "npm run lint && ./bashLink.sh",
     "update": "npm version patch && npm publish",
-    "updateDocumentation": "documentationWebsite --log-level info"
+    "update:documentation": "documentationWebsite --log-level info"
   },
   "devDependencies": {
     "documentation-website": "^1.0.82"
