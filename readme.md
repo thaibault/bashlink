@@ -10,6 +10,9 @@ This library written by Torben Sickert stand under a creative commons naming
 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 endregion -->
 
+Project status
+--------------
+
 [![npm version](https://badge.fury.io/js/bashlink.svg)](https://www.npmjs.com/package/bashlink)
 [![downloads](https://img.shields.io/npm/dy/bashlink.svg)](https://www.npmjs.com/package/bashlink)
 [![build status](https://travis-ci.org/thaibault/bashLink.svg?branch=master)](https://travis-ci.org/thaibault/bashLink)
