@@ -20,14 +20,14 @@
     "tool",
     "testing"
   ],
-  "main": "bashLink.sh",
+  "main": "index.sh",
   "repository": {
     "type": "git",
     "url": "https://github.com/thaibault/bashLink"
   },
   "scripts": {
-    "lint": "hash shellcheck && shellcheck bashLink.sh || echo Please install \"shellcheck\". || true",
-    "test": "npm run lint && ./bashLink.sh",
+    "lint": "hash shellcheck && shellcheck index.sh || echo Please install \"shellcheck\". || true",
+    "test": "./doctect.sh",
     "update": "npm version patch && npm publish",
     "update:documentation": "documentationWebsite --log-level info"
   },
