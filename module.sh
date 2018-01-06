@@ -17,6 +17,7 @@ fi
 shopt -s expand_aliases
 # shellcheck source=./path.sh
 source $(dirname ${BASH_SOURCE[0]})/path.sh
+module_imported=("$(path.convert_to_absolute "${BASH_SOURCE[0]}")")
 
 module_declared_function_names_after_source=""
 module_declared_function_names_after_source_file_name=""
@@ -50,6 +51,21 @@ module_determine_aliases() {
         | cut --delimiter ' ' --fields 2 - | cut --delimiter '=' --fields 1
 }
 alias module.determine_aliases="module_determine_aliases"
+module_log() {
+    local __doc__='
+    Logs arbitrary strings with given level.
+    '
+    if type -t logging.log > /dev/null; then
+        logging.log "$@"
+    elif [[ "$2" != '' ]]; then
+        local level=$1
+        shift
+        echo "$level": "$@"
+    else
+        echo "info": "$@"
+    fi
+}
+alias module.log="module_log"
 module_source_with_namespace_check() {
     local __doc__='
     Sources a script and checks variable definitions before and after sourcing.
@@ -75,7 +91,7 @@ module_source_with_namespace_check() {
         >"$module_declared_names_before_source_file_path"
     while read -r variable_or_function ; do
         if [[ $variable_or_function =~ ^${namespace}[._]* ]]; then
-            core_log warn \
+            module.log warn \
                 "Namespace \"$namespace\" is not clean:'
                 '\"$variable_or_function\" is defined" \
                 1>&2
@@ -85,7 +101,7 @@ module_source_with_namespace_check() {
     module_import_level=$((module_import_level+1))
     # shellcheck disable=1090
     source "$module_path"
-    [ $? = 1 ] && core_log critical "Failed to source $module_path" && exit 1
+    [ $? = 1 ] && module.log critical "Failed to source $module_path" && exit 1
     module_import_level=$((module_import_level-1))
     # check if sourcing defined unprefixed names
     module_determine_declared_names >"$declared_names_after_source_file_path"
@@ -98,7 +114,7 @@ module_source_with_namespace_check() {
         )"
         for variable_or_function in $declared_names_difference; do
             if ! [[ $variable_or_function =~ ^${namespace}[._]* ]]; then
-                core_log warn "module \"$namespace\" defines unprefixed" \
+                module.log warn "module \"$namespace\" defines unprefixed" \
                         "name: \"$variable_or_function\"" 1>&2
             fi
         done
@@ -184,20 +200,24 @@ module_import() {
     local caller_path
     caller_path="$(path.convert_to_absolute "$(dirname "${BASH_SOURCE[1]}")")"
     # try absolute
-    if [[ $module == /* ]] && [[ -e "$module" ]];then
-        module_path="$module"
-    fi
+    if [[ $module == /* ]]; then
+        if [[ -f "$module" ]]; then
+            module_path="$module"
+        elif [[ -f "${module}.sh" ]]; then
+            module_path="${module}.sh"
+        fi
     # try relative
-    if [[ -f "${caller_path}/${module}" ]]; then
+    elif [[ -f "${caller_path}/${module}" ]]; then
         module_path="${caller_path}/${module}"
-    fi
+    elif [[ -f "${caller_path}/${module}.sh" ]]; then
+        module_path="${caller_path}/${module}.sh"
     # try rebash modules
-    if [[ -f "${path}/${module%.sh}.sh" ]]; then
+    elif [[ -f "${path}/${module%.sh}.sh" ]]; then
         module_path="${path}/${module%.sh}.sh"
     fi
 
     if [ "$module_path" == "" ]; then
-        core_log critical "failed to import \"$module\""
+        module.log critical "failed to import \"$module\""
         return 1
     fi
 
@@ -219,6 +239,8 @@ module_import() {
     module_source_with_namespace_check "$module_path" "${module%.sh}"
 }
 alias module.import="module_import"
+# shellcheck source=./core.sh
+source $(dirname ${BASH_SOURCE[0]})/core.sh
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:
