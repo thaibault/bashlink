@@ -16,7 +16,7 @@ fi
 # Expand aliases in non interactive shells.
 shopt -s expand_aliases
 # shellcheck source=./path.sh
-source $(dirname ${BASH_SOURCE[0]})/path.sh
+source "$(dirname "${BASH_SOURCE[0]}")/path.sh"
 # region variables
 module_allowed_names='BASH_REMATCH'
 module_allowed_scope_names=''
@@ -25,10 +25,8 @@ module_declared_function_names_after_source_file_name=''
 module_declared_function_names_before_source_file_path=''
 module_declared_names_after_source=''
 module_declared_names_before_source_file_path=''
-module_imported=("$(path.convert_to_absolute "${BASH_SOURCE[0]}")")
 module_import_level=0
-module_imported=("$(path.convert_to_absolute "${BASH_SOURCE[0]}")")
-module_imported+=("$(path.convert_to_absolute "${BASH_SOURCE[1]}")")
+module_imported=("$(path.convert_to_absolute "${BASH_SOURCE[0]}")" "$(path.convert_to_absolute "${BASH_SOURCE[1]}")" "$(path.convert_to_absolute "$(dirname "${BASH_SOURCE[0]}")/path.sh")")
 module_suppress_declaration_warning=false
 # endregion
 module_determine_declared_names() {
@@ -299,8 +297,6 @@ module_import() {
     module_source_with_namespace_check "$module_file_path" "${module%.sh}"
 }
 alias module.import="module_import"
-# shellcheck source=./core.sh
-source $(dirname ${BASH_SOURCE[0]})/core.sh
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:
