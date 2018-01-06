@@ -17,7 +17,7 @@ arch=('any')
 url='http://torben.website/bashLink'
 license=('CC-BY-3.0')
 depends=()
-source=('*.sh')
+source=('core.sh')
 md5sums=('SKIP')
 copyToAUR=true
 
