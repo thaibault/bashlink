@@ -14,11 +14,10 @@ source "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")/module.sh"
 module.import logging
 module.import ui
 module.import exception
-module.import utils
+module.import tools
 module.import arguments
 module.import time
 module.import documentation
-module.import utils
 module.import path
 
 # region doc
@@ -325,7 +324,7 @@ doctest_eval() {
             got="got"$'\n'"${got}"
             # TODO exclude doctest_options
             local diff=diff
-            utils.dependency_check colordiff && diff=colordiff
+            tools.dependency_check colordiff && diff=colordiff
             $diff --side-by-side <(echo "$output_buffer") <(echo "$got")
         else
             echo -e "${ui_color_lightred}expected:${ui_color_default}"

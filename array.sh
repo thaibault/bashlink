@@ -9,10 +9,26 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck source=./module.sh
-source $(dirname ${BASH_SOURCE[0]})/module.sh
-
 # shellcheck disable=SC2034
+array_filter() {
+    # shellcheck disable=SC2016,SC2034
+    local __doc__='
+    Filters values from given array by given regular expression.
+
+    >>> local a=(one two three wolf)
+    >>> local b=( $(array.filter ".*wo.*" "${a[@]}") )
+    >>> echo ${b[*]}
+    two wolf
+    '
+    local pattern="$1"
+    shift
+    local array=( $@ )
+    local element
+    for element in "${array[@]}"; do
+        echo "$element"
+    done | grep --extended-regexp "$pattern"
+}
+alias array.filter='array_filter'
 array_get_index() {
     # shellcheck disable=SC2016
     local __doc__='
@@ -42,24 +58,7 @@ array_get_index() {
         return 1
     fi
 }
-array_filter() {
-    # shellcheck disable=SC2016,SC2034
-    local __doc__='
-    Filters values from given array by given regular expression.
-
-    >>> local a=(one two three wolf)
-    >>> local b=( $(array.filter ".*wo.*" "${a[@]}") )
-    >>> echo ${b[*]}
-    two wolf
-    '
-    local pattern="$1"
-    shift
-    local array=( $@ )
-    local element
-    for element in "${array[@]}"; do
-        echo "$element"
-    done | grep --extended-regexp "$pattern"
-}
+alias array.get_index='array_get_index'
 array_slice() {
     # shellcheck disable=SC2016,SC2034
     local __doc__='
@@ -172,9 +171,7 @@ array_slice() {
     let "start=(( start + 1 ))"
     echo "${@: $start:$length}"
 }
-alias array.slice="array_slice"
-alias array.get_index="array_get_index"
-alias array.filter="array_filter"
+alias array.slice='array_slice'
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:

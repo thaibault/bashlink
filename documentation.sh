@@ -13,7 +13,6 @@
 source $(dirname ${BASH_SOURCE[0]})/module.sh
 module.import doctest
 module.import logging
-module.import utils
 module.import arguments
 
 documentation_format_buffers() {
