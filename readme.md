@@ -25,8 +25,8 @@ Use case
 --------
 
 A bash framework to fill the gaps to write testable, predictable and scoped
-code in bash.
-
+code in bash highly inspired by jandob's great tool rebash
+[rebash](https://github.com/jandob/rebash).
 <!-- region vim modline
 
 vim: set tabstop=4 shiftwidth=4 expandtab:
