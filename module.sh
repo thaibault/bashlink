@@ -17,16 +17,20 @@ fi
 shopt -s expand_aliases
 # shellcheck source=./path.sh
 source $(dirname ${BASH_SOURCE[0]})/path.sh
+# region variables
+module_allowed_names='BASH_REMATCH'
+module_allowed_scope_names=''
+module_declared_function_names_after_source=''
+module_declared_function_names_after_source_file_name=''
+module_declared_function_names_before_source_file_path=''
+module_declared_names_after_source=''
+module_declared_names_before_source_file_path=''
 module_imported=("$(path.convert_to_absolute "${BASH_SOURCE[0]}")")
-
-module_declared_function_names_after_source=""
-module_declared_function_names_after_source_file_name=""
-module_declared_function_names_before_source_file_path=""
-module_declared_names_after_source=""
-module_declared_names_before_source_file_path=""
 module_import_level=0
 module_imported=("$(path.convert_to_absolute "${BASH_SOURCE[0]}")")
 module_imported+=("$(path.convert_to_absolute "${BASH_SOURCE[1]}")")
+module_suppress_declaration_warning=false
+# endregion
 module_determine_declared_names() {
     # shellcheck disable=SC2016
     local __doc__='
@@ -71,7 +75,7 @@ module_source_with_namespace_check() {
     Sources a script and checks variable definitions before and after sourcing.
     '
     local module_path="$1"
-    local namespace="$2"
+    local scope_name="$2"
     if [ "$module_import_level" = '0' ]; then
         module_declared_function_names_before_source_file_path="$(mktemp \
             --suffix=bashlink-module-declared-function-names-before-source)"
@@ -85,15 +89,15 @@ module_source_with_namespace_check() {
         module_declared_names_before_source_file_path="$(mktemp \
             --suffix=bashlink-module-declared-names-before-source)"
     fi
-    # region check if namespace is clean before sourcing
-    local variable_or_function
+    # region check if scope is clean before sourcing
+    local name
     module_determine_declared_names \
         >"$module_declared_names_before_source_file_path"
-    while read -r variable_or_function ; do
-        if [[ $variable_or_function =~ ^${namespace}[._]* ]]; then
+    while read -r name ; do
+        if [[ $name =~ ^${scope_name}[._]* ]]; then
             module.log warn \
-                "Namespace \"$namespace\" is not clean:'
-                '\"$variable_or_function\" is defined" \
+                "Namespace \"$scope_name\" is not clean: Name \"$name\" is" \
+                "already defined." \
                 1>&2
         fi
     done < "$module_declared_names_before_source_file_path"
@@ -107,15 +111,36 @@ module_source_with_namespace_check() {
     module_determine_declared_names >"$declared_names_after_source_file_path"
     local declared_names_difference
     if ! $module_suppress_declaration_warning; then
-        declared_names_difference="$(! diff \
+        declared_names_difference="$(echo "$(! diff \
             "$module_declared_names_before_source_file_path" \
             "$declared_names_after_source_file_path" | \
             grep -e "^>" | sed 's/^> //'
-        )"
-        for variable_or_function in $declared_names_difference; do
-            if ! [[ $variable_or_function =~ ^${namespace}[._]* ]]; then
-                module.log warn "module \"$namespace\" defines unprefixed" \
-                        "name: \"$variable_or_function\"" 1>&2
+        )" | sed 's/[0-9]*:> //g')"
+        for name in $declared_names_difference; do
+            if ! [[ $name =~ ^${scope_name}[._]* ]]; then
+                local excluded=false
+                local excluded_pattern
+                for excluded_pattern in $module_allowed_scope_names; do
+                    if [[ $name =~ ^${excluded_pattern}[._]* ]]; then
+                        excluded=true
+                        break
+                    fi
+                done
+                if ! $excluded; then
+                    for excluded_pattern in $module_allowed_names; do
+                        if [[ "$excluded_pattern" = "$name" ]]; then
+                            excluded=true
+                            break
+                        fi
+                    done
+                fi
+                if ! $excluded; then
+                    module.log \
+                        warn \
+                        "Module \"$scope_name\" introduces a global" \
+                        "unprefixed name: \"$name\"." \
+                        1>&2
+                fi
             fi
         done
     fi
@@ -129,11 +154,11 @@ module_source_with_namespace_check() {
         module_determine_declared_names \
             true \
             >"$module_declared_function_names_after_source_file_path"
-        module_declared_function_names_after_source="$(! diff \
+        module_declared_function_names_after_source="$(echo "$(! diff \
             "$module_declared_function_names_before_source_file_path" \
             "$module_declared_function_names_after_source_file_path" | \
             grep '^>' | sed 's/^> //'
-        )"
+        )" | sed 's/[0-9]*:> //g')"
         rm "$module_declared_function_names_after_source_file_path"
         rm "$module_declared_function_names_before_source_file_path"
     fi
@@ -144,7 +169,6 @@ module_source_with_namespace_check() {
     rm "$declared_names_after_source_file_path"
 }
 alias module.source_with_namespace_check="module_source_with_namespace_check"
-module_suppress_declaration_warning=false
 module_import() {
     # shellcheck disable=SC2016,SC1004
     local __doc__='
@@ -191,52 +215,88 @@ module_import() {
     elif [[ "$suppress_declaration_warning" == "false" ]]; then
         module_suppress_declaration_warning=false
     fi
-    local module_path=""
-    local path
+    local module_file_path=""
     # shellcheck disable=SC2034
     module_declared_function_names_after_source=""
 
-    path="$(path.convert_to_absolute "$(dirname "${BASH_SOURCE[0]}")")"
+    local current_path="$(path.convert_to_absolute "$(dirname "${BASH_SOURCE[0]}")")"
     local caller_path
     caller_path="$(path.convert_to_absolute "$(dirname "${BASH_SOURCE[1]}")")"
-    # try absolute
-    if [[ $module == /* ]]; then
+    local extensions='sh bash shell zsh csh'
+    # Try absolute file path reference.
+    if [[ "$module" = /* ]]; then
         if [[ -f "$module" ]]; then
-            module_path="$module"
-        elif [[ -f "${module}.sh" ]]; then
-            module_path="${module}.sh"
+            module_file_path="$module"
+        else
+            for extension in $extensions; do
+                if [[ -f "${module}.${extension}" ]]; then
+                    module_file_path="${module}.${extension}"
+                    break
+                fi
+            done
         fi
-    # try relative
-    elif [[ -f "${caller_path}/${module}" ]]; then
-        module_path="${caller_path}/${module}"
-    elif [[ -f "${caller_path}/${module}.sh" ]]; then
-        module_path="${caller_path}/${module}.sh"
-    # try rebash modules
-    elif [[ -f "${path}/${module%.sh}.sh" ]]; then
-        module_path="${path}/${module%.sh}.sh"
     fi
-
-    if [ "$module_path" == "" ]; then
-        module.log critical "failed to import \"$module\""
+    if [[ "$module_file_path" = '' ]]; then
+        # Try relative file path reference.
+        if [[ -f "${caller_path}/${module}" ]]; then
+            module_file_path="${caller_path}/${module}"
+        else
+            local extension
+            for extension in $extensions; do
+                if [[ -f "${caller_path}/${module}.${extension}" ]]; then
+                    module_file_path="${caller_path}/${module}.${extension}"
+                    break
+                fi
+            done
+        fi
+    fi
+    if [ "$module_file_path" == '' ]; then
+        local path
+        # Try "$PATH" file path reference.
+        for path in ${PATH//:/ }; do
+            if [[ -f "${path}/${module}" ]]; then
+                module_file_path="${path}/${module}"
+                break
+            else
+                local extension
+                for extension in $extensions; do
+                    if [[ -f "${path}/${module}.${extension}" ]]; then
+                        module_file_path="${path}/${module}.${extension}"
+                        break
+                    fi
+                done
+                if [ "$module_file_path" != '' ]; then
+                    break
+                fi
+            fi
+        done
+    fi
+    if [ "$module_file_path" == '' ]; then
+        # Try bashLink file path reference.
+        if [[ -f "${current_path}/${module%.sh}.sh" ]]; then
+            module_file_path="${current_path}/${module%.sh}.sh"
+        fi
+    fi
+    if [ "$module_file_path" == "" ]; then
+        module.log \
+            critical \
+            "Module file path for \"$module\" could not be resolved to" \
+            "import for \"${BASH_SOURCE[1]}\" in \"$caller_path\"."
         return 1
     fi
-
-    module="$(basename "$module_path")"
-
-    # normalize module_path
-    module_path="$(path.convert_to_absolute "$module_path")"
+    module="$(basename "$module_file_path")"
+    module_file_path="$(path.convert_to_absolute "$module_file_path")"
     # check if module already loaded
     local loaded_module
     for loaded_module in "${module_imported[@]}"; do
-        if [[ "$loaded_module" == "$module_path" ]];then
+        if [[ "$loaded_module" == "$module_file_path" ]];then
             (( module_import_level == 0 )) && \
                 module_declared_names_before_source_file_path=''
             return 0
         fi
     done
-
-    module_imported+=("$module_path")
-    module_source_with_namespace_check "$module_path" "${module%.sh}"
+    module_imported+=("$module_file_path")
+    module_source_with_namespace_check "$module_file_path" "${module%.sh}"
 }
 alias module.import="module_import"
 # shellcheck source=./core.sh
