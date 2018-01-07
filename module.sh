@@ -39,12 +39,13 @@ module_determine_declared_names() {
     local only_functions="${1:-}"
     [ -z "$only_functions" ] && only_functions=false
     {
-    declare -F | cut --delimiter ' ' --fields 3
-    $only_functions || declare -p | grep '^declare' \
-        | cut --delimiter ' ' --fields 3 - | cut --delimiter '=' --fields 1
+        declare -F | cut --delimiter ' ' --fields 3
+        $only_functions || \
+        declare -p | grep '^declare' | cut --delimiter ' ' --fields 3 - | \
+            cut --delimiter '=' --fields 1
     } | sort --unique
 }
-alias module.determine_declared_names="module_determine_declared_names"
+alias module.determine_declared_names='module_determine_declared_names'
 module_determine_aliases() {
     local __doc__='
     Returns all defined aliases in the current scope.
@@ -67,14 +68,21 @@ module_log() {
         echo "info": "$@"
     fi
 }
-alias module.log="module_log"
+alias module.log='module_log'
+module_import_raw() {
+    module_import_level=$((module_import_level+1))
+    source "$1"
+    [ $? = 1 ] && module.log critical "Failed to source $1" && exit 1
+    module_import_level=$((module_import_level-1))
+}
+alias module.import_raw='module_import_raw'
 module_source_with_namespace_check() {
     local __doc__='
     Sources a script and checks variable definitions before and after sourcing.
     '
-    local module_path="$1"
+    local module_file_path="$1"
     local scope_name="$2"
-    if [ "$module_import_level" = '0' ]; then
+    if (( module_import_level == 0 )); then
         module_declared_function_names_before_source_file_path="$(mktemp \
             --suffix=bashlink-module-declared-function-names-before-source)"
     fi
@@ -100,26 +108,22 @@ module_source_with_namespace_check() {
         fi
     done < "$module_declared_names_before_source_file_path"
     # endregion
-    module_import_level=$((module_import_level+1))
-    # shellcheck disable=1090
-    source "$module_path"
-    [ $? = 1 ] && module.log critical "Failed to source $module_path" && exit 1
-    module_import_level=$((module_import_level-1))
-    # check if sourcing defined unprefixed names
+    module.import_raw "$module_file_path"
+    # Check if sourcing has introduced unprefixed names.
     module_determine_declared_names >"$declared_names_after_source_file_path"
-    local declared_names_difference
+    local new_declared_names
     if ! $module_suppress_declaration_warning; then
-        declared_names_difference="$(echo "$(! diff \
+        new_declared_names="$(echo "$(! diff \
             "$module_declared_names_before_source_file_path" \
             "$declared_names_after_source_file_path" | \
             grep -e "^>" | sed 's/^> //'
         )" | sed 's/[0-9]*:> //g')"
-        for name in $declared_names_difference; do
-            if ! [[ $name =~ ^${scope_name}[._]* ]]; then
+        for name in $new_declared_names; do
+            if ! [[ $name =~ ^${scope_name}[._A-Z]* ]]; then
                 local excluded=false
                 local excluded_pattern
                 for excluded_pattern in $module_allowed_scope_names; do
-                    if [[ $name =~ ^${excluded_pattern}[._]* ]]; then
+                    if [[ $name =~ ^${excluded_pattern}[._A-Z]* ]]; then
                         excluded=true
                         break
                     fi
@@ -142,9 +146,12 @@ module_source_with_namespace_check() {
             fi
         done
     fi
+    # Mark introduced names as checked.
     module_determine_declared_names \
         >"$module_declared_names_before_source_file_path"
-    if [ "$module_import_level" = '0' ]; then
+    rm "$declared_names_after_source_file_path"
+    # NOTE: This part is only needed for module introspection features.
+    if (( module_import_level == 0 )); then
         rm "$module_declared_names_before_source_file_path"
         module_declared_names_before_source_file_path=""
         module_declared_function_names_after_source_file_path="$(mktemp \
@@ -159,15 +166,13 @@ module_source_with_namespace_check() {
         )" | sed 's/[0-9]*:> //g')"
         rm "$module_declared_function_names_after_source_file_path"
         rm "$module_declared_function_names_before_source_file_path"
-    fi
-    if (( module_import_level == 1 )); then
-        declare -F | cut --delimiter ' ' --fields 3 \
+    elif (( module_import_level == 1 )); then
+        module.determine_declared_names true \
             >"$module_declared_function_names_before_source_file_path"
     fi
-    rm "$declared_names_after_source_file_path"
 }
-alias module.source_with_namespace_check="module_source_with_namespace_check"
-module_import() {
+alias module.source_with_namespace_check='module_source_with_namespace_check'
+module_resolve() {
     # shellcheck disable=SC2016,SC1004
     local __doc__='
     IMPORTANT: Do not use "module.import" inside functions -> aliases do not work
@@ -208,14 +213,14 @@ module_import() {
     # If "$suppress_declaration_warning" is empty do not change the current value
     # of "$module_suppress_declaration_warning". (So it is not changed by nested
     # imports.)
-    if [[ "$suppress_declaration_warning" == "true" ]]; then
+    if [[ "$suppress_declaration_warning" == true ]]; then
         module_suppress_declaration_warning=true
-    elif [[ "$suppress_declaration_warning" == "false" ]]; then
+    elif [[ "$suppress_declaration_warning" == false ]]; then
         module_suppress_declaration_warning=false
     fi
-    local module_file_path=""
+    local module_file_path=''
     # shellcheck disable=SC2034
-    module_declared_function_names_after_source=""
+    module_declared_function_names_after_source=''
 
     local current_path="$(path.convert_to_absolute "$(dirname "${BASH_SOURCE[0]}")")"
     local caller_path
@@ -275,28 +280,50 @@ module_import() {
             module_file_path="${current_path}/${module%.sh}.sh"
         fi
     fi
-    if [ "$module_file_path" == "" ]; then
+    if [ "$module_file_path" == '' ]; then
         module.log \
             critical \
             "Module file path for \"$module\" could not be resolved to" \
-            "import for \"${BASH_SOURCE[1]}\" in \"$caller_path\"."
+            "for \"${BASH_SOURCE[1]}\" in \"$caller_path\"."
         return 1
     fi
-    module="$(basename "$module_file_path")"
-    module_file_path="$(path.convert_to_absolute "$module_file_path")"
-    # check if module already loaded
+    echo "$(path.convert_to_absolute "$module_file_path")"
+}
+alias module.resolve='module_resolve'
+module_is_loaded() {
+    local module_file_path="$(module.resolve "$1")"
+    # Check if module already loaded.
     local loaded_module
     for loaded_module in "${module_imported[@]}"; do
-        if [[ "$loaded_module" == "$module_file_path" ]];then
-            (( module_import_level == 0 )) && \
-                module_declared_names_before_source_file_path=''
+        if [[ "$loaded_module" == "$module_file_path" ]]; then
             return 0
         fi
     done
-    module_imported+=("$module_file_path")
-    module_source_with_namespace_check "$module_file_path" "${module%.sh}"
+    return 1
 }
-alias module.import="module_import"
+alias module.is_loaded='module_is_loaded'
+module_import_without_namespace_check() {
+    if module.is_loaded "$1"; then
+        return 0
+    fi
+    local module_file_path="$(module.resolve "$1")"
+    module_imported+=("$module_file_path")
+    module.import_raw "$module_file_path"
+    # Mark introduced names as "checked".
+    module_determine_declared_names \
+        >"$module_declared_names_before_source_file_path"
+}
+alias module.import_without_namespace_check='module_import_without_namespace_check'
+module_import() {
+    if module.is_loaded "$1"; then
+        return 0
+    fi
+    local module_file_path="$(module.resolve "$1")"
+    module="$(basename "$module_file_path")"
+    module_imported+=("$module_file_path")
+    module.source_with_namespace_check "$module_file_path" "${module%.sh}"
+}
+alias module.import='module_import'
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:
