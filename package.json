@@ -20,7 +20,7 @@
     "tool",
     "testing"
   ],
-  "main": "index.sh",
+  "main": "core.sh",
   "repository": {
     "type": "git",
     "url": "https://github.com/thaibault/bashLink"
@@ -32,6 +32,6 @@
     "update:documentation": "documentationWebsite --log-level info"
   },
   "devDependencies": {
-    "documentation-website": "^1.0.88"
+    "documentation-website": "^1.0.89"
   }
 }

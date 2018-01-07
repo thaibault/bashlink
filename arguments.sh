@@ -9,10 +9,12 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
+# region import
 # shellcheck source=./module.sh
-source $(dirname ${BASH_SOURCE[0]})/module.sh
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 module.import array
-
+# endregion
+# region functions
 # shellcheck disable=SC2034,SC2016
 arguments__doc__='
     The arguments module provides an argument parser that can be used in
@@ -305,6 +307,7 @@ arguments_default_wrapper() {
     return $?
 }
 alias arguments.default_wrapper='arguments_default_wrapper'
+# endregion
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:
