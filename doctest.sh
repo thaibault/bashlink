@@ -592,7 +592,7 @@ doctest_test_module() {
 
     local total=0
     local success=0
-    time.timer_start
+    time.start
     # module level tests
     test_identifier="${module//[^[:alnum:]_]/_}"__doc__
     doc_string="${!test_identifier}"
@@ -615,7 +615,7 @@ doctest_test_module() {
         fi
     done
     logging.info "$module - passed $success/$total tests in" \
-        "$(time.timer_get_elapsed) ms"
+        "$(time.get_elapsed) ms"
     (( success != total )) && exit 1
     exit 0
     )
@@ -658,7 +658,7 @@ doctest_parse_args() {
             doctest_test_module "$(path.convert_to_absolute "$filename")" &
         done
     }
-    time.timer_start
+    time.start
     local total=0
     local success=0
     if [ $# -eq 0 ] || [ "$@" == "" ];then
@@ -681,7 +681,7 @@ doctest_parse_args() {
         wait "$job" && let "success++"
     done
     logging.info "Total: passed $success/$total modules in" \
-        "$(time.timer_get_elapsed) ms"
+        "$(time.get_elapsed) ms"
     (( success != total )) && return 1
     return 0
 }
