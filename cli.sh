@@ -9,10 +9,12 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
+# region import
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 module.import core
-
+# endregion
+# region documentation
 # shellcheck disable=SC2034
 cli__doc__='
     This module provides variables for printing colorful and unicode glyphs.
@@ -21,8 +23,11 @@ cli__doc__='
     [cli.enable_color](#function-cli_enable_color) and
     [cli.enable_unicode_glyphs](#function-cli_enable_unicode_glyphs)).
 '
-# region colors
+# endregion
+# region variables
 cli_color_enabled=false
+# endregion
+# region functions
 cli_enable_color() {
     local __doc__='
         Enables color output explicitly.
@@ -68,7 +73,7 @@ cli_enable_color() {
     cli_color_noinvert='\033[27m'
     cli_color_noinvisible='\033[28m'
 }
-
+alias cli.enable_color='cli_enable_color'
 # shellcheck disable=SC2034
 cli_disable_color() {
     local __doc__='
@@ -115,8 +120,8 @@ cli_disable_color() {
     cli_color_noinvert=''
     cli_color_noinvisible=''
 }
-# endregion
-# region glyphs
+alias cli.disable_color='cli_disable_color'
+## region glyphs
 # NOTE: use 'xfd -fa <font-name>' to watch glyphs
 cli_unicode_enabled=false
 cli_enable_unicode_glyphs() {
@@ -148,7 +153,7 @@ cli_enable_unicode_glyphs() {
     cli_powerline_saxophone='\u1f3b7'
     cli_powerline_thumbsup='\u1f44d'
 }
-
+alias cli.enable_unicode_glyphs='cli_enable_unicode_glyphs'
 # shellcheck disable=SC2034
 cli_disable_unicode_glyphs() {
     local __doc__='
@@ -179,14 +184,7 @@ cli_disable_unicode_glyphs() {
     cli_powerline_saxophone='(yeah)'
     cli_powerline_thumbsup='(ok)'
 }
-# endregion
-# region detect terminal capabilities
-if [[ "${TERM}" == *"xterm"* ]]; then
-    cli_enable_color
-else
-    cli_disable_color
-fi
-
+alias cli.disable_unicode_glyphs='cli_disable_unicode_glyphs'
 # TODO improve unicode detection
 cli_glyph_available_in_font() {
 
@@ -210,19 +208,21 @@ cli_glyph_available_in_font() {
     fi
     return $?
 }
+## endregion
+# endregion
+# region detect terminal capabilities
+if [[ "${TERM}" == *"xterm"* ]]; then
+    cli_enable_color
+else
+    cli_disable_color
+fi
 # TODO this breaks dracut (segfault)
 #(echo -e $'\u1F3B7' | grep -v F3B7) &> /dev/null
 if core.is_defined NO_UNICODE; then
-    cli_disable_unicode_glyphs
+    cli.disable_unicode_glyphs
 else
-    cli_enable_unicode_glyphs
+    cli.enable_unicode_glyphs
 fi
-# endregion
-# region public interface
-alias cli.enable_color='cli_enable_color'
-alias cli.disable_color='cli_disable_color'
-alias cli.enable_unicode_glyphs='cli_enable_unicode_glyphs'
-alias cli.disable_unicode_glyphs='cli_disable_unicode_glyphs'
 # endregion
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:

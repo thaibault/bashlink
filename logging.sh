@@ -9,12 +9,14 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
+# region import
 # shellcheck source=./module.sh
-source $(dirname ${BASH_SOURCE[0]})/module.sh
-module.import ui
-module.import array
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 module.import arguments
-
+module.import array
+module.import cli
+# endregion
+# region documentation
 logging__doc__='
     The available log levels are:
     error critical warn info debug
@@ -65,18 +67,18 @@ logging__doc__='
     >>> echo foo | logging.cat
     foo
 '
-
+# endregion
 # region variables
 # logging levels from low to high
-logging_levels=(error critical warn info verbose debug)
+logging_levels=(error critical warn warning info verbose debug)
 # matches the order of logging levels
 logging_levels_color=(
-    $ui_color_red
-    $ui_color_magenta
-    $ui_color_yellow
-    $ui_color_cyan
-    $ui_color_green
-    $ui_color_blue
+    $cli_color_red
+    $cli_color_magenta
+    $cli_color_yellow
+    $cli_color_cyan
+    $cli_color_green
+    $cli_color_blue
 )
 logging_commands_level=$(array.get_index 'critical' "${logging_levels[@]}")
 logging_level=$(array.get_index 'critical' "${logging_levels[@]}")
@@ -90,12 +92,15 @@ logging_set_commands_level() {
         logging_set_command_output_off
     fi
 }
+alias logging.set_commands_level='logging_set_commands_level'
 logging_get_level() {
     echo "${logging_levels[$logging_level]}"
 }
+alias logging.get_level='logging_get_level'
 logging_get_commands_level() {
     echo "${logging_levels[$logging_commands_level]}"
 }
+alias logging.get_commands_level='logging_get_commands_level'
 logging_set_level() {
     # shellcheck disable=SC2034,SC2016
     local __doc__='
@@ -113,12 +118,13 @@ logging_set_level() {
         logging_set_command_output_off
     fi
 }
+alias logging.set_level='logging_set_level'
 logging_get_prefix() {
     local level=$1
     local level_index=$2
     local color=${logging_levels_color[$level_index]}
     # shellcheck disable=SC2154
-    local loglevel=${color}${level}${ui_color_default}
+    local loglevel=${color}${level}${cli_color_default}
     local path="${BASH_SOURCE[2]##./}"
     path=$(basename "$path")
     local prefix=[${loglevel}:"$path":${BASH_LINENO[1]}]
@@ -126,6 +132,9 @@ logging_get_prefix() {
 }
 logging_log() {
     local level="$1"
+    if [ "$level" = 'warn' ]; then
+        level=warning
+    fi
     shift
     local level_index
     level_index=$(array.get_index "$level" "${logging_levels[@]}")
@@ -138,6 +147,14 @@ logging_log() {
         logging_plain "$(logging_get_prefix "$level" "$level_index")" "$@"
     fi
 }
+alias logging.log='logging_log'
+alias logging.critical='logging_log critical'
+alias logging.debug='logging_log debug'
+alias logging.error='logging_log error'
+alias logging.info='logging_log info'
+alias logging.verbose='logging_log verbose'
+alias logging.warn='logging_log warn'
+alias logging.warning='logging_log warn'
 logging_output_to_saved_file_descriptors=false
 logging_off=false
 logging_cat() {
@@ -155,6 +172,7 @@ logging_cat() {
         fi
     fi
 }
+alias logging.cat='logging_cat'
 logging_plain() {
     local __doc__='
     >>> logging.set_level info
@@ -179,6 +197,7 @@ logging_plain() {
         fi
     fi
 }
+alias logging.plain='logging_plain'
 logging_commands_output_saved="std"
 logging_set_command_output_off() {
     logging_commands_output_saved="$logging_options_command"
@@ -239,6 +258,7 @@ logging_set_log_file() {
     [[ "$1" == "" ]] &&  return 0
     logging_set_file_descriptors "$1" --commands=tee --logging=tee
 }
+alias logging.set_log_file='logging_set_log_file'
 logging_set_file_descriptors() {
     local __doc__='
 
@@ -464,24 +484,7 @@ logging_set_file_descriptors() {
         exec 1>>/dev/null 2>>/dev/null
     fi
 }
-
-# endregion
-# region public interface
-alias logging.set_level='logging_set_level'
-alias logging.set_commands_level='logging_set_commands_level'
-alias logging.get_level='logging_get_level'
-alias logging.get_commands_level='logging_get_commands_level'
-alias logging.log='logging_log'
-alias logging.error='logging_log error'
-alias logging.critical='logging_log critical'
-alias logging.warn='logging_log warn'
-alias logging.info='logging_log info'
-alias logging.verbose='logging_log verbose'
-alias logging.debug='logging_log debug'
-alias logging.plain='logging_plain'
-alias logging.cat='logging_cat'
 alias logging.set_file_descriptors='logging_set_file_descriptors'
-alias logging.set_log_file='logging_set_log_file'
 # endregion
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:

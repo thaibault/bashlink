@@ -15,8 +15,10 @@ if [ ${#module_imported[@]} -ne 0 ]; then
 fi
 # Expand aliases in non interactive shells.
 shopt -s expand_aliases
+# region import
 # shellcheck source=./path.sh
 source "$(dirname "${BASH_SOURCE[0]}")/path.sh"
+# endregion
 # region variables
 module_allowed_names='BASH_REMATCH'
 module_allowed_scope_names=''
