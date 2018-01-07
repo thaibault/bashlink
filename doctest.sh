@@ -9,17 +9,18 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
+# region import
 # shellcheck source=./module.sh
-source "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")/module.sh"
-module.import logging
-module.import ui
-module.import exception
-module.import tools
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 module.import arguments
-module.import time
+module.import cli
 module.import documentation
+module.import exception
+module.import logging
 module.import path
-
+module.import time
+module.import tools
+# endregion
 # region doc
 # shellcheck disable=SC2034,SC2016
 doctest__doc__='
@@ -317,7 +318,7 @@ doctest_eval() {
     rm "$declarations_before"
     rm "$declarations_after"
     if ! doctest_compare_result "$output_buffer" "$got"; then
-        echo -e "${ui_color_lightred}test:${ui_color_default}"
+        echo -e "${cli_color_lightred}test:${cli_color_default}"
         echo "$test_buffer"
         if $doctest_use_side_by_side_output; then
             output_buffer="expected"$'\n'"${output_buffer}"
@@ -327,9 +328,9 @@ doctest_eval() {
             tools.dependency_check colordiff && diff=colordiff
             $diff --side-by-side <(echo "$output_buffer") <(echo "$got")
         else
-            echo -e "${ui_color_lightred}expected:${ui_color_default}"
+            echo -e "${cli_color_lightred}expected:${cli_color_default}"
             echo "$output_buffer"
-            echo -e "${ui_color_lightred}got:${ui_color_default}"
+            echo -e "${cli_color_lightred}got:${cli_color_default}"
             echo "$got"
         fi
         return 1
@@ -344,9 +345,9 @@ doctest_run_test() {
     if doctest_parse_doc_string "$doc_string" doctest_eval ">>>" \
         "$module" "$function"
     then
-        logging.verbose "$test_name:[${ui_color_lightgreen}PASS${ui_color_default}]"
+        logging.verbose "$test_name:[${cli_color_lightgreen}PASS${cli_color_default}]"
     else
-        logging.warn "$test_name:[${ui_color_lightred}FAIL${ui_color_default}]"
+        logging.warn "$test_name:[${cli_color_lightred}FAIL${cli_color_default}]"
         return 1
     fi
 }

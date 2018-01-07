@@ -9,12 +9,13 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
+# region import
 # shellcheck source=./module.sh
-source $(dirname ${BASH_SOURCE[0]})/module.sh
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+module.import arguments
 module.import doctest
 module.import logging
-module.import arguments
-
+# endregion
 documentation_format_buffers() {
     local buffer="$1"
     local output_buffer="$2"
@@ -35,7 +36,7 @@ documentation_format_docstring() {
         | sed '/+documentation_exclude_print/d' \
         | sed '/-documentation_exclude_print/d' \
         | sed '/+documentation_exclude/,/-documentation_exclude/d')"
-    doctest_parse_doc_string "$doc_string" documentation_format_buffers \
+    doctest.parse_doc_string "$doc_string" documentation_format_buffers \
         --preserve-prompt
 }
 documentation_generate() {
@@ -66,7 +67,7 @@ documentation_generate() {
     for function in $declared_functions;
     do
         # shellcheck disable=SC2089
-        doc_string="$(doctest_get_function_docstring "$function")"
+        doc_string="$(doctest.get_function_docstring "$function")"
         if [[ -z "$doc_string" ]]; then
             logging.warn "No documentation for function $function" 1>&2
         else

@@ -9,10 +9,11 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
+# region import
 # shellcheck source=./module.sh
-source $(dirname ${BASH_SOURCE[0]})/module.sh
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 module.import logging
-
+# endregion
 # shellcheck disable=SC2034,SC2016
 exception__doc__='
     NOTE: The try block is executed in a subshell, so no outer variables can be
@@ -176,9 +177,9 @@ exception_error_handler() {
         ((i++))
     done
     if (( exception_try_catch_level == 0 )); then
-        logging_plain "$traceback" 1>&2
+        logging.plain "$traceback" 1>&2
     else
-        logging_plain "$traceback" >"$exception_last_traceback_file"
+        logging.plain "$traceback" >"$exception_last_traceback_file"
     fi
     exit $error_code
 }
