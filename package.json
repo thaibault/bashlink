@@ -3,13 +3,13 @@
   "version": "1.0.6",
   "license": "CC-BY-3.0",
   "description": "a high reliable bash library",
-  "homepage": "http://torben.website/bashLink",
+  "homepage": "http://torben.website/bashlink",
   "documentationWebsite": {
     "languages": [
       "deDE",
       "enUS"
     ],
-    "name": "bashLink",
+    "name": "bashlink",
     "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
     "trackingCode": "UA-40192634-14"
   },
@@ -23,7 +23,7 @@
   "main": "core.sh",
   "repository": {
     "type": "git",
-    "url": "https://github.com/thaibault/bashLink"
+    "url": "https://github.com/thaibault/bashlink"
   },
   "scripts": {
     "lint": "hash shellcheck && shellcheck index.sh || echo Please install \"shellcheck\". || true",
