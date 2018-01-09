@@ -20,7 +20,7 @@
     "tool",
     "testing"
   ],
-  "main": "core.sh",
+  "main": "tools.sh",
   "repository": {
     "type": "git",
     "url": "https://github.com/thaibault/bashlink"
