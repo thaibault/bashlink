@@ -101,6 +101,8 @@ bl_module_import_with_namespace_check() {
         --suffix=bashlink-module-declared-names-after-source)"
     # NOTE: All variables which are declared after "determine_declared_names"
     # will be interpreted as newly introduced variables from given module.
+    local alternate_resolved_scope_name="$(echo "$resolved_scope_name" | \
+        sed --regexp-extended 's/\./_/g')"
     local name
     bl.module.determine_declared_names \
         true \
@@ -110,8 +112,6 @@ bl_module_import_with_namespace_check() {
         bl_module_declared_names_before_source_file_path="$(mktemp \
             --suffix=bashlink-module-declared-names-before-source)"
     fi
-    local alternate_resolved_scope_name="$(echo "$resolved_scope_name" | \
-        sed --regexp-extended 's/\./_/g')"
     ## region check if scope is clean before sourcing
     bl.module.determine_declared_names \
         >"$bl_module_declared_names_before_source_file_path"
@@ -255,36 +255,41 @@ bl_module_resolve() {
                 fi
             else
                 # Try relative to caller file path reference.
-                if [ "$file_path" = '' ] && [[ -e "${caller_path}/${name}${extension}" ]]; then
+                if [[ -e "${caller_path}/${name}${extension}" ]]; then
                     file_path="${caller_path}/${name}${extension}"
                     break
                 fi
                 # Try relative to executer file path reference.
-                if [ "$file_path" = '' ] && [[ -e "${execution_path}/${name}${extension}" ]]; then
+                if [[ -e "${execution_path}/${name}${extension}" ]]; then
                     file_path="${execution_path}/${name}${extension}"
                     break
                 fi
-                if [ "$file_path" = '' ]; then
-                    local path
-                    # Try locations in "$PATH" listed references.
-                    for path in ${PATH//:/ }; do
-                        if [[ -e "${path}/${name}${extension}" ]]; then
-                            file_path="${path}/${name}${extension}"
-                            break
-                        fi
-                    done
-                    if [ "$file_path" != '' ]; then
+                local path
+                # Try locations in "$PATH" listed references.
+                for path in ${PATH//:/ }; do
+                    if [[ -e "${path}/${name}${extension}" ]]; then
+                        file_path="${path}/${name}${extension}"
                         break
                     fi
+                done
+                if [ "$file_path" != '' ]; then
+                    break
                 fi
             fi
-            # Try to find module in this library or this library itself.
-            if [ "$file_path" == '' ] && [[ -e "${current_path}/${name}${extension}" ]]; then
+            # Try to find module in this library or this whole library itself.
+            if [[ -e "${current_path}/${name}${extension}" ]]; then
                 file_path="${current_path}/${name}${extension}"
+                break
             fi
         done
-        if [ "$file_path" == '' ] && echo "$name" | grep '\.' &>/dev/null; then
-            name="$(echo "$name" | sed --regexp-extended 's:.([^.]+?)(\.(sh|bash|zsh|csh))?$:/\1\2:')"
+        if [ "$file_path" = '' ]; then
+            local new_name="$(echo "$name" | sed --regexp-extended \
+                's:.([^.]+?)(\.(sh|bash|zsh|csh))?$:/\1\2:')"
+            if [ "$name_name" = "$name" ]; then
+                break
+            else
+                name="$new_name"
+            fi
         else
             break
         fi
@@ -324,9 +329,6 @@ bl_module_import_without_namespace_check() {
     local file_path="$(bl.module.resolve "$1" "${BASH_SOURCE[1]}")"
     bl_module_imported+=("$file_path")
     bl.module.import_raw "$file_path"
-    # Mark introduced names as "checked".
-    bl.module.determine_declared_names \
-        >"$bl_module_declared_names_before_source_file_path"
 }
 alias bl.module.import=bl_module_import
 bl_module_import() {
