@@ -53,7 +53,7 @@
   "scripts": {
     "lint": "hash shellcheck && shellcheck -x *.sh || echo Please install \"shellcheck\". || true",
     "lint:given": "shellcheck -x",
-    "test": "./doctect.sh",
+    "test": "./doctest.sh",
     "update": "npm version patch && npm publish",
     "update:documentation": "documentationWebsite --log-level info"
   },
