@@ -26,6 +26,7 @@
     "changeroot.sh",
     "cli.sh",
     "cracking.sh",
+    "dependency.sh",
     "dictionary.sh",
     "display.sh",
     "doctest.sh",
