@@ -26,6 +26,7 @@
     "changeroot.sh",
     "cli.sh",
     "cracking.sh",
+    "dependency.sh",
     "dictionary.sh",
     "display.sh",
     "doctest.sh",
@@ -50,8 +51,9 @@
     "url": "https://github.com/thaibault/bashlink"
   },
   "scripts": {
-    "lint": "hash shellcheck && shellcheck index.sh || echo Please install \"shellcheck\". || true",
-    "test": "./doctect.sh",
+    "lint": "hash shellcheck && shellcheck -x *.sh || echo Please install \"shellcheck\". || true",
+    "lint:given": "shellcheck -x",
+    "test": "./doctest.sh",
     "update": "npm version patch && npm publish",
     "update:documentation": "documentationWebsite --log-level info"
   },

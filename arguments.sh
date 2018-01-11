@@ -10,7 +10,8 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # region import
-# shellcheck source=./module.sh
+# shellcheck disable=SC2016
+# shellcheck source=module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.array
 # endregion
@@ -37,7 +38,7 @@ bl_arguments__doc__='
     >>>     echo 1: "$value"
     >>>     # Alternative way to get positionals: Set the arguments array to
     >>>     # to all unparsed arguments.
-    >>>     bl.arguments.apply_new_arguments
+    >>>     bl.arguments.apply_new
     >>>     echo 1: "$1"
     >>> }
     >>> _ param1 value1 keyword2=value2 positional3 --flag4
@@ -50,6 +51,7 @@ bl_arguments__doc__='
 bl_arguments_new=()
 # endregion
 # region functions
+alias bl.arguments.set=bl_arguments_set
 bl_arguments_set() {
     # shellcheck disable=SC2034,SC2016
     local __doc__='
@@ -65,7 +67,7 @@ bl_arguments_set() {
     bl_arguments_new=("$@")
 
 }
-alias bl.arguments.set="bl_arguments_set"
+alias bl.arguments.get_keyword=bl_arguments_get_keyword
 bl_arguments_get_flag() {
     # shellcheck disable=SC2034,SC2016
     local __doc__='
@@ -98,35 +100,6 @@ bl_arguments_get_flag() {
     >>> bl.arguments.get_flag --foo -f foo
     >>> echo $foo
     true
-
-    '
-    local variable match argument flag
-    local flag_aliases=($(bl.array.slice :-1 "$@"))
-    variable="$(bl.array.slice -1 "$@")"
-    local new_arguments=()
-    eval "${variable}=false"
-    for argument in "${bl_arguments_new[@]:-}"; do
-        match=false
-        for flag in "${flag_aliases[@]}"; do
-            if [[ "$argument" == "$flag" ]]; then
-                match=true
-                eval "${variable}=true"
-            fi
-        done
-        $match || new_arguments+=( "$argument" )
-    done
-    bl_arguments_new=( "${new_arguments[@]:+${new_arguments[@]}}" )
-}
-alias bl.arguments.get_flag="bl_arguments_get_flag"
-bl_arguments_get_keyword() {
-    # shellcheck disable=SC2034,SC2016
-    local __doc__='
-    ```
-    bl.arguments.get_keyword keyword variable_name
-    ```
-
-    Sets `variable_name` to the "value" of `keyword` the argument array (see
-    `bl.arguments.set`) contains "keyword=value".
 
     #### Example
     ```
@@ -171,7 +144,7 @@ bl_arguments_get_keyword() {
     done
     bl_arguments_new=( "${new_arguments[@]:+${new_arguments[@]}}" )
 }
-alias bl.arguments.get_keyword="bl_arguments_get_keyword"
+alias bl.arguments.get_parameter=bl_arguments_get_parameter
 bl_arguments_get_parameter() {
     # shellcheck disable=SC2034,SC2016
     local __doc__='
@@ -197,6 +170,7 @@ bl_arguments_get_parameter() {
     other_param1 other_param2
     '
     local parameter_aliases parameter variable argument index match
+    # shellcheck disable=SC2207
     parameter_aliases=($(bl.array.slice :-1 "$@"))
     variable="$(bl.array.slice -1 "$@")"
     match=false
@@ -216,7 +190,7 @@ bl_arguments_get_parameter() {
     done
     bl_arguments_new=( "${new_arguments[@]:+${new_arguments[@]}}" )
 }
-alias bl.arguments.get_parameter="bl_arguments_get_parameter"
+alias bl.arguments.get_positional=bl_arguments_get_positional
 bl_arguments_get_positional() {
     # shellcheck disable=SC2034,SC2016
     local __doc__='
@@ -242,19 +216,19 @@ bl_arguments_get_positional() {
     local variable="$2"
     eval "${variable}=${bl_arguments_new[index]}"
 }
-alias bl.arguments.get_positional="bl_arguments_get_positional"
-bl_arguments_apply_new_arguments() {
+alias bl.arguments.apply_new='set -- "${bl_arguments_new[@]}"'
+bl_arguments_apply_new() {
     local __doc__='
     Call this function after you are finished with argument parsing. The
     arguments array ($@) will then contain all unparsed arguments that are
     left.
     '
-    # implemented as alias
+    # NOTE: Implemented as alias.
     true
 }
-alias bl.arguments.apply_new_arguments='set -- "${bl_arguments_new[@]}"'
-# TODO
+alias bl.arguments.wrapper_with_minimum_number_of_arguments=bl_arguments_wrapper_with_minimum_number_of_arguments
 bl_arguments_wrapper_with_minimum_number_of_arguments() {
+    # shellcheck disable=SC1004
     local __doc__='
     Supports default arguments with a minimum number of arguments for functions
     by wrapping them.
@@ -276,26 +250,23 @@ bl_arguments_wrapper_with_minimum_number_of_arguments() {
     '
     if [ $# -le $(($1+$2+1)) ]; then
         # Return default arguments.
+        # shellcheck disable=SC2068
         echo ${@:3:$1}
         return $?
     else
         # Return given arguments.
+        # shellcheck disable=SC2068
         echo ${@:3+$1}
         return $?
     fi
 }
-alias bl.arguments.wrapper_with_minimum_number_of_arguments='bl_arguments_wrapper_with_minimum_number_of_arguments'
+alias bl.arguments.default_wrapper=bl_arguments_default_wrapper
 bl_arguments_default_wrapper() {
+    # shellcheck disable=SC1004,SC2034
     local __doc__='
     Wrapper function for
     "bl.arguments.wrapper_with_minimum_number_of_arguments" with second parameter
     is setted to "1".
-
-        PROGRAM_NAME $(bl.arguments.default_wrapper \
-            NUMBER_OF_DEFAULT_ARGUMENTS \
-            DEFAULT_ARGUMENTS* \
-            $@
-        )
 
     >>> # Runs "subProgram" with arguments "all", "--log-level" and "warning"
     >>> # if not at least one arguments are given to "program".
@@ -304,10 +275,10 @@ bl_arguments_default_wrapper() {
     >>>         warning $@)
     >>> }
     '
-    echo $(defaultArgumentsWrapperWithMinimumNumberOfArguments $1 1 ${@:2})
+    # shellcheck disable=SC2068,SC2086
+    bl.arguments.wrapper_with_minimum_number_of_arguments $1 1 ${@:2}
     return $?
 }
-alias bl.arguments.default_wrapper='bl_arguments_default_wrapper'
 # endregion
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
