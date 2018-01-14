@@ -51,15 +51,13 @@
     "url": "https://github.com/thaibault/bashlink"
   },
   "scripts": {
-    "clear": "rm --recursive apiDocumentation",
+    "clear": "rm --recursive apiDocumentation &>/dev/null || true",
     "document": "mkdir --parents apiDocumentation/bashlink/latest && ./documentation.sh bashlink 1>apiDocumentation/bashlink/latest/index.html",
-    "document:show": "./documentation.sh bashlink",
+    "document:show": "./documentation.sh",
     "document:show:error": "./documentation.sh bashlink 1>/dev/null",
-    "document:show:given": "./documentation.sh",
     "lint": "hash shellcheck && shellcheck -x *.sh || echo Please install \"shellcheck\". || true",
     "lint:given": "shellcheck -x",
     "test": "./doctest.sh",
-    "test:given": "./doctest.sh",
     "update": "npm version patch && npm publish",
     "update:documentation": "documentationWebsite --log-level info"
   },
