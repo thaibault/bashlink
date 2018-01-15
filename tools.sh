@@ -12,8 +12,8 @@
 # region functions
 alias bl.tools.is_defined=bl_tools_is_defined
 bl_tools_is_defined() {
-    # shellcheck disable=SC2034
-    local __doc__='
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
     Tests if variable is defined (can also be empty)
 
     >>> local foo="bar"
@@ -63,7 +63,8 @@ bl_tools_is_defined() {
 }
 alias bl.tools.is_empty=bl_tools_is_empty
 bl_tools_is_empty() {
-    local __doc__='
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
     Tests if variable is empty (undefined variables are not empty)
 
     >>> local foo="bar"
@@ -84,11 +85,13 @@ bl_tools_is_empty() {
 }
 alias bl.tools.is_main=bl_tools_is_main
 bl_tools_is_main() {
-    local __doc__='
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
     Returns true if current script is being executed.
 
-    >>> # NOTE: This test passes because "is_main" is called by "doctest.sh"
-    >>> # which is being executed.
+    NOTE: This test passes because `bl.tools.is_main` is called by "doctest.sh"
+    which is being executed.
+
     >>> bl.tools.is_main && echo yes
     yes
     '
@@ -96,8 +99,8 @@ bl_tools_is_main() {
 }
 alias bl.tools.unique=bl_tools_unique
 bl_tools_unique() {
-    # shellcheck disable=SC2034,SC2016
-    local __doc__='
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
     >>> local foo="a\nb\na\nb\nc\nb\nc"
     >>> echo -e "$foo" | bl.tools.unique
     a
@@ -109,14 +112,22 @@ bl_tools_unique() {
 }
 alias bl.tools.run_with_appended_shebang=bl_tools_run_with_appended_shebang
 bl_tools_run_with_appended_shebang() {
-    local __doc__='
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
     This function reads and returns the shebang from given file if exist.
 
-    # /usr/bin/env python -O /path/to/script.py
-    >>> bl.tools.run_with_appended_shebang -O -- /path/to/script.py
-    ...
-    # /usr/bin/env python -O /path/to/script.py argument1 argument2
-    >>> bl.tools.run_with_appended_shebang -O -- /path/to/script.py argument1 argument2
+    ```
+        /usr/bin/env python -O /path/to/script.py
+
+        bl.tools.run_with_appended_shebang -O -- /path/to/script.py
+    ```
+    ```
+        /usr/bin/env python -O /path/to/script.py argument1 argument2
+
+        bl.tools.run_with_appended_shebang -O -- \
+            /path/to/script.py \
+            argument1 \
+            argument2
     ...
     '
     local shebangArguments=''
@@ -155,12 +166,12 @@ bl_tools_run_with_appended_shebang() {
 }
 alias bl.tools.make_single_executbale=bl_tools_make_single_executable
 bl_tools_make_single_executable() {
-    local __doc__='
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
     Creates a bsd and virtually posix shell compatible single executable file
     from an application directory.
 
-    >>> bl.tools.make_single_executable /applicationDirectory startFile
-    ...
+    `bl.tools.make_single_executable /applicationDirectory startFile`
     '
     if [[ ! "$1" ]]; then
         echo "Usage: $0 <DIRECTOTY_PATH> [EXECUTABLE_FILE_NAME] [RELATIVE_START_FILE_PATH]"
@@ -194,11 +205,18 @@ EOF
 }
 alias bl.tools.send_e_mail=bl_tools_send_e_mail
 bl_tools_send_e_mail() {
-    local __doc__='
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
     Sends an email.
 
-    >>> bl.tools.send_e_mail subject content address
-    >>> bl.tools.send_e_mail subject content address "Sun, 2 Feb 1986 14:23:56 +0100"
+    ```
+        bl.tools.send_e_mail subject content address
+        bl.tools.send_e_mail \
+            subject \
+            content \
+            address \
+            "Sun, 2 Feb 1986 14:23:56 +0100"
+    ```
     '
     local eMailAddress="$ILU_ALTERNATE_USER_EMAIL_ADDRESS"
     if [ "$3" ]; then
@@ -222,11 +240,11 @@ EOF
 }
 alias bl.tools.make_openssl_pem_file=bl_tools_make_openssl_pem_file
 bl_tools_make_openssl_pem_file() {
-    local __doc__='
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
     Creates a concatenated pem file needed for server with https support.
 
-    >>> bl.tools.make_openssl_pem_file
-    ...
+    `bl.tools.make_openssl_pem_file`
     '
     local host='localhost'
     if [[ "$1" ]]; then

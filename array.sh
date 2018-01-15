@@ -13,7 +13,7 @@
 alias bl.array.filter=bl_array_filter
 bl_array_filter() {
     # shellcheck disable=SC2016,SC2034
-    local __doc__='
+    local __documentation__='
     Filters values from given array by given regular expression.
 
     >>> local a=(one two three wolf)
@@ -23,16 +23,15 @@ bl_array_filter() {
     '
     local pattern="$1"
     shift
-    local array=( $@ )
     local element
-    for element in "${array[@]}"; do
+    for element in "$@"; do
         echo "$element"
     done | grep --extended-regexp "$pattern"
 }
 alias bl.array.get_index=bl_array_get_index
 bl_array_get_index() {
     # shellcheck disable=SC2016
-    local __doc__='
+    local __documentation__='
     Get index of value in an array
 
     >>> local a=(one two three)
@@ -62,7 +61,7 @@ bl_array_get_index() {
 alias bl.array.slice=bl_array_slice
 bl_array_slice() {
     # shellcheck disable=SC2016,SC2034
-    local __doc__='
+    local __documentation__='
     Returns a slice of an array (similar to Python).
 
     From the Python documentation:
@@ -145,31 +144,31 @@ bl_array_slice() {
     >>> bl.array.slice -7 "${a[@]}"; echo $?
     1
     '
-    local start end array_length length
+    local array_length end length start
     if [[ "$1" == *:* ]]; then
-        IFS=":"; read -r start end <<<"$1"
+        IFS=':' read -r start end <<< "$1"
         shift
         array_length="$#"
         # defaults
         [ -z "$end" ] && end=$array_length
         [ -z "$start" ] && start=0
-        (( start < 0 )) && let "start=(( array_length + start ))"
-        (( end < 0 )) && let "end=(( array_length + end ))"
+        (( start < 0 )) && (( start = (( array_length + start )) ))
+        (( end < 0 )) && (( end = (( array_length + end )) ))
     else
         start="$1"
         shift
         array_length="$#"
-        (( start < 0 )) && let "start=(( array_length + start ))"
-        let "end=(( start + 1 ))"
+        (( start < 0 )) && (( start = (( array_length + start )) ))
+        (( end = (( start + 1 )) ))
     fi
-    let "length=(( end - start ))"
+    (( length = (( end - start )) ))
     (( start < 0 )) && return 1
     # check bounds
     (( length < 0 )) && return 1
     (( start < 0 )) && return 1
     (( start >= array_length )) && return 1
     # parameters start with $1, so add 1 to $start
-    let "start=(( start + 1 ))"
+    (( start = (( start + 1 )) ))
     echo "${@: $start:$length}"
 }
 # endregion
