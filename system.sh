@@ -9,6 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
+# shellcheck disable=SC2016,SC2155
 # region functions
 alias bl.system.compile_and_install_without_root=bl_system_compile_and_install_without_root
 bl_system_compile_and_install_without_root() {
@@ -21,7 +22,7 @@ bl_system_compile_and_install_without_root() {
             system.compile_and_install_without_root /home/user/myUser/
         ```
     '
-    local install_location="~/system/"
+    local install_location=~/system/
     if [ "$1" ]; then
         install_location="$1"
     fi

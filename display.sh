@@ -9,6 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
+# shellcheck disable=SC2016,SC2155
 # region functions
 alias bl.display.load_xinit_sources=bl_display_load_xinit_sources
 bl_display_load_xinit_sources() {
@@ -20,12 +21,13 @@ bl_display_load_xinit_sources() {
             bl.display.load_xinit_sources
         ```
     '
-    local xinitRCPath='/etc/X11/xinit/xinitrc.d'
-    if [ -d "$XINIT_RC_PATH" ]; then
-        for filePath in "${XINIT_RC_PATH}/"*; do
-            [ -x "$filePath" ] && source "$filePath"
+    local xinit_rc_path='/etc/X11/xinit/xinitrc.d'
+    if [ -d "$xinit_rc_path" ]; then
+        local file_path
+        for file_path in "${xinit_rc_path}/"*; do
+            # shellcheck disable=SC1090
+            [ -x "$file_path" ] && source "$file_path"
         done
-        unset filePath
     fi
 }
 alias bl.display.wacom_map=bl_display_wacom_map
@@ -43,24 +45,24 @@ bl_display_wacom_map() {
         rotation="$1"
         ;;
     '');; *)
-        echo -en\
-            "Usage: bl.display.wacom_map [rotate]\nwhere [rotate] is one of\n"\
-            "\thalf\tinvert mapping\n"\
-            "\tccw\tturn mapping by 90° to the left\n"\
-            "\tcw\tturn mapping by 90° to the right\n"\
-            "\tnone\treset rotation\n"
+        echo -en \
+            'Usage: bl.display.wacom_map [rotate]\n' \
+            'where [rotate] is one of\n' \
+            '\thalf\tinvert mapping\n' \
+            '\tccw\tturn mapping by 90° to the left\n' \
+            '\tcw\tturn mapping by 90° to the right\n' \
+            '\tnone\treset rotation\n'
         ;;
     esac
     display=''
     if [ "$display" = '' ]; then
-        display='LVDS1'
+        display=LVDS1
     fi
     IFS=$'\n'
-    for i in `xsetwacom --list devices | cut -f1 | sed 's/ *$//g'`; do
-        xsetwacom set "$i" MapToOutput "$display"
-        if [ $rotation ]; then
-            xsetwacom set "$i" Rotate $rotation
-        fi
+    local device
+    for device in $(xsetwacom --list devices | cut -f1 | sed 's/ *$//g'); do
+        xsetwacom set "$device" MapToOutput "$display"
+        xsetwacom set "$device" Rotate "$rotation"
     done
     unset IFS
 }
@@ -74,19 +76,18 @@ bl_display_wacom_rotate() {
             bl.display.wacom_rotate
         ```
     '
-    local _USE="Script to rotate mapping and view of an wacom-display (named output)."
-
-    local _XRANDR_ARG=''
-    local _WACOM_ARG=''
-    local _OUTPUT='LVDS1'
-    local _SELF='rotateWacomDisplay'
+    local xrandr_argument=''
+    local wacom_argument=''
+    local output=LVDS1
+    local self=bl.display.wacom_rotate
 
     while true; do
         case $1 in
             -h|--help)
             cat <<EOF
-$_USE
-Usage: $_SELF rotation [output]
+Script to rotate mapping and view of an wacom-display (named output).
+
+Usage: $self rotation [output]
 Possible rotations are:
 -half, --inverted: turn display 180°.
 -cw, --right: turn display 90° clockwise.
@@ -98,32 +99,32 @@ EOF
             return 0
         ;;
         -half|--inverted)
-            _XRANDR_ARG='inverted'
-            _WACOM_ARG='half'
+            xrandr_argument=inverted
+            wacom_argument=half
             shift;;
         -cw|--right)
-            _XRANDR_ARG='right'
-            _WACOM_ARG='cw'
+            xrandr_argument=right
+            wacom_argument=cw
             shift;;
         -ccw|--left)
-            _XRANDR_ARG='left'
-            _WACOM_ARG='ccw'
+            xrandr_argument=left
+            wacom_argument=ccw
             shift;;
         -none|--normal)
-            _XRANDR_ARG='normal'
-            _WACOM_ARG='none'
+            xrandr_argument=normal
+            wacom_argument=none
             shift;;
         -n|--next)
-            local _CURRENT_ROTATION=`xsetwacom --get "Wacom ISDv4 E6 Pen stylus" Rotate`
+            local _CURRENT_ROTATION=$(xsetwacom --get 'Wacom ISDv4 E6 Pen stylus' Rotate)
             case $_CURRENT_ROTATION in
                 none)
-                "$_SELF" -half;;
+                $self -half;;
             half)
-                "$_SELF" -cw;;
+                $self -cw;;
             cw)
-                "$_SELF" -ccw;;
+                $self -ccw;;
             ccw)
-                "$_SELF" -none;;
+                $self -none;;
             esac
             return $?
             ;;
@@ -133,20 +134,20 @@ EOF
             return 1
             ;;
         '')
-            if [ $_WACOM_ARG ] && [ $_XRANDR_ARG ]; then
+            if [ $wacom_argument ] && [ $xrandr_argument ]; then
                 break
             else
-                "$_SELF" --next
+                $self --next
                 return 0
             fi
             ;;
         *)
-            _OUTPUT=$1
+            output="$1"
         shift;;
         esac
     done
-    xrandr --output $_OUTPUT --rotate $_XRANDR_ARG
-    bl.display.wacom_map $_WACOM_ARG
+    xrandr --output "$output" --rotate "$xrandr_argument"
+    bl.display.wacom_map "$wacom_argument"
     return $?
 }
 alias bl.display.wacom_toggle_finger_touch_state=bl_display_wacom_toggle_finger_touch_state
@@ -156,15 +157,15 @@ bl_display_wacom_toggle_finger_touch_state() {
         Toggles between enabled and disabled finger touch on wacom displays.
 
         ```bash
-            switchFingerTouchWacomEnabled
+            bl.display.wacom_toggle_finger_touch_state
         ```
 
         ```bash
-            switchFingerTouchWacomEnabled enable
+            bl.display.wacom_toggle_finger_touch_state enable
         ```
 
         ```bash
-            switchFingerTouchWacomEnabled disable
+            bl.display.wacom_toggle_finger_touch_state disable
         ```
     '
     if (xinput --list-props 'Wacom ISDv4 E6 Finger touch' | grep \

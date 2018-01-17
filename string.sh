@@ -9,86 +9,34 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
+# shellcheck disable=SC2016,SC2155
+# region import
+# shellcheck source=./cli.sh
+# shellcheck source=./module.sh
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+bl.module.import bashlink.cli
+# endregion
 # region functions
-alias bl.string.make_command_promt_prefix=bl_string_make_command_promt_prefix
-bl_string_make_command_promt_prefix() {
-    # NOTE: This have to be the first statement to retrieve last return code.
-    local errorNumber=$?
-    # shellcheck disable=SC2016,SC2034
-    local __documentation__='
-        Generates a new user prompt with useful runtime parameters.
-
-        ```bash
-            bl.string.make_command_promt_prefix
-        ```
-    '
-    local systemLoadAverage=$(uptime | grep --extended-regexp --only-matching \
-        '[0-9]{1,2}\.[0-9]{1,2}' | head --lines 1)
-    local errorPromt="(${ILU_RED}${errorNumber}${ILU_DEFAULT_COLOR})"
-    if [[ "$errorNumber" == '0' ]]; then
-        errorPromt="${ILU_GREEN}>${ILU_DEFAULT_COLOR}"
-    fi
-    local gitBranch=$(git branch 2>/dev/null | sed --regexp-extended \
-        "s/^\* (.*)$/ $(bl.string.validate_regular_expression_replacement "$ILU_RED")\1$(bl.string.validate_regular_expression_replacement "$ILU_CYAN")/g" \
-        | tr --delete "\n" | sed 's/  / /g' | sed 's/^ *//g' | \
-        sed 's/ *$//g')
-    if [ "$gitBranch" ]; then
-        gitBranch="(${ILU_GRAY}git${ILU_DEFAULT_COLOR})-(${ILU_CYAN}${gitBranch}${ILU_DEFAULT_COLOR})"
-    fi
-    if [[ "$(id --user)" == '0' ]]; then
-        local userName="${ILU_RED}"
-    fi
-    local userName+="\u$ILU_DEFAULT_COLOR"
-    if [[ "$TERM" != 'linux' ]]; then
-        local titleBar="\[\e]0;\u@\h:$(pwd)\a\]"
-    fi
-    export PS1="$titleBar$errorPromt ${ILU_CYAN}${userName}${ILU_GRAY}@${ILU_CYAN}\h${ILU_BLUE} (${systemLoadAverage}) ${ILU_GRAY}\w${ILU_DEFAULT_COLOR}\n${gitBranch}${ILU_DARK_GRAY}> ${ILU_DEFAULT_COLOR}"
-    return $?
-}
 alias bl.string.generate_random=bl_string_generate_random
 bl_string_generate_random() {
-    cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c "$1"
+    tr -dc 'a-zA-Z0-9' </dev/urandom | head -c "$1"
 }
-alias bl.string.validate_argument=bl_string_validate_argument
-bl_string_validate_argument() {
-    # shellcheck disable=SC2016,SC2034
-    local __documentation__="
-        Validates a given bash argument.
-
-        >>> bl.string.validate_argument hans
-        'hans'
-        >>> bl.string.validate_argument ha'n's
-        \"ha'n's\"
-        >>> bl.string.validate_argument h\"a\"'n's
-        'h\"a\"\'n\'s'
-    "
-    if [[ ! "$(grep "'" <<< "$1")" ]]; then
-        echo "'$1'"
-    elif [[ ! "$(grep '"' <<< "$1")" ]]; then
-        echo "\"$1\""
-    else
-        echo "'$(sed "s/'/\\'/g" <<< "$1")'"
-    fi
-    return $?
-}
-alias bl.string.validate_regular_expression_replacement=bl_string_validate_regular_expression_replacement
-bl_string_validate_regular_expression_replacement() {
+alias bl.string.get_unique_lines=bl_string_get_unique_lines
+bl_string_get_unique_lines() {
     # shellcheck disable=SC2016,SC2034
     local __documentation__='
-        This functions escapes every special meaning character for a sed
-        replacement.
-
-        ```bash
-            sed "s/myInputString/$(bl.string.validate_regular_expression_replacement "\hans/peter&klaus")/g"
-        ```
+        >>> local foo="a\nb\na\nb\nc\nb\nc"
+        >>> echo -e "$foo" | bl.string.get_unique_lines
+        a
+        b
+        c
     '
-    echo "$1" | sed --expression 's/\\/\\\\/g' --expression 's/\//\\\//g' \
-        --expression 's/&/\\\&/g'
-    return $?
+    nl "$@" | sort --key 2 | uniq --skip-fields 1 | sort --numeric-sort | \
+        sed 's/\s*[0-9]\+\s\+//'
 }
 alias bl.string.images_to_css_classes=bl_string_images_to_css_classes
 bl_string_images_to_css_classes() {
-    # shellcheck disable=SC2016,SC2034
+    # shellcheck disable=SC1004,SC2016,SC2034
     local __documentation__='
         This function converts a folder of images to a single includeable css
         file.
@@ -116,33 +64,80 @@ bl_string_images_to_css_classes() {
         source="$1"
         shift
     fi
-    local pathPattern='.*\.\(png\|jpg\|jpeg\|ico\)'
+    local path_pattern='.*\.\(png\|jpg\|jpeg\|ico\)'
     if [[ "$1" ]]; then
-        pathPattern="$1"
+        path_pattern="$1"
         shift
     fi
-    find "$source" -regex "^$pathPattern$" | while read imageFilePath; do
-        local validPath=true
-        local excludePath
-        for excludePath in $@; do
-            excludePath=$(echo $excludePath | sed 's/\/$//g')
-            if [[ "$excludePath" == $(dirname "$imageFilePath") ]] || \
-               [[ "$excludePath" == "$imageFilePath" ]]; then
-                validPath=false
+    local image_file_path
+    find "$source" -regex "^$path_pattern$" | while read -r image_file_path; do
+        local valid_path=true
+        local exclude_path
+        for exclude_path in "$@"; do
+            exclude_path="$(echo "$exclude_path" | sed 's/\/$//g')"
+            if [[ "$exclude_path" == "$(dirname "$image_file_path")" ]] || \
+               [[ "$exclude_path" == "$image_file_path" ]]
+            then
+                valid_path=false
                 break
             fi
         done
-        if $validPath; then
-            local imageClassName="$(echo "$imageFilePath" | tr '@#&%+./_{; ' '-' | \
+        if $valid_path; then
+            local image_class_name="$(echo "$image_file_path" | tr '@#&%+./_{; ' '-' | \
                 grep --only-matching --extended-regexp '[^-].+$')"
-            echo ".image-data-${imageClassName}{background-image: url(\"data:$(file --brief --mime-type "$imageFilePath");base64,$(base64 --wrap 0 "$imageFilePath")\")}"
+            echo ".image-data-${image_class_name}{background-image: url(\"data:$(file --brief --mime-type "$image_file_path");base64,$(base64 --wrap 0 "$image_file_path")\")}"
         fi
     done
     return $?
 }
+alias bl.string.make_command_promt_prefix=bl_string_make_command_promt_prefix
+bl_string_make_command_promt_prefix() {
+    # NOTE: This have to be the first statement to retrieve last return code.
+    local return_code=$?
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
+        Generates a new user prompt with useful runtime parameters.
+
+        ```bash
+            bl.string.make_command_promt_prefix
+        ```
+    '
+    local error_promt="(${bl_cli_color_red}${return_code}${bl_cli_color_default})"
+    if  (( return_code == 0 )); then
+        error_promt="${bl_cli_color_green}>${bl_cli_color_default}"
+    fi
+    # shellcheck disable=SC1117
+    local git_branch="$(git branch 2>/dev/null | sed --regexp-extended "s/^\* (.*)$/ $(bl.string.validate_regular_expression_replacement "$bl_cli_color_red")\1$(bl.string.validate_regular_expression_replacement "$bl_cli_color_cyan")/g" | \
+        tr --delete "\n" | \
+        sed 's/  / /g' | \
+        sed 's/^ *//g' | \
+        sed 's/ *$//g')"
+    if [ "$git_branch" ]; then
+        git_branch="(${bl_cli_color_light_gray}git${bl_cli_color_default})-(${bl_cli_color_cyan}${git_branch}${bl_cli_color_default})"
+    fi
+    local user_name
+    if [ "$(id --user)" = 0 ]; then
+        user_name="${bl_cli_color_red}"
+    fi
+    # shellcheck disable=SC1117
+    user_name+="\u$bl_cli_color_default"
+    local title_bar=''
+    if [[ "$TERM" != linux ]]; then
+        # shellcheck disable=SC1117
+        title_bar="\[\e]0;\u@\h:$(pwd)\a\]"
+    fi
+    local system_load_average="$(
+        uptime | \
+        command grep --extended-regexp --only-matching \
+            '[0-9]{1,2}[.,][0-9]{1,2}' | \
+        head --lines 1)"
+    # shellcheck disable=SC1117
+    export PS1="${title_bar}${error_promt} ${bl_cli_color_cyan}${user_name}${bl_cli_color_light_gray}@${bl_cli_color_cyan}\h${bl_cli_color_default} (${bl_cli_color_magenta}${system_load_average}${bl_cli_color_default}) ${bl_cli_color_light_gray}\w${bl_cli_color_default}\n${git_branch}${bl_cli_color_dark_gray}> ${bl_cli_color_default}"
+    return $?
+}
 alias bl.string.merge_text_files=bl_string_merge_text_files
 bl_string_merge_text_files() {
-    # shellcheck disable=SC2016,SC2034
+    # shellcheck disable=SC1004,SC2016,SC2034
     local __documentation__='
         Concatenate files and print on the standard output.
 
@@ -155,55 +150,59 @@ bl_string_merge_text_files() {
                 a.txt \
                 b.txt \
                 c.txt \
-                --append "\n# endregion\n" \
-                --between "\n# endregion\n\n# region %s\n"
-                --prepend "# region %s\n"
+                --append "\n# area\n" \
+                --between "\n# end\n\n# area %s\n"
+                --prepend "# area %s\n"
         ```
     '
-    local append='\n// endregion'
-    local prep end='// region %s\n\n'
-    local between='\n// endregion\n\n// region %s\n\n'
+    local append='\n// endre''gion'
+    local file_paths=''
+    local prepend='// re''gion %s\n\n'
+    local between='\n// endre''gion\n\n// re''gion %s\n\n'
     while true; do
         case $1 in
             -p|--prepend)
                 shift
-                prepend=$1
+                prepend="$1"
                 shift
                 ;;
             -a|--append)
                 shift
-                append=$1
+                append="$1"
                 shift
                 ;;
             -b|--between)
                 shift
-                between=$1
+                between="$1"
                 shift
                 ;;
             '')
                 break ;;
             *)
-                if [ "$files" ]; then
-                    files+=" $1"
+                if [ "$file_paths" = '' ]; then
+                    file_paths+=" $1"
                 else
-                    local files="$1"
+                    file_paths="$1"
                 fi
                 shift
                 ;;
         esac
     done
-    printf "$prepend" "$(echo "$files" | grep --only-matching \
+    # shellcheck disable=SC2059
+    printf "$prepend" "$(echo "$file_paths" | grep --only-matching \
         --extended-regexp '^[^ ]+')"
     local index=0
-    local filePath
-    for filePath in ${files[*]}; do
-        if [[ $index > 0 ]]; then
-            printf "$between" "$filePath"
+    local file_path
+    for file_path in ${file_paths[*]}; do
+        if (( index > 0 )); then
+            # shellcheck disable=SC2059
+            printf "$between" "$file_path"
         fi
-        cat $filePath
-        index+=1
+        cat "$file_path"
+        (( index += 1 ))
     done
-    printf "$append"
+    # shellcheck disable=SC2059
+    printf "$append" "$file_path"
     return $?
 }
 alias bl.string.translate=bl_string_translate
@@ -216,66 +215,150 @@ bl_string_translate() {
 
         >>> bl.string.translate hello
         Hallo
-        >>> bl.string.translate 'Hello my darling'
+        >>> bl.string.translate "Hello my darling"
         Hallo mein Schatz
         >>> bl.string.translate hello fr
         bonjour
         >>> bl.string.translate hello en fr
         bonjour
     '
-    local defaultTargetLanguage=de
-    local help="translate <text> [[<source language>] <target language>]\n
-                if target missing, use $defaultTargetLanguage\n
-                if source missing, use auto\n
-                list supported languages: translate -l"
-    local languages="af=Afrikaans\n sq=Albanisch\n ar=Arabisch\n hy=Armenisch\n
-                     az=Aserbaidschanisch\n eu=Baskisch\n bn=Bengalisch\n
-                     bg=Bulgarisch\n zh-TW=Chinesisch (traditionell)\n
-                     zh-CN=Chinesisch (vereinfacht)\n da=DÃ¤nisch\n
-                     de=Deutsch\n en=Englisch\n eo=Esperanto\n et=Estnisch\n
-                     fi=Finnisch\n fr=FranzÃ¶sisch\n gl=Galizisch\n 
-                     ka=Georgisch\n el=Griechisch\n gu=Gujarati\n 
-                     ht=Haitianisch\n iw=HebrÃ¤isch\n hi=Hindi\n 
-                     id=Indonesisch\n ga=Irisch\n is=IslÃ¤ndisch\n 
-                     it=Italienisch\n ja=Japanisch\n yi=Jiddisch\n kn=Kannada\n
-                     ca=Katalanisch\n ko=Koreanisch\n hr=Kroatisch\n
-                     la=Lateinisch\n lv=Lettisch\n lt=Litauisch\n 
-                     ms=Malaysisch\n mt=Maltesisch\n mk=Mazedonisch\n
-                     nl=NiederlÃ¤ndisch\n no=Norwegisch\n fa=Persisch\n 
-                     pl=Polnisch\n pt=Portugiesisch\n ro=RumÃ¤nisch\n
-                     ru=Russisch\n sv=Schwedisch\n sr=Serbisch\n
-                     sk=Slowakisch\n sl=Slowenisch\n es=Spanisch\n sw=Suaheli\n
-                     tl=Tagalog\n ta=Tamil\n te=Telugu\n th=ThailÃ¤ndisch\n
-                     cs=Tschechisch\n tr=TÃ¼rkisch\n uk=Ukrainisch\n
-                     hu=Ungarisch\n ur=Urdu\n vi=Vietnamesisch\n cy=Walisisch\n
-                     be=WeiÃrussisch"
-    if [[ "$1" = -h || "$1" = --help || "$#" < 1 ]]; then
-        echo -e "$help"
+    local default_target_language=de
+    if [[ "$1" = -h || "$1" = --help || "$#" -lt 1 ]]; then
+        cat <<EOF
+translate <text> [[<source language>] <target language>]
+
+if target missing, use $default_target_language
+if source missing, use "auto"
+list supported languages: translate -l
+EOF
     elif [[ "$1" = -l || "$1" = --languages ]]; then
-        echo -e "$languages"
+        cat <<EOF
+af=Afrikaans
+sq=Albanisch
+ar=Arabisch
+hy=Armenisch
+az=Aserbaidschanisch
+eu=Baskisch
+bn=Bengalisch
+bg=Bulgarisch
+zh-TW=Chinesisch (traditionell)
+zh-CN=Chinesisch (vereinfacht)
+da=Dänisch
+de=Deutsch
+en=Englisch
+eo=Esperanto
+et=Estnisch
+fi=Finnisch
+fr=Französisch
+gl=Galizisch
+ka=Georgisch
+el=Griechisch
+gu=Gujarati
+ht=Haitianisch
+iw=Hebräisch
+hi=Hindi
+id=Indonesisch
+ga=Irisch
+is=Isländisch
+it=Italienisch
+ja=Japanisch
+yi=Jiddisch
+kn=Kannada
+ca=Katalanisch
+ko=Koreanisch
+hr=Kroatisch
+la=Lateinisch
+lv=Lettisch
+lt=Litauisch
+ms=Malaysisch
+mt=Maltesisch
+mk=Mazedonisch
+nl=Niederländisch
+no=Norwegisch
+fa=Persisch
+pl=Polnisch
+pt=Portugiesisch
+ro=Rumänisch
+ru=Russisch
+sv=Schwedisch
+sr=Serbisch
+sk=Slowakisch
+sl=Slowenisch
+es=Spanisch
+sw=Suaheli
+tl=Tagalog
+ta=Tamil
+te=Telugu
+th=Thailändisch
+cs=Tschechisch
+tr=Türkisch
+uk=Ukrainisch
+hu=Ungarisch
+ur=Urdu
+vi=Vietnamesisch
+cy=Walisisch
+be=Weißrussisch"
+EOF
     else
-        if [ "$3" ]; then
+        if [[ "$#" -gt 2 ]]; then
             source="$2"
             local target="$3"
         else
             source=auto
-            if [ "$2" ]; then
+            if [[ "$#" -gt 1 ]]; then
                 local target="$2"
             else
-                local target="$defaultTargetLanguage"
+                local target="$default_target_language"
             fi
         fi
-        local result=$(curl -s -i --user-agent "" -d "sl=$source" -d \
+        local result="$(curl -s -i --user-agent "" -d "sl=$source" -d \
             "tl=$target" --data-urlencode "text=$1" \
-            http://translate.google.com)
+            http://translate.google.com)"
         # NOTE Temporary outcomment to have right code highlighting.
         # local encoding=$(awk '/Content-Type: .* charset=/ {sub(/^.*charset=["'\'']?/,""); sub(/[ "'\''].*$/,""); print}' <<<"$result")
-        # NOTE Alternativly use:
+        # NOTE Alternatively use:
         # iconv -f $encoding <<<"$result" | awk 'BEGIN {RS="<div"};/<span[^>]* id=["'\'']?result_box["'\'']?/ {sub(/^.*id=["'\'']?result_box["'\'']?(>| [^>]*>)([ \n\t]*<[^>]*>)*/,"");sub(/<.*$/,"");print}' | html2text -utf8
         # NOTE Temporary outcomment to have right code highlighting.
         # iconv -f "$encoding" <<<"$result" | awk 'BEGIN {RS="</div>"};/<span[^>]* id=["'\'']?result_box["'\'']?/' | html2text -utf8
         return $?
     fi
+}
+alias bl.string.validate_argument=bl_string_validate_argument
+bl_string_validate_argument() {
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
+        Validates a given bash argument.
+
+        >>> bl.string.validate_argument hans
+        "hans"
+        >>> bl.string.validate_argument ha"n"s
+        "ha"n"s"
+        >>> bl.string.validate_argument h"a"ns
+        h"a"ns
+    '
+    if ! grep "'" <<< "$1" &>/dev/null; then
+        echo "'$1'"
+    elif ! grep '"' <<< "$1" &>/dev/null; then
+        echo "\"$1\""
+    else
+        echo "'$(sed "s/'/\\'/g" <<< "$1")'"
+    fi
+    return $?
+}
+alias bl.string.validate_regular_expression_replacement=bl_string_validate_regular_expression_replacement
+bl_string_validate_regular_expression_replacement() {
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
+        This functions escapes every special meaning character for a sed
+        replacement.
+
+        ```bash
+            sed "s/myInputString/$(bl.string.validate_regular_expression_replacement "\hans/peter&klaus")/g"
+        ```
+    '
+    echo "$1" | sed --expression 's/\\/\\\\/g' --expression 's/\//\\\//g' \
+        --expression 's/&/\\\&/g'
+    return $?
 }
 # endregion
 # region vim modline

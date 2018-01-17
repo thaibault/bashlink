@@ -9,12 +9,13 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
+# shellcheck disable=SC2016,SC2155
 # region import
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.logging
 # endregion
-# region functions
+# region variables
 # shellcheck disable=SC2034,SC2016
 bl_exception__documentation__='
     NOTE: The try block is executed in a subshell, so no outer variables can be
@@ -163,28 +164,11 @@ bl_exception__documentation__='
 '
 bl_exception_active=false
 bl_exception_active_before_try=false
+bl_exception_last_traceback=''
+bl_exception_last_traceback_file_path=''
 declare -ig bl_exception_try_catch_level=0
-alias bl.exception.error_handler=bl_exception_error_handler
-bl_exception_error_handler() {
-    local error_code=$?
-    local traceback="Traceback (most recent call first):"
-    local -i i=0
-    while caller $i > /dev/null
-    do
-        local -a trace=( $(caller $i) )
-        local line=${trace[0]}
-        local subroutine=${trace[1]}
-        local filename=${trace[2]}
-        traceback="$traceback"'\n'"[$i] ${filename}:${line}: ${subroutine}"
-        ((i++))
-    done
-    if (( bl_exception_try_catch_level == 0 )); then
-        bl.logging.plain "$traceback" 1>&2
-    else
-        bl.logging.plain "$traceback" >"$bl_exception_last_traceback_file"
-    fi
-    exit $error_code
-}
+# endregion
+# region functions
 alias bl.exception.activate=bl_exception_activate
 bl_exception_activate() {
     $bl_exception_active && return 0
@@ -236,7 +220,7 @@ bl_exception_activate() {
 }
 alias bl.exception.deactivate=bl_exception_deactivate
 bl_exception_deactivate() {
-    # shellcheck disable=SC2016,2034
+    # shellcheck disable=SC2016,SC2034
     local __documentation__='
     >>> set -o errtrace
     >>> trap '\''echo $foo'\'' ERR
@@ -259,25 +243,48 @@ bl_exception_deactivate() {
 alias bl.exception.enter_try=bl_exception_enter_try
 bl_exception_enter_try() {
     if (( bl_exception_try_catch_level == 0 )); then
-        bl_exception_last_traceback_file="$(mktemp --suffix=rebash-exception)"
+        bl_exception_last_traceback_file_path="$(
+            mktemp --suffix=rebash-exception)"
         bl_exception_active_before_try=$bl_exception_active
     fi
     bl.exception.deactivate
     bl.exception.try_catch_level+=1
+}
+alias bl.exception.error_handler=bl_exception_error_handler
+bl_exception_error_handler() {
+    local error_code=$?
+    local traceback='Traceback (most recent call first):'
+    local -i index=0
+    while caller $index > /dev/null; do
+        local -a trace=("$(caller $index)")
+        local line=${trace[0]}
+        local subroutine=${trace[1]}
+        local filename=${trace[2]}
+        # shellcheck disable=SC1117
+        traceback="${traceback}\n[$index] ${filename}:${line}: ${subroutine}"
+        (( index++ ))
+    done
+    if (( bl_exception_try_catch_level == 0 )); then
+        bl.logging.plain "$traceback" 1>&2
+    else
+        bl.logging.plain "$traceback" >"$bl_exception_last_traceback_file_path"
+    fi
+    exit $error_code
 }
 alias bl.exception.exit_try=bl_exception_exit_try
 bl_exception_exit_try() {
     local bl_exception_result=$1
     bl_exception_try_catch_level+=-1
     if (( bl_exception_try_catch_level == 0 )); then
-        $bl_exception_active_before_try && bl_exception_activate
+        $bl_exception_active_before_try && bl.exception.activate
+        # shellcheck disable=SC2034
         bl_exception_last_traceback="$(
-            bl.logging.cat "$bl_exception_last_traceback_file"
-        )"
-        rm "$bl_exception_last_traceback_file"
+            bl.logging.cat "$bl_exception_last_traceback_file_path")"
+        rm "$bl_exception_last_traceback_file_path"
     else
         bl.exception.activate
     fi
+    # shellcheck disable=SC2086
     return $bl_exception_result
 }
 alias bl.exception.try='bl.exception.enter_try; (bl.exception.activate; '

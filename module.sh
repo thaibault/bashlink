@@ -9,6 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
+# shellcheck disable=SC2016,SC2155
 # Ensure to load module "module" once.
 if [ ${#bl_module_imported[@]} -ne 0 ]; then
     return 0
@@ -23,8 +24,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/path.sh"
 bl_module_allowed_names=(BASH_REMATCH COLUMNS HISTFILESIZE HISTSIZE LINES)
 bl_module_allowed_scope_names=()
 bl_module_declared_function_names_after_source=''
-bl_module_declared_function_names_after_source_file_name=''
 bl_module_declared_function_names_before_source_file_path=''
+# shellcheck disable=SC2034
 bl_module_declared_names_after_source=''
 bl_module_declared_names_before_source_file_path=''
 bl_module_directory_names_to_ignore=(apiDocumentation documentation node_modules)
@@ -32,13 +33,13 @@ bl_module_file_names_to_ignore=(package.json package-lock.json PKGBUILD readme.m
 bl_module_import_level=0
 bl_module_imported=("$(bl.path.convert_to_absolute "${BASH_SOURCE[0]}")" "$(bl.path.convert_to_absolute "${BASH_SOURCE[1]}")" "$(bl.path.convert_to_absolute "$(dirname "${BASH_SOURCE[0]}")/path.sh")")
 bl_module_known_extensions=(.sh '' .bash .shell .zsh .csh)
-bl_module_prevent_namespace_check=false
+bl_module_prevent_namespace_check=true
 bl_module_scope_rewrites=('^bashlink([._][a-zA-Z_-]+)$/bl\1/')
 # endregion
 # region functions
 alias bl.module.determine_aliases=bl_module_determine_aliases
 bl_module_determine_aliases() {
-    # shellcheck disable=SC2016,2034
+    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Returns all defined aliases in the current scope.
     '
@@ -47,7 +48,7 @@ bl_module_determine_aliases() {
 }
 alias bl.module.determine_declared_names=bl_module_determine_declared_names
 bl_module_determine_declared_names() {
-    # shellcheck disable=SC2016,2034
+    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Return all declared variables and function in the current scope.
 
@@ -64,34 +65,8 @@ bl_module_determine_declared_names() {
             cut --delimiter '=' --fields 1
     } | sort --unique
 }
-
-alias bl.module.log=bl_module_log
-bl_module_log() {
-    # shellcheck disable=SC2016,2034
-    local __documentation__='
-        Logs arbitrary strings with given level.
-    '
-    if hash bl.logging.log &>/dev/null; then
-        bl.logging.log "$@"
-    elif [[ "$2" != '' ]]; then
-        local level=$1
-        shift
-        echo "$level": "$@"
-    else
-        echo "info": "$@"
-    fi
-}
-alias bl.module.import_raw=bl_module_import_raw
-bl_module_import_raw() {
-    bl_module_import_level=$((bl_module_import_level+1))
-    source "$1"
-    [ $? = 1 ] && \
-        bl.module.log critical "Failed to source module \"$1\"." && \
-        return 1
-    bl_module_import_level=$((bl_module_import_level-1))
-}
-alias bl.module.is_loaded=bl_module_is_loaded
-bl_module_is_loaded() {
+alias bl.module.is_imported=bl_module_is_imported
+bl_module_is_imported() {
     local caller_file_path="${BASH_SOURCE[1]}"
     if (( $# == 2 )); then
         caller_file_path="$2"
@@ -106,9 +81,37 @@ bl_module_is_loaded() {
     done
     return 1
 }
+alias bl.module.log=bl_module_log
+bl_module_log() {
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
+        Logs arbitrary strings with given level.
+    '
+    if hash bl.logging.log &>/dev/null; then
+        bl.logging.log "$@"
+    elif [[ "$2" != '' ]]; then
+        local level=$1
+        shift
+        echo "${level}: $*"
+    else
+        echo "info: $*"
+    fi
+}
+# NOTE: Depends on "bl.module.log"
+alias bl.module.import_raw=bl_module_import_raw
+bl_module_import_raw() {
+    bl_module_import_level=$((bl_module_import_level + 1))
+    # shellcheck disable=SC1090
+    source "$1"
+    [ $? = 1 ] && \
+        bl.module.log critical "Failed to source module \"$1\"." && \
+        return 1
+    bl_module_import_level=$((bl_module_import_level - 1))
+}
+# NOTE: Depends on "bl.module.log"
 alias bl.module.import_with_namespace_check=bl_module_import_with_namespace_check
 bl_module_import_with_namespace_check() {
-    # shellcheck disable=SC2016,2034
+    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Sources a script and checks variable definitions before and after sourcing.
     '
@@ -153,11 +156,11 @@ bl_module_import_with_namespace_check() {
     bl.module.determine_declared_names >"$declared_names_after_source_file_path"
     # endregion
     local new_declared_names
-    new_declared_names="$(echo "$(! diff \
+    new_declared_names="$(! diff \
         "$bl_module_declared_names_before_source_file_path" \
         "$declared_names_after_source_file_path" | \
-        grep -e "^>" | sed 's/^> //'
-    )" | sed 's/[0-9]*:> //g')"
+        command grep -e "^>" | sed 's/^> //'
+    )"
     for name in $new_declared_names; do
         if ! [[ $name =~ ^${resolved_scope_name}[_A-Z]* || $name =~ ^${alternate_resolved_scope_name//\./\\./}[_A-Z]* ]]; then
             local excluded=false
@@ -200,11 +203,11 @@ bl_module_import_with_namespace_check() {
         bl.module.determine_declared_names \
             true \
             >"$bl_module_declared_function_names_after_source_file_path"
-        bl_module_declared_function_names_after_source="$(echo "$(! diff \
+        bl_module_declared_function_names_after_source="$(! diff \
             "$bl_module_declared_function_names_before_source_file_path" \
             "$bl_module_declared_function_names_after_source_file_path" | \
-            grep '^>' | sed 's/^> //'
-        )" | sed 's/[0-9]*:> //g')"
+            command grep '^>' | sed 's/^> //'
+        )"
         rm "$bl_module_declared_function_names_after_source_file_path"
         rm "$bl_module_declared_function_names_before_source_file_path"
     elif (( bl_module_import_level == 1 )); then
@@ -212,9 +215,81 @@ bl_module_import_with_namespace_check() {
             >"$bl_module_declared_function_names_before_source_file_path"
     fi
 }
+# NOTE: Depends on "bl.module.import_raw" and "bl.module.import_with_namespace_check"
+alias bl.module.import=bl_module_import
+bl_module_import() {
+    local caller_file_path="${BASH_SOURCE[1]}"
+    if (( $# == 2 )); then
+        caller_file_path="$2"
+    fi
+    if bl.module.is_imported "$1" "$caller_file_path"; then
+        return 0
+    fi
+    # NOTE: We have to use "local" before to avoid shadowing the "$?" value.
+    local result
+    result="$(bl.module.resolve "$1" true "$caller_file_path")"
+    local return_code=$?
+    if (( return_code == 0 )); then
+        local file_path="$(echo "$result" | sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
+        local scope_name="$(echo "$result" | sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
+        if [[ -d "$file_path" ]]; then
+            local sub_file_path
+            for sub_file_path in "${file_path}"/*; do
+                local excluded=false
+                local excluded_name
+                for excluded_name in "${bl_module_directory_names_to_ignore[@]}"; do
+                    if [[ -d "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
+                        excluded=true
+                        break
+                    fi
+                done
+                if ! $excluded; then
+                    for excluded_name in "${bl_module_file_names_to_ignore[@]}"; do
+                        if [[ -f "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
+                            excluded=true
+                            break
+                        fi
+                    done
+                fi
+                if ! $excluded; then
+                    # shellcheck disable=SC1117
+                    local name="$(echo "$sub_file_path" | sed --regexp-extended "s:${scope_name}/([^/]+):${scope_name}.\1:")"
+                    bl.module.import "$name" "$caller_file_path"
+                fi
+            done
+        else
+            bl_module_imported+=("$file_path")
+            if $bl_module_prevent_namespace_check; then
+                bl.module.import_raw "$file_path"
+            else
+                scope_name="$(bl.module.remove_known_file_extension "$scope_name")"
+                bl.module.import_with_namespace_check \
+                    "$file_path" \
+                    "$(bl.module.rewrite_scope_name "$scope_name")" \
+                    "$scope_name"
+            fi
+        fi
+    else
+        echo "$result"
+        return 1
+    fi
+}
+alias bl.module.import_without_namespace_check=bl_module_import_without_namespace_check
+bl_module_import_without_namespace_check() {
+    local caller_file_path="${BASH_SOURCE[1]}"
+    if (( $# == 2 )); then
+        caller_file_path="$2"
+    fi
+    if bl.module.is_imported "$1" "$caller_file_path"; then
+        return 0
+    fi
+    local file_path="$(bl.module.resolve "$1" "${BASH_SOURCE[1]}")"
+    bl_module_imported+=("$file_path")
+    bl.module.import_raw "$file_path"
+}
 alias bl.module.resolve=bl_module_resolve
 bl_module_resolve() {
-    # shellcheck disable=SC2016,2034
+    # shellcheck disable=SC1004,SC2016,SC2034
     local __documentation__='
         IMPORTANT: Do not use `bl.module.import` inside functions -> aliases do
         not work.
@@ -253,6 +328,7 @@ bl_module_resolve() {
     '
     local name="$1"
     local caller_path
+    # shellcheck disable=SC2034
     bl_module_declared_function_names_after_source=''
     local current_path="$(dirname "$(dirname "$(bl.path.convert_to_absolute "${BASH_SOURCE[0]}")")")"
     if (( $# == 1 )) || [ "${!#}" = true ] || [ "${!#}" = false ]; then
@@ -317,7 +393,7 @@ bl_module_resolve() {
             break
         fi
     done
-    if [ "$file_path" == '' ]; then
+    if [ "$file_path" = '' ]; then
         bl.module.log \
             critical \
             "Module file path for \"$name\" could not be resolved for" \
@@ -329,17 +405,8 @@ bl_module_resolve() {
     if [ "$2" = true ]; then
         echo "$(bl.path.convert_to_absolute "$file_path")/$(basename "$1")"
     else
-        echo "$(bl.path.convert_to_absolute "$file_path")"
+        bl.path.convert_to_absolute "$file_path"
     fi
-}
-alias bl.module.rewrite_scope_name=bl_module_rewrite_scope_name
-bl_module_rewrite_scope_name() {
-    local resolved_scope_name="$1"
-    for rewrite in "${bl_module_scope_rewrites[@]}"; do
-        resolved_scope_name="$(echo "$resolved_scope_name" | \
-            sed --regexp-extended "s/$rewrite")"
-    done
-    echo "$resolved_scope_name"
 }
 alias bl.module.remove_known_file_extension=bl_module_remove_known_file_extension
 bl_module_remove_known_file_extension() {
@@ -354,77 +421,14 @@ bl_module_remove_known_file_extension() {
     done
     echo "$1"
 }
-alias bl.module.import_without_namespace_check=bl_module_import_without_namespace_check
-bl_module_import_without_namespace_check() {
-    local caller_file_path="${BASH_SOURCE[1]}"
-    if (( $# == 2 )); then
-        caller_file_path="$2"
-    fi
-    if bl.module.is_loaded "$1" "$caller_file_path"; then
-        return 0
-    fi
-    local file_path="$(bl.module.resolve "$1" "${BASH_SOURCE[1]}")"
-    bl_module_imported+=("$file_path")
-    bl.module.import_raw "$file_path"
-}
-alias bl.module.import=bl_module_import
-bl_module_import() {
-    local caller_file_path="${BASH_SOURCE[1]}"
-    if (( $# == 2 )); then
-        caller_file_path="$2"
-    fi
-    if bl.module.is_loaded "$1" "$caller_file_path"; then
-        return 0
-    fi
-    # NOTE: We have to use "local" before to avoid shadowing the "$?" value.
-    local result
-    result="$(bl.module.resolve "$1" true "$caller_file_path")"
-    local return_code=$?
-    if (( return_code == 0 )); then
-        local file_path="$(echo "$result" | sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
-        local scope_name="$(echo "$result" | sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
-        if [[ -d "$file_path" ]]; then
-            local sub_file_path
-            for sub_file_path in "${file_path}"/*; do
-                local excluded=false
-                local excluded_name
-                for excluded_name in "${bl_module_directory_names_to_ignore[@]}"; do
-                    if [[ -d "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
-                        excluded=true
-                        break
-                    fi
-                done
-                if ! $excluded; then
-                    for excluded_name in "${bl_module_file_names_to_ignore[@]}"; do
-                        if [[ -f "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
-                            excluded=true
-                            break
-                        fi
-                    done
-                fi
-                if ! $excluded; then
-                    local name="$(echo "$sub_file_path" | \
-                        sed --regexp-extended \
-                            "s:${scope_name}/([^/]+):${scope_name}.\1:")"
-                    bl.module.import "$name" "$caller_file_path"
-                fi
-            done
-        else
-            bl_module_imported+=("$file_path")
-            if $bl_module_prevent_namespace_check; then
-                bl.module.import_raw "$file_path"
-            else
-                scope_name="$(bl.module.remove_known_file_extension "$scope_name")"
-                bl.module.import_with_namespace_check \
-                    "$file_path" \
-                    "$(bl.module.rewrite_scope_name "$scope_name")" \
-                    "$scope_name"
-            fi
-        fi
-    else
-        echo "$result"
-        return 1
-    fi
+alias bl.module.rewrite_scope_name=bl_module_rewrite_scope_name
+bl_module_rewrite_scope_name() {
+    local resolved_scope_name="$1"
+    for rewrite in "${bl_module_scope_rewrites[@]}"; do
+        resolved_scope_name="$(echo "$resolved_scope_name" | \
+            sed --regexp-extended "s/$rewrite")"
+    done
+    echo "$resolved_scope_name"
 }
 # endregion
 # region vim modline
