@@ -33,6 +33,7 @@
     "documentation.sh",
     "exception.sh",
     "filesystem.sh",
+    "globals.sh",
     "logging.sh",
     "module.sh",
     "network.sh",
