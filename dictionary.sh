@@ -59,7 +59,7 @@ bl_dictionary_get() {
     else
         local store="bl_dictionary_store_${name}[${key}]"
     fi
-    bl.tools.is_defined "${store}" || return 1
+    bl.tools.is_defined "$store" || return 1
     local value="${!store}"
     echo "$value"
 }
@@ -96,7 +96,7 @@ bl_dictionary_get_keys() {
     local keys
     local store="bl_dictionary_store_${name}"
     if [[ ${BASH_VERSINFO[0]} -lt 4 ]] || ! [ -z "${bl_dictionary_bash_version_test:-}" ]; then
-        for key in $(declare -p | cut -d' ' -f3 | grep -E "^${store}" | \
+        for key in $(declare -p | cut -d' ' -f3 | command grep -E "^${store}" | \
             cut -d '=' -f1)
         do
             echo "${key#${store}_}"
@@ -123,8 +123,8 @@ bl_dictionary_set() {
         >>> echo ${bl_dictionary_store_map[foo]}
         2
         >>> bl.dictionary.set map foo "a b c" bar 5
-        >>> echo ${dictionary_store_map[foo]}
-        >>> echo ${dictionary_store_map[bar]}
+        >>> echo ${bl_dictionary_store_map[foo]}
+        >>> echo ${bl_dictionary_store_map[bar]}
         a b c
         5
         >>> bl.dictionary.set map foo "a b c" bar; echo $?

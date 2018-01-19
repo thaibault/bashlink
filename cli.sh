@@ -13,7 +13,6 @@
 # region import
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
-bl.module.import bashlink.tools
 # endregion
 # region variables
 # shellcheck disable=SC2034
@@ -79,22 +78,25 @@ bl_cli_powerline_thumbsup='(ok)'
 bl_cli_unicode_enabled=false
 # endregion
 # region functions
-# TODO improve unicode detection
 alias bl.cli.glyph_available_in_font=bl_cli_glyph_available_in_font
 bl_cli_glyph_available_in_font() {
-    local current_font
-    current_font=$(xrdb -q | grep -i facename | cut -d: -f2)
-    local font_file_name
-    font_file_name=$(fc-match "$current_font" | cut -d: -f1)
-    #font_path=$(fc-list "$current_font" | grep "$font_file_name" | cut -d: -f1)
+    # shellcheck disable=SC2016,SC2034
+    local __documentation__='
+        Check if unicode glyphicons are available.
+
+        >>> bl.cli.glyph_available_in_font
+    '
+    local current_font="$(xrdb -q | command grep -i facename | cut -d: -f2)"
+    local font_file_name="$(fc-match "$current_font" | cut -d: -f1)"
+    #font_path=$(fc-list "$current_font" | command grep "$font_file_name" | cut -d: -f1)
     local font_file_extension="${font_file_name##*.}"
     # Alternative or to be sure
-    #font_path=$(lsof -p $(ps -o ppid= -p $$) | grep fonts)
+    #font_path=$(lsof -p $(ps -o ppid= -p $$) | command grep fonts)
     if [[ $font_file_extension == otf ]]; then
-        otfinfo /usr/share/fonts/OTF/Hack-Regular.otf -u | grep -i uni27a1
+        otfinfo /usr/share/fonts/OTF/Hack-Regular.otf -u | command grep -i uni27a1
     elif [[ $font_file_extension == ttf ]]; then
         ttfdump -t cmap /usr/share/fonts/TTF/Hack-Regular.ttf 2>/dev/null | \
-            grep 'Char 0x27a1'
+            command grep 'Char 0x27a1'
     else
         return 1
     fi
@@ -208,8 +210,8 @@ bl_cli_disable_unicode_glyphs() {
         +
     '
     bl_cli_unicode_enabled=false
-    local suffix
-    for suffix in \
+    local name
+    for name in \
         arrow_down \
         arrow_left \
         arrow_right \
@@ -227,7 +229,7 @@ bl_cli_disable_unicode_glyphs() {
         saxophone \
         thumbsup
     do
-        eval "bl_cli_powerline_${name}=bl_cli_powerline_${name}_backup"
+        eval "bl_cli_powerline_${name}=\"\$bl_cli_powerline_${name}_backup\""
     done
 }
 alias bl.cli.enable_unicode_glyphs=bl_cli_enable_unicode_glyphs
@@ -242,7 +244,7 @@ bl_cli_enable_unicode_glyphs() {
         \u2714
     '
     local suffix
-    for suffix in \
+    for name in \
         arrow_down \
         arrow_left \
         arrow_right \
@@ -260,7 +262,7 @@ bl_cli_enable_unicode_glyphs() {
         saxophone \
         thumbsup
     do
-        eval "bl_cli_powerline_${name}_backup=bl_cli_powerline_${name}"
+        eval "[[ -z \"\$bl_cli_powerline_${name}_backup\" ]] && bl_cli_powerline_${name}_backup=\"\$bl_cli_powerline_${name}\""
     done
     # shellcheck disable=SC2034
     bl_cli_unicode_enabled=true
@@ -295,8 +297,9 @@ else
     bl_cli_disable_color
 fi
 # TODO this breaks dracut (segfault)
-#(echo -e $'\u1F3B7' | grep -v F3B7) &> /dev/null
-if bl.tools.is_defined NO_UNICODE; then
+#(echo -e $'\u1F3B7' | command grep -v F3B7) &> /dev/null
+# NOTE: "bl.tools.is_defined" results in an dependency cycle.
+if bl.module.is_defined NO_UNICODE; then
     bl.cli.disable_unicode_glyphs
 else
     bl.cli.enable_unicode_glyphs
