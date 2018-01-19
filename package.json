@@ -35,6 +35,7 @@
     "filesystem.sh",
     "globals.sh",
     "logging.sh",
+    "mockup",
     "module.sh",
     "network.sh",
     "number.sh",
