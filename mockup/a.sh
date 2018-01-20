@@ -14,7 +14,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/../module.sh"
 bl.module.import bashlink.tools
 # endregion
-a_foo() {
+bl_mockup_a_foo() {
     echo a
 }
 if bl.tools.is_main; then
