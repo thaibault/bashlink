@@ -27,9 +27,21 @@ Use case
 A bash framework to fill the gaps to write testable, predictable and scoped
 code in bash highly inspired by jandob's great tool rebash
 [rebash](https://github.com/jandob/rebash).
-<!-- region vim modline
 
+```bash
+    module_name_bashlink_file_path="$(mktemp --directory)/bashlink/"
+    mkdir "$module_name_bashlink_file_path"
+    wget \
+        https://goo.gl/UKF5JG \
+        --output-document "${module_name_bashlink_file_path}module.sh"
+    # shellcheck disable=SC1091
+    source "${module_name_bashlink_file_path}/module.sh"
+    bl_module_retrieve_remote_modules=true
+    bl.module.import bashlink.logging
+    ...
+```
+
+<!-- region vim modline
 vim: set tabstop=4 shiftwidth=4 expandtab:
 vim: foldmethod=marker foldmarker=region,endregion:
-
 endregion -->
