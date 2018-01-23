@@ -36,7 +36,6 @@
     "globals.sh",
     "logging.sh",
     "mockup",
-    "module.sh",
     "network.sh",
     "number.sh",
     "pacman.sh",
@@ -47,7 +46,7 @@
     "time.sh",
     "tools.sh"
   ],
-  "main": "tools.sh",
+  "main": "module.sh",
   "bin": {
     "bashlink-doctest": "doctest.sh",
     "bashlink-document": "documentation.sh"
