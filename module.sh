@@ -23,7 +23,7 @@ if $bl_module_retrieve_remote_modules; then
     bl_module_remote_module_cache_path="$(mktemp --directory)"
 fi
 bl_module_known_remote_urls=(
-    http://torben.website/bashlink/data/distributionBundle
+    http://torben.website/bashlink/data/distributionBundle/..
 )
 # region import
 if $bl_module_retrieve_remote_modules && ! [[
