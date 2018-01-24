@@ -16,9 +16,30 @@ if [ ${#bl_module_imported[@]} -ne 0 ]; then
 fi
 # Expand aliases in non interactive shells.
 shopt -s expand_aliases
+bl_module_retrieve_remote_modules=false
+if $bl_module_retrieve_remote_modules; then
+    bl_module_remote_module_cache_path="$(mktemp --directory)"
+fi
+bl_module_known_remote_urls=(
+    http://torben.website/bashlink/data/distributionBundle
+)
 # region import
-# shellcheck source=./path.sh
-source "$(dirname "${BASH_SOURCE[0]}")/path.sh"
+if $bl_module_retrieve_remote_modules && ! [[
+    -f "$(dirname "${BASH_SOURCE[0]}")/path.sh"
+]]; then
+    for bl_module_url in "${bl_module_known_remote_urls[@]}"; do
+        if wget "${bl_module_url}/path.sh" \
+            -O "${bl_module_remote_module_cache_path}/path.sh"
+        then
+            # shellcheck disable=SC1090
+            source "${bl_module_remote_module_cache_path}/path.sh"
+            break
+        fi
+    done
+else
+    # shellcheck source=./path.sh
+    source "$(dirname "${BASH_SOURCE[0]}")/path.sh"
+fi
 # endregion
 # region variables
 bl_module_allowed_names=(BASH_REMATCH COLUMNS HISTFILESIZE HISTSIZE LINES)
@@ -38,14 +59,7 @@ bl_module_imported=(
     "$(bl.path.convert_to_absolute "$(dirname "${BASH_SOURCE[0]}")/path.sh")"
 )
 bl_module_known_extensions=(.sh '' .zsh .csh .ksh .bash .shell)
-bl_module_known_remote_urls=(
-    http://torben.website/bashlink/data/distributionBundle
-)
 bl_module_prevent_namespace_check=true
-bl_module_retrieve_remote_modules=false
-if $bl_module_retrieve_remote_modules; then
-    bl_module_remote_module_cache_path="$(mktemp --directory)"
-fi
 bl_module_scope_rewrites=('^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/')
 # endregion
 # region functions
