@@ -29,12 +29,13 @@ bl_module_known_remote_urls=(
 if $bl_module_retrieve_remote_modules && ! [[
     -f "$(dirname "${BASH_SOURCE[0]}")/path.sh"
 ]]; then
+    mkdir ${bl_module_remote_module_cache_path}/bashlink
     for bl_module_url in "${bl_module_known_remote_urls[@]}"; do
         if wget "${bl_module_url}/path.sh" \
-            -O "${bl_module_remote_module_cache_path}/path.sh"
+            -O "${bl_module_remote_module_cache_path}/bashlink/path.sh"
         then
             # shellcheck disable=SC1090
-            source "${bl_module_remote_module_cache_path}/path.sh"
+            source "${bl_module_remote_module_cache_path}/bashlink/path.sh"
             break
         fi
     done
