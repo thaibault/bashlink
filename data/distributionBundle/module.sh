@@ -483,7 +483,7 @@ bl_module_resolve() {
                 break
             fi
             if $bl_module_retrieve_remote_modules; then
-                local path_candidate="$(dirname "${BASH_SOURCE[0]}")${name#bashlink.}${extension}"
+                local path_candidate="$(dirname "${BASH_SOURCE[0]}")/${name#bashlink.}${extension}"
                 if [ "${name#bashlink.}" = "$name" ]; then
                     path_candidate="${bl_module_remote_module_cache_path}/${name}${extension}"
                 fi
