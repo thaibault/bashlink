@@ -39,7 +39,7 @@ code in bash highly inspired by jandob's great tool rebash
     bl_module_retrieve_remote_modules=true
     bl.module.import bashlink.logging
     ...
-    rm "$module_name_bashlink_file_path"
+    rm --recursive "$module_name_bashlink_file_path"
 ```
 
 <!-- region vim modline
