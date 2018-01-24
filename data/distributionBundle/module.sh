@@ -64,7 +64,8 @@ bl_module_tidy_up=false
 if $bl_module_retrieve_remote_modules && [[
     "${bl_module_remote_module_cache_path:-}" == ''
 ]]; then
-    bl_module_remote_module_cache_path="$(mktemp --directory)"
+    bl_module_remote_module_cache_path="$(
+        mktemp --directory --suffix bashlink-module-cache)"
     bl_module_tidy_up=true
 fi
 bl_module_prevent_namespace_check=true
