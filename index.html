@@ -8669,17 +8669,17 @@ API<span>Documentation</span>
 <h2 id="use-case">Use case</h2>
 <p>A bash framework to fill the gaps to write testable, predictable and scoped code in bash highly inspired by jandob's great tool rebash
 <a href="https://github.com/jandob/rebash">rebash</a>.</p>
-<div class="codehilite"><pre><span></span>    <span class="nv">module_name_bashlink_file_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>mktemp --directory<span class="k">)</span><span class="s2">/bashlink/"</span>
+<div class="codehilite"><pre><span></span>    <span class="nv">module_name_bashlink_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>mktemp --directory<span class="k">)</span><span class="s2">/bashlink/"</span>
     mkdir <span class="s2">"</span><span class="nv">$module_name_bashlink_file_path</span><span class="s2">"</span>
     wget <span class="se">\</span>
         https://goo.gl/UKF5JG <span class="se">\</span>
-        --output-document <span class="s2">"</span><span class="si">${</span><span class="nv">module_name_bashlink_file_path</span><span class="si">}</span><span class="s2">module.sh"</span>
+        --output-document <span class="s2">"</span><span class="si">${</span><span class="nv">module_name_bashlink_path</span><span class="si">}</span><span class="s2">module.sh"</span>
     <span class="c1"># shellcheck disable=SC1091</span>
-    <span class="nb">source</span> <span class="s2">"</span><span class="si">${</span><span class="nv">module_name_bashlink_file_path</span><span class="si">}</span><span class="s2">/module.sh"</span>
+    <span class="nb">source</span> <span class="s2">"</span><span class="si">${</span><span class="nv">module_name_bashlink_path</span><span class="si">}</span><span class="s2">/module.sh"</span>
     <span class="nv">bl_module_retrieve_remote_modules</span><span class="o">=</span><span class="nb">true</span>
     bl.module.import bashlink.logging
     ...
-    rm --recursive <span class="s2">"</span><span class="nv">$module_name_bashlink_file_path</span><span class="s2">"</span>
+    rm --recursive <span class="s2">"</span><span class="nv">$module_name_bashlink_path</span><span class="s2">"</span>
 </pre></div>
 </div>
 <div class="inner about-this-website">
@@ -8801,6 +8801,6 @@ about this website
 </p>
 </div></footer>
 <a href="#top">top<!--deDE:nach oben--><!--frFR:ascendant--></a>
-<script src="index.js?md5=6a24b930d5a582503268"></script>
+<script src="index.js?md5=d4cc5cda6c6c579a9edc"></script>
 
 </body></html>
