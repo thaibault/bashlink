@@ -16,7 +16,9 @@ if [ ${#bl_module_imported[@]} -ne 0 ]; then
 fi
 # Expand aliases in non interactive shells.
 shopt -s expand_aliases
-bl_module_retrieve_remote_modules=false
+if [ "${bl_module_retrieve_remote_modules:-}" = '' ]; then
+    bl_module_retrieve_remote_modules=false
+fi
 if $bl_module_retrieve_remote_modules; then
     bl_module_remote_module_cache_path="$(mktemp --directory)"
 fi
