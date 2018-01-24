@@ -35,7 +35,7 @@ code in bash highly inspired by jandob's great tool rebash
         https://goo.gl/UKF5JG \
         --output-document "${module_name_bashlink_path}module.sh"
     # shellcheck disable=SC1091
-    source "${module_name_bashlink_path}/module.sh"
+    source "${module_name_bashlink_path}module.sh"
     bl_module_retrieve_remote_modules=true
     bl.module.import bashlink.logging
     ...

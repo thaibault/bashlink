@@ -23,19 +23,24 @@ bl_module_known_remote_urls=(
     http://torben.website/bashlink/data/distributionBundle
 )
 # region import
+bl_module_tidy_up_path=false
 if $bl_module_retrieve_remote_modules && ! [[
     -f "$(dirname "${BASH_SOURCE[0]}")/path.sh"
 ]]; then
     for bl_module_url in "${bl_module_known_remote_urls[@]}"; do
         if wget "${bl_module_url}/path.sh" \
-            -O "$(dirname "${BASH_SOURCE[0]}")/path.sh"
+            -O "$(dirname "${BASH_SOURCE[0]}")/path.sh" --quiet
         then
+            bl_module_tidy_up_path=true
             break
         fi
     done
 fi
 # shellcheck source=./path.sh
 source "$(dirname "${BASH_SOURCE[0]}")/path.sh"
+if $bl_module_tidy_up_path; then
+    rm "$(dirname "${BASH_SOURCE[0]}")/path.sh"
+fi
 # endregion
 #  region variables
 bl_module_allowed_names=(BASH_REMATCH COLUMNS HISTFILESIZE HISTSIZE LINES)
@@ -55,10 +60,12 @@ bl_module_imported=(
     "$(bl.path.convert_to_absolute "$(dirname "${BASH_SOURCE[0]}")/path.sh")"
 )
 bl_module_known_extensions=(.sh '' .zsh .csh .ksh .bash .shell)
+bl_module_tidy_up=false
 if $bl_module_retrieve_remote_modules && [[
     "${bl_module_remote_module_cache_path:-}" == ''
 ]]; then
     bl_module_remote_module_cache_path="$(mktemp --directory)"
+    bl_module_tidy_up=true
 fi
 bl_module_prevent_namespace_check=true
 bl_module_scope_rewrites=('^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/')
@@ -220,6 +227,9 @@ bl_module_import_raw() {
     bl_module_import_level=$((bl_module_import_level + 1))
     # shellcheck disable=SC1090
     source "$1"
+    if $bl_module_tidy_up && [[ "$1" == "$bl_module_remote_module_cache_path"* ]]; then
+        rm "$1"
+    fi
     if [ $? = 1 ]; then
         bl.module.log critical "Failed to source module \"$1\"."
         return 1
@@ -501,7 +511,7 @@ bl_module_resolve() {
                         mkdir --parents "$(dirname "$path_candidate")"
                     fi
                     if wget "${url}/${name#bashlink.}${extension}" \
-                        -O "$path_candidate"
+                        -O "$path_candidate" --quiet
                     then
                         file_path="$path_candidate"
                         break
