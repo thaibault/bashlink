@@ -8668,9 +8668,19 @@ API<span>Documentation</span>
 <a href="http://torben.website/bashlink"><img alt="documentation website" src="https://img.shields.io/website-up-down-green-red/http/torben.website/bashlink.svg?label=documentation-website"></a></p>
 <h2 id="use-case">Use case</h2>
 <p>A bash framework to fill the gaps to write testable, predictable and scoped code in bash highly inspired by jandob's great tool rebash
-<a href="https://github.com/jandob/rebash">rebash</a>. &lt;!-- region vim modline</p>
-<p>vim: set tabstop=4 shiftwidth=4 expandtab: vim: foldmethod=marker foldmarker=region,endregion:</p>
-<p>endregion --&gt;</p>
+<a href="https://github.com/jandob/rebash">rebash</a>.</p>
+<div class="codehilite"><pre><span></span>    <span class="nv">module_name_bashlink_file_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>mktemp --directory<span class="k">)</span><span class="s2">/bashlink/"</span>
+    mkdir <span class="s2">"</span><span class="nv">$module_name_bashlink_file_path</span><span class="s2">"</span>
+    wget <span class="se">\</span>
+        https://goo.gl/UKF5JG <span class="se">\</span>
+        --output-document <span class="s2">"</span><span class="si">${</span><span class="nv">module_name_bashlink_file_path</span><span class="si">}</span><span class="s2">module.sh"</span>
+    <span class="c1"># shellcheck disable=SC1091</span>
+    <span class="nb">source</span> <span class="s2">"</span><span class="si">${</span><span class="nv">module_name_bashlink_file_path</span><span class="si">}</span><span class="s2">/module.sh"</span>
+    <span class="nv">bl_module_retrieve_remote_modules</span><span class="o">=</span><span class="nb">true</span>
+    bl.module.import bashlink.logging
+    ...
+    rm <span class="s2">"</span><span class="nv">$module_name_bashlink_file_path</span><span class="s2">"</span>
+</pre></div>
 </div>
 <div class="inner about-this-website">
 <h2 id="about-this-website">
@@ -8791,6 +8801,6 @@ about this website
 </p>
 </div></footer>
 <a href="#top">top<!--deDE:nach oben--><!--frFR:ascendant--></a>
-<script src="index.js?md5=2276d3c30ef921f81c64"></script>
+<script src="index.js?md5=046c81f6e071bdf2778e"></script>
 
 </body></html>

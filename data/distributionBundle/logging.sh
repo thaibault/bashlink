@@ -156,12 +156,10 @@ bl_logging_plain() {
         if $bl_logging_tee_fifo_active; then
             echo -e "$@"
         fi
+    elif $bl_logging_output_to_saved_file_descriptors; then
+        echo -e "$@" 1>&3 2>&4
     else
-        if $bl_logging_output_to_saved_file_descriptors; then
-            echo -e "$@" 1>&3 2>&4
-        else
-            echo -e "$@"
-        fi
+        echo -e "$@"
     fi
 }
 # NOTE: Depends on "bl.logging.plain"
@@ -361,12 +359,12 @@ bl_logging_set_file_descriptors() {
 
     if [ "$log_file" = '' ]; then
         bl_logging_log_file=""
-        [ "$bl_logging_options_log" = 'tee' ] && return 1
-        [ "$bl_logging_options_command" = 'tee' ] && return 1
-        if [ "$bl_logging_options_log" = 'off' ]; then
+        [ "$bl_logging_options_log" = tee ] && return 1
+        [ "$bl_logging_options_command" = tee ] && return 1
+        if [ "$bl_logging_options_log" = off ]; then
             bl_logging_off=true
         fi
-        if [ "$bl_logging_options_command" = 'off' ]; then
+        if [ "$bl_logging_options_command" = off ]; then
             exec 3>&1 4>&2
             bl_logging_file_descriptors_saved=true
             exec &>/dev/null
@@ -380,7 +378,6 @@ bl_logging_set_file_descriptors() {
         exec 3>&1 4>&2
         bl_logging_file_descriptors_saved=true
     fi
-
     if [ "$bl_logging_options_log" = tee ]; then
         if [ "$bl_logging_options_command" != tee ]; then
             bl_logging_log_file="$log_file"
@@ -394,7 +391,9 @@ bl_logging_set_file_descriptors() {
         bl_logging_off=true
     fi
     if [ "$bl_logging_options_command" = tee ]; then
-        bl_logging_tee_fifo_dir="$(mktemp --directory --suffix rebash-logging-fifo)"
+        bl_logging_tee_fifo_dir="$(
+            mktemp --directory rebash-logging-fifo --suffix
+        )"
         bl_logging_tee_fifo="$bl_logging_tee_fifo_dir/fifo"
         mkfifo "$bl_logging_tee_fifo"
         trap '[ -p "$bl_logging_tee_fifo" ] && rm -rf "$bl_logging_tee_fifo_dir"; exit' EXIT
