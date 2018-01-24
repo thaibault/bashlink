@@ -29,17 +29,19 @@ code in bash highly inspired by jandob's great tool rebash
 [rebash](https://github.com/jandob/rebash).
 
 ```bash
-    module_name_bashlink_path="$(mktemp --directory)/bashlink/"
+    module_name_bashlink_path="$(mktemp --directory --suffix bashlink)/bashlink/"
     mkdir "$module_name_bashlink_file_path"
     wget \
         https://goo.gl/UKF5JG \
-        --output-document "${module_name_bashlink_path}module.sh"
+        --output-document "${module_name_bashlink_path}module.sh" \
+        --quiet
     # shellcheck disable=SC1091
     source "${module_name_bashlink_path}module.sh"
     bl_module_retrieve_remote_modules=true
     bl.module.import bashlink.logging
     ...
-    rm --recursive "$module_name_bashlink_path"
+    rm --recursive "$(dirname "$module_name_bashlink_path")"
+    rm --recursive "$bl_module_remote_module_cache_path"
 ```
 
 <!-- region vim modline
