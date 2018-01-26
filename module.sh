@@ -77,7 +77,7 @@ bl_module_check_name() {
     local name="$1"
     local resolved_scope_name="$2"
     local alternate_resolved_scope_name="$(echo "$resolved_scope_name" | \
-        sed --regexp-extended 's/\./_/g')"
+        command sed --regexp-extended 's/\./_/g')"
     if ! [[ \
         "$name" =~ ^${resolved_scope_name}([_A-Z]+|$) || \
         "$name" =~ ^${alternate_resolved_scope_name//\./\\./}([_A-Z]+|$) \
@@ -282,15 +282,18 @@ bl_module_import_with_namespace_check() {
     bl.module.determine_declared_names >"$declared_names_after_source_file_path"
     # endregion
     local new_declared_names
-    new_declared_names="$(! diff \
-        "$bl_module_declared_names_before_source_file_path" \
-        "$declared_names_after_source_file_path" | \
-        command grep -e "^>" | sed 's/^> //'
+    new_declared_names="$(
+        ! diff \
+            "$bl_module_declared_names_before_source_file_path" \
+            "$declared_names_after_source_file_path" | \
+                command grep -e "^>" | \
+                    command sed 's/^> //'
     )"
     for name in $new_declared_names; do
         if ! bl.module.check_name "$name" "$resolved_scope_name"; then
             local alternate_resolved_scope_name="$(
-                echo "$resolved_scope_name" | sed --regexp-extended 's/\./_/g'
+                echo "$resolved_scope_name" | \
+                    command sed --regexp-extended 's/\./_/g'
             )"
             bl.module.log \
                 warn \
@@ -317,7 +320,8 @@ bl_module_import_with_namespace_check() {
         bl_module_declared_function_names_after_source="$(! diff \
             "$bl_module_declared_function_names_before_source_file_path" \
             "$bl_module_declared_function_names_after_source_file_path" | \
-            command grep '^>' | sed 's/^> //'
+                command grep '^>' | \
+                    command sed 's/^> //'
         )"
         rm "$bl_module_declared_function_names_after_source_file_path"
         rm "$bl_module_declared_function_names_before_source_file_path"
@@ -378,8 +382,12 @@ bl_module_import() {
     # NOTE: We have to use "local" before to avoid shadowing the "$?" value.
     local result
     if result="$(bl.module.resolve "$1" true "$caller_file_path")"; then
-        local file_path="$(echo "$result" | sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
-        local scope_name="$(echo "$result" | sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
+        local file_path="$(
+            echo "$result" | \
+                command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
+        local scope_name="$(
+            echo "$result" | \
+                command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
         if [[ -d "$file_path" ]]; then
             local sub_file_path
             for sub_file_path in "${file_path}"/*; do
@@ -401,7 +409,11 @@ bl_module_import() {
                 fi
                 if ! $excluded; then
                     # shellcheck disable=SC1117
-                    local name="$(echo "$sub_file_path" | sed --regexp-extended "s:${scope_name}/([^/]+):${scope_name}.\1:")"
+                    local name="$(
+                        echo "$sub_file_path" | \
+                            command sed \
+                                --regexp-extended \
+                                "s:${scope_name}/([^/]+):${scope_name}.\1:")"
                     bl.module.import "$name" "$caller_file_path"
                 fi
             done
@@ -529,7 +541,11 @@ bl_module_resolve() {
             done
             extension_pattern+=')'
             # shellcheck disable=SC1117
-            local new_name="$(echo "$name" | sed --regexp-extended "s:\.([^.]+?)(\.$extension_pattern)?$:/\1\2:")"
+            local new_name="$(
+                echo "$name" | \
+                    command sed \
+                        --regexp-extended \
+                        "s:\.([^.]+?)(\.$extension_pattern)?$:/\1\2:")"
             if [ "$new_name" = "$name" ]; then
                 break
             else
@@ -576,8 +592,9 @@ alias bl.module.rewrite_scope_name=bl_module_rewrite_scope_name
 bl_module_rewrite_scope_name() {
     local resolved_scope_name="$1"
     for rewrite in "${bl_module_scope_rewrites[@]}"; do
-        resolved_scope_name="$(echo "$resolved_scope_name" | \
-            sed --regexp-extended "s/$rewrite")"
+        resolved_scope_name="$(
+            echo "$resolved_scope_name" | \
+                command sed --regexp-extended "s/$rewrite")"
     done
     echo "$resolved_scope_name"
 }

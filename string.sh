@@ -31,8 +31,11 @@ bl_string_get_unique_lines() {
         b
         c
     '
-    nl "$@" | sort --key 2 | uniq --skip-fields 1 | sort --numeric-sort | \
-        sed 's/\s*[0-9]\+\s\+//'
+    nl "$@" | \
+        sort --key 2 | \
+            uniq --skip-fields 1 | \
+                sort --numeric-sort | \
+                    command sed 's/\s*[0-9]\+\s\+//'
 }
 alias bl.string.images_to_css_classes=bl_string_images_to_css_classes
 bl_string_images_to_css_classes() {
@@ -74,7 +77,7 @@ bl_string_images_to_css_classes() {
         local valid_path=true
         local exclude_path
         for exclude_path in "$@"; do
-            exclude_path="$(echo "$exclude_path" | sed 's/\/$//g')"
+            exclude_path="$(echo "$exclude_path" | command sed 's/\/$//g')"
             if [[ "$exclude_path" == "$(dirname "$image_file_path")" ]] || \
                [[ "$exclude_path" == "$image_file_path" ]]
             then
@@ -107,11 +110,19 @@ bl_string_make_command_promt_prefix() {
         error_promt="${bl_cli_color_green}>${bl_cli_color_default}"
     fi
     # shellcheck disable=SC1117
-    local git_branch="$(git branch 2>/dev/null | sed --regexp-extended "s/^\* (.*)$/ $(bl.string.validate_regular_expression_replacement "$bl_cli_color_red")\1$(bl.string.validate_regular_expression_replacement "$bl_cli_color_cyan")/g" | \
-        tr --delete "\n" | \
-        sed 's/  / /g' | \
-        sed 's/^ *//g' | \
-        sed 's/ *$//g')"
+    local git_branch="$(
+        git branch 2>/dev/null | \
+        command sed --regexp-extended "s/^\* (.*)$/ $(
+            bl.string.validate_regular_expression_replacement \
+                "$bl_cli_color_red"
+        )\1$(
+            bl.string.validate_regular_expression_replacement \
+                "$bl_cli_color_cyan"
+        )/g" | \
+            tr --delete "\n" | \
+                command sed 's/  / /g' | \
+                    command sed 's/^ *//g' | \
+                        command sed 's/ *$//g')"
     if [ "$git_branch" ]; then
         git_branch="(${bl_cli_color_light_gray}git${bl_cli_color_default})-(${bl_cli_color_cyan}${git_branch}${bl_cli_color_default})"
     fi
@@ -356,7 +367,7 @@ bl_string_validate_argument() {
     elif ! command grep '"' <<< "$1" &>/dev/null; then
         echo "\"$1\""
     else
-        echo "'$(sed "s/'/\\'/g" <<< "$1")'"
+        echo "'$(command sed "s/'/\\'/g" <<< "$1")'"
     fi
     return $?
 }
@@ -371,8 +382,11 @@ bl_string_validate_regular_expression_replacement() {
             sed "s/myInputString/$(bl.string.validate_regular_expression_replacement "\hans/peter&klaus")/g"
         ```
     '
-    echo "$1" | sed --expression 's/\\/\\\\/g' --expression 's/\//\\\//g' \
-        --expression 's/&/\\\&/g'
+    echo "$1" | \
+        command sed \
+            --expression 's/\\/\\\\/g' \
+            --expression 's/\//\\\//g' \
+            --expression 's/&/\\\&/g'
     return $?
 }
 # endregion

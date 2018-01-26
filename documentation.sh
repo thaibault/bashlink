@@ -38,10 +38,12 @@ bl_documentation_format_buffers() {
 alias bl.documentation.format_docstring=bl_documentation_format_docstring
 bl_documentation_format_docstring() {
     local docstring="$1"
-    docstring="$(echo "$docstring" \
-        | sed '/+bl.documentation.exclude_print/d' \
-        | sed '/-bl.documentation.exclude_print/d' \
-        | sed '/+bl.documentation.exclude/,/-bl.documentation.exclude/d')"
+    docstring="$(
+        echo "$docstring" | \
+            command sed '/+bl.documentation.exclude_print/d' | \
+            command sed '/-bl.documentation.exclude_print/d' | \
+            command sed \
+                '/+bl.documentation.exclude/,/-bl.documentation.exclude/d')"
     bl.doctest.parse_docstring "$docstring" bl_documentation_format_buffers \
         --preserve-prompt
 }
@@ -50,9 +52,13 @@ bl_documentation_generate() {
     # TODO add doc test setup function to documentation
     module_reference="$1"
     local result="$(bl.module.resolve "$module_reference" true)"
-    local file_path="$(echo "$result" | sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
-    local module_name="$(echo "$result" | sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
-    local scope_name="$(bl.module.rewrite_scope_name "$module_name" | sed --regexp-extended 's:\.:_:g')"
+    local file_path="$(
+        echo "$result" | command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
+    local module_name="$(
+        echo "$result" | command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
+    local scope_name="$(
+        bl.module.rewrite_scope_name "$module_name" | \
+            command sed --regexp-extended 's:\.:_:g')"
     if [[ -d "$file_path" ]]; then
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
@@ -74,7 +80,12 @@ bl_documentation_generate() {
             fi
             if ! $excluded; then
                 # shellcheck disable=SC1117
-                local name="$(bl.module.remove_known_file_extension "$(echo "$sub_file_path" | sed --regexp-extended "s:${scope_name}/([^/]+):${scope_name}.\1:")")"
+                local name="$(
+                    bl.module.remove_known_file_extension "$(
+                        echo "$sub_file_path" | \
+                            command sed \
+                                --regexp-extended \
+                                "s:${scope_name}/([^/]+):${scope_name}.\1:")")"
                 bl.documentation.generate "$name"
             fi
         done
@@ -136,10 +147,10 @@ bl_documentation_parse_arguments() {
 alias bl.documentation.print_docstring=bl_documentation_print_docstring
 bl_documentation_print_docstring() {
     local docstring="$1"
-    echo "$docstring" \
-        | sed '/+bl.documentation.exclude_print/,/-bl.documentation.exclude_print/d' \
-        | sed '/+bl.documentation.exclude/,/-bl.documentation.exclude/d' \
-        | sed '/```/d'
+    echo "$docstring" | \
+        command sed '/+bl.documentation.exclude_print/,/-bl.documentation.exclude_print/d' | \
+            command sed '/+bl.documentation.exclude/,/-bl.documentation.exclude/d' | \
+                command sed '/```/d'
 }
 # endregion
 if bl.tools.is_main; then

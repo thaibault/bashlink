@@ -47,21 +47,23 @@ bl_pacman_show_not_maintained_by_pacman_system_files() {
     '
     local paths_file_path="$(mktemp)"
     local maintained_paths_file_path="$(mktemp)"
-    sudo find / | sort | sed 's:/$::g' | sort | uniq 1>"$paths_file_path"
-    pacman --query --list --quiet | sed 's:/$::g' | sort | \
+    sudo find / | sort | command sed 's:/$::g' | sort | uniq \
+        1>"$paths_file_path"
+    pacman --query --list --quiet | command sed 's:/$::g' | sort | \
         uniq 1>"$maintained_paths_file_path"
     cat "$paths_file_path" "$maintained_paths_file_path" | \
-        sed 's:^/home/.*$::g' | \
-        sed 's:^/root/.*$::g' | \
-        sed 's:^/dev/.*$::g' | \
-        sed 's:^/sys/.*$::g' | \
-        sed 's:^/tmp/.*$::g' | \
-        sed 's:^/run/.*$::g' | \
-        sed 's:^/var/tmp/.*$::g' | \
-        sed 's:^/var/cache/.*$::g' | \
-        sed 's:^/var/log/.*$::g' | \
-        sed 's:^/proc/.*$::g' | \
-        sort | uniq --unique
+        command sed 's:^/home/.*$::g' | \
+        command sed 's:^/root/.*$::g' | \
+        command sed 's:^/dev/.*$::g' | \
+        command sed 's:^/sys/.*$::g' | \
+        command sed 's:^/tmp/.*$::g' | \
+        command sed 's:^/run/.*$::g' | \
+        command sed 's:^/var/tmp/.*$::g' | \
+        command sed 's:^/var/cache/.*$::g' | \
+        command sed 's:^/var/log/.*$::g' | \
+        command sed 's:^/proc/.*$::g' | \
+        sort | \
+        uniq --unique
     local number_of_files=$(wc --lines "$paths_file_path" | cut --delimiter ' ' --field 1)
     local number_of_maintained_files=$(wc --lines "$maintained_paths_file_path" | cut --delimiter ' ' --field 1)
     local number_of_not_maintained_files

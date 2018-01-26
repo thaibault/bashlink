@@ -60,7 +60,9 @@ bl_display_wacom_map() {
     fi
     IFS=$'\n'
     local device
-    for device in $(xsetwacom --list devices | cut -f1 | sed 's/ *$//g'); do
+    for device in $(
+        xsetwacom --list devices | cut -f1 | command sed 's/ *$//g'
+    ); do
         xsetwacom set "$device" MapToOutput "$display"
         xsetwacom set "$device" Rotate "$rotation"
     done

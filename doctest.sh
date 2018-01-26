@@ -272,7 +272,7 @@ bl_doctest_get_function_docstring() {
         then
             docstring="$(
                 type "$function_name" | \
-                sed --quiet "$bl_doctest_regular_expression")"
+                    command sed --quiet "$bl_doctest_regular_expression")"
         fi
         eval "unset $bl_doctest_name_indicator"
         eval "$docstring"
@@ -449,9 +449,7 @@ bl_doctest_parse_docstring() {
     local state=TEXT
     local next_state
     local temp_prompt
-    #local indentation=""
     while read -r line; do
-        #line="$(echo "$line" | sed -e 's/^[[:blank:]]*//')" # lstrip
         case "$state" in
             TEXT)
                 next_state=TEXT
@@ -471,16 +469,14 @@ bl_doctest_parse_docstring() {
                 fi
                 ;;
             TEST)
-                #[ -z "$indentation" ] &&
-                    #indentation="$(echo "$line"| command grep -o "^[[:blank:]]*")"
                 if [ "$line" = '' ]; then
                     next_state=TEXT
                     bl_doctest_eval_buffers
                     [ $? == 1 ] && return 1
                 elif [[ "$line" = "$prompt"* ]]; then
                     next_state=TEST
-                    # check if start of test
                     $preserve_prompt && temp_prompt="$prompt" && prompt=""
+                    # check if start of test
                     if [ -z "$test_buffer" ]; then
                         test_buffer="${line#$prompt}"
                     else
@@ -597,7 +593,7 @@ bl_doctest_eval() {
     bl_doctest_new_declared_names="$(diff \
         "$declared_names_before_run_file_path" \
         "$declared_names_after_run_file_path" | \
-            command grep -e '^>' | sed 's/^> //')"
+            command grep -e '^>' | command sed 's/^> //')"
     local test_name="$function_name"
     if [ -z "$test_name" ]; then
         test_name="$module_name"
@@ -660,12 +656,12 @@ bl_doctest_test() {
         return 1
     fi
     local file_path="$(
-        echo "$result" | sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
+        echo "$result" | command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
     local module_name="$(
-        echo "$result" | sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
+        echo "$result" | command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
     local scope_name="$(
         bl.module.rewrite_scope_name "$module_name" | \
-        sed --regexp-extended 's:\.:_:g')"
+            command sed --regexp-extended 's:\.:_:g')"
     if [[ -d "$file_path" ]]; then
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
@@ -689,7 +685,9 @@ bl_doctest_test() {
                 # shellcheck disable=SC1117
                 bl.doctest.test "$(bl.module.remove_known_file_extension "$(
                     echo "$sub_file_path" | \
-                    sed --regexp-extended "s:${scope_name}/([^/]+):${scope_name}.\1:"
+                        command sed \
+                            --regexp-extended \
+                            "s:${scope_name}/([^/]+):${scope_name}.\1:"
                 )")"
             fi
         done
