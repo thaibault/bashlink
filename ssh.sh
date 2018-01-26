@@ -75,7 +75,9 @@ bl_ssh_print() {
                 command grep -i user)"
             if [[ "$user_row" != '' ]]; then
                 # shellcheck disable=SC2001
-                local user="$(echo "$user_row" | sed s/user\\s//ig)"
+                local user="$(
+                    echo "$user_row" | \
+                        command sed s/user\\s//ig)"
                 local login="${user}@${host}"
             else
                 echo No login given.
