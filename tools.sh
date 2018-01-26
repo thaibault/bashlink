@@ -169,9 +169,12 @@ bl_tools_run_with_appended_shebang() {
                 ;;
         esac
     done
-    local command="$(head --lines 1 "$application_file_path" | sed \
-        --regexp-extended \
-        's/^#!(.+)$/\1/g')$shebang_arguments $application_file_path $arguments"
+    local command="$(
+        head --lines 1 "$application_file_path" | \
+            command sed \
+                --regexp-extended \
+                's/^#!(.+)$/\1/g'
+    )$shebang_arguments $application_file_path $arguments"
     # NOTE: The following line could be useful for debugging scenarios.
     #echo "Run: \"$command\""
     eval "$command"

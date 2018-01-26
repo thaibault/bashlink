@@ -20,8 +20,11 @@ bl_number_calculate_percent() {
         >>> bl_number_calculate_percent 100 50
         50.00
     '
-    echo "$(((($2 * 10000) / $1) / 100)).$(sed --regexp-extended \
-        's/^(.)$/0\1/g' <<<$(((($2 * 10000) / $1) % 100)))"
+    echo "$(((($2 * 10000) / $1) / 100)).$(
+        command sed \
+            --regexp-extended \
+            's/^(.)$/0\1/g' \
+                <<<$(((($2 * 10000) / $1) % 100)))"
     return $?
 }
 # endregion
