@@ -572,7 +572,7 @@ bl_filesystem_find_hardlinks() {
             bl.filesystem.find_hardlinks /home/user/test.txt
         ```
     '
-    sudo find / -samefile "$1" 2>/dev/null
+    sudo command find / -samefile "$1" 2>/dev/null
     return $?
 }
 alias bl.filesystem.show_symbolic_links=bl_filesystem_show_symbolic_links
@@ -594,7 +594,7 @@ bl_filesystem_show_symbolic_links() {
     while IFS= read -r -d '' element; do
         echo "${element} -> "
         readlink "$element"
-    done < <(find "$1" -type l -print0)
+    done < <(command find "$1" -type l -print0)
     return $?
 }
 ## endregion

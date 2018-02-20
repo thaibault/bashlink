@@ -73,7 +73,9 @@ bl_string_images_to_css_classes() {
         shift
     fi
     local image_file_path
-    find "$source" -regex "^$path_pattern$" | while read -r image_file_path; do
+    command find "$source" -regex "^$path_pattern$" | \
+        while read -r image_file_path
+    do
         local valid_path=true
         local exclude_path
         for exclude_path in "$@"; do
