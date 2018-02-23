@@ -174,7 +174,7 @@ bl_filesystem_btrfs_subvolume_filter() {
         >>> bl.filesystem.btrfs_subvolume_filter /broot id 256
         ID 256 parent 5 top level 5 path __active
     '
-    local btrfs_root="$(realpath "$1")"
+    local btrfs_root="$(readlink --canonicalize "$1")"
     local target_key="$2"
     local target_value="$3"
     local entry
