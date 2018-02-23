@@ -20,6 +20,9 @@ bl.module.import bashlink.path
 # endregion
 # region variables
 bl_filesystem__dependencies__=(pv)
+bl_filesystem__documentation__='
+    Provides filesystem aware utility functions.
+'
 # shellcheck disable=SC1004
 bl_filesystem__doctest_setup__='
     # Runs once before tests are started:
@@ -424,7 +427,9 @@ EOF
 }
 alias bl.filesystem.btrfs_subvolume_backup_autocomplete=bl_filesystem_btrfs_subvolume_backup_autocomplete
 bl_filesystem_btrfs_subvolume_backup_autocomplete() {
-    # Autocompletion function.
+    local __documentation__='
+        Autocompletion function for `bl.filesystem.subvolume_backup`.
+    '
     local last_complete_argument="${COMP_WORDS[${COMP_CWORD}-1]}"
     local current_argument="${COMP_WORDS[-1]}"
     if [[ $COMP_CWORD == 1 ]]; then
@@ -477,6 +482,9 @@ bl_filesystem_close_crypt_blockdevice() {
 }
 alias bl.filesystem.create_partition_via_offset=bl_filesystem_create_partition_via_offset
 bl_filesystem_create_partition_via_offset() {
+    local __documentation__='
+        Creates a partition after given disk offset.
+    '
     local device="$1"
     local name_or_uuid="$2"
     local loop_device="$(losetup --find)"

@@ -33,7 +33,7 @@ bl_doctest__documentation__='
         doctest.sh file1 folder1 file2 ...
     ```
 
-    #### Options:
+    Options:
 
     ```
         --help|-h               Print help message.
@@ -44,7 +44,7 @@ bl_doctest__documentation__='
         --verbose|-v            Be more verbose
     ```
 
-    #### Example output for `./doctest.sh -v arguments.sh`
+    Example output for `./doctest.sh -v arguments.sh`
 
     ```bash
         [verbose:doctest.sh:330] bl.arguments:[PASS]
@@ -76,15 +76,18 @@ bl_doctest__documentation__='
     >>> echo bar
     bar
 
-    ##### Single quotes can be escaped like so:
+    Single quotes can be escaped like so:
+
     >>> echo '"'"'$foos'"'"'
     $foos
 
-    ##### Or so
+    Or so
+
     >>> echo '\''$foos'\''
     $foos
 
-    ##### Some text in between.
+    Some text in between.
+
     Multiline output
     >>> local i
     >>> for i in 1 2; do
@@ -93,7 +96,8 @@ bl_doctest__documentation__='
     1
     2
 
-    ##### Check ellipsis support
+    Check ellipsis support
+
     >>> local i
     >>> for i in 1 2 3 4 5; do
     >>>     echo $i;
@@ -103,7 +107,8 @@ bl_doctest__documentation__='
     2
     ...
 
-    ##### Multi line ellipsis are non greedy.
+    Multi line ellipsis are non greedy.
+
     >>> local i
     >>> for i in 1 2 3 4 5; do
     >>>     echo $i;
@@ -114,7 +119,8 @@ bl_doctest__documentation__='
     4
     5
 
-    ##### Ellipsis matches one line.
+    Ellipsis matches one line.
+
     >>> local i
     >>> for i in 1 2 3 4 5; do
     >>>     echo $i;
@@ -126,13 +132,15 @@ bl_doctest__documentation__='
     4
     5
 
-    ##### Each testcase has its own scope:
+    Each testcase has its own scope:
+
     >>> local testing="foo"; echo $testing
     foo
     >>> [ -z "${testing:-}" ] && echo empty
     empty
 
-    ##### Check for syntax error in test code:
+    Check for syntax error in test code:
+
     >>> f() {a}
     +bl.doctest.multiline_contains
     {a}
@@ -324,20 +332,20 @@ bl_doctest_compare_result() {
                 ellipsis_on=false
             fi
             if $bl_doctest_debug; then
-                echo -e "${bl_cli_color_light_green}Matched by ellipsis ${bl_cli_powerline_ok}${bl_cli_color_default}"
+                echo -e "Matched by ellipsis ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
             fi
         elif bl_doctest_compare_line; then
             if $bl_doctest_debug; then
-                echo -e "${bl_cli_color_light_green}Matched ${bl_cli_powerline_ok}${bl_cli_color_default}"
+                echo -e "Matched ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
             fi
             if ! $multiline_contains; then
                 contains=false
             fi
         else
             if $contains; then
-                echo -e "${bl_cli_color_light_red}\"$buffer_line\" is not in \"$got_line\". ${bl_cli_powerline_fail}${bl_cli_color_default}"
+                echo -e "\"$buffer_line\" is not in \"$got_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
             else
-                echo -e "${bl_cli_color_light_red}\"$got_line\" is not \"$buffer_line\". ${bl_cli_powerline_fail}${bl_cli_color_default}"
+                echo -e "\"$got_line\" is not \"$buffer_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
             fi
             if ! $multiline_contains; then
                 contains=false
@@ -437,7 +445,7 @@ bl_doctest_eval() {
     local reason
     if ! reason="$(bl.doctest.compare_result "$output_buffer" "$output")"
     then
-        echo -e "Error: ${reason}"$'\n'
+        echo -e "${bl_cli_color_light_red}Error:${bl_cli_color_default} ${reason}"$'\n'
         echo -e "${bl_cli_color_light_red}test:${bl_cli_color_default}"
         echo "$test_buffer"
         echo -e "${bl_cli_color_light_red}expected:${bl_cli_color_default}"
