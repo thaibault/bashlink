@@ -222,8 +222,8 @@ bl_arguments_get_positional() {
 alias bl.arguments.set=bl_arguments_set
 bl_arguments_set() {
     local __documentation__='
-        Set the array the arguments-module is working on. After getting the
-        desired arguments, the new argument array can be accessed via
+        Set the array this module should work on. After getting the desired
+        arguments, the new argument array can be accessed via
         `bl_arguments_new`. This new array contains all remaining arguments.
 
         ```
