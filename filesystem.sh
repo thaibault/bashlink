@@ -9,7 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./globals.sh
 # shellcheck source=./module.sh
@@ -19,9 +19,8 @@ bl.module.import bashlink.logging
 bl.module.import bashlink.path
 # endregion
 # region variables
-# shellcheck disable=SC2034
 bl_filesystem__dependencies__=(pv)
-# shellcheck disable=SC2034,SC1004
+# shellcheck disable=SC1004
 bl_filesystem__doctest_setup__='
     # Runs once before tests are started:
     # region import
@@ -130,7 +129,6 @@ EOF
 ## region btrfs
 alias bl.filesystem.btrfs_is_root=bl_filesystem_btrfs_is_root
 bl_filesystem_btrfs_is_root() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> bl.filesystem.btrfs_is_root /broot; echo $?
         0
@@ -145,7 +143,6 @@ bl_filesystem_btrfs_is_root() {
 # NOTE: Depends on "bl.filesystem.is_root"
 alias bl.filesystem.btrfs_find_root=bl_filesystem_btrfs_find_root
 bl_filesystem_btrfs_find_root() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Returns absolute path to btrfs root.
 
@@ -166,7 +163,6 @@ bl_filesystem_btrfs_find_root() {
 # NOTE: Depends on "bl.filesystem.is_root"
 alias bl.filesystem.btrfs_subvolume_filter=bl_filesystem_btrfs_subvolume_filter
 bl_filesystem_btrfs_subvolume_filter() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> bl.filesystem.btrfs_subvolume_filter /broot parent 256
         ID 259 parent 256 top level 256 path __active/var
@@ -189,7 +185,6 @@ bl_filesystem_btrfs_subvolume_filter() {
 }
 alias bl.filesystem.btrfs_is_subvolume=bl_filesystem_btrfs_is_subvolume
 bl_filesystem_btrfs_is_subvolume() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Checks if path is a subvolume. Note: The btrfs root is also a
         subvolume.
@@ -208,7 +203,6 @@ bl_filesystem_btrfs_is_subvolume() {
 # NOTE: Depends on "bl.filesystem.btrfs_subvolume", "bl.filesystem.btrfs_subvolume_filter"
 alias bl.filesystem.btrfs_get_child_volumes=bl_filesystem_btrfs_get_child_volumes
 bl_filesystem_btrfs_get_child_volumes() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Returns absolute paths to subvolumes.
 
@@ -236,7 +230,6 @@ bl_filesystem_btrfs_get_child_volumes() {
 }
 alias bl.filesystem.btrfs_get_subvolume_list_field=bl_filesystem_btrfs_get_subvolume_list_field
 bl_filesystem_btrfs_get_subvolume_list_field() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> local entry="$(btrfs subvolume list /broot | head -n1)"
         >>> bl.filesystem.btrfs_get_subvolume_list_field path "$entry"
@@ -264,7 +257,6 @@ bl_filesystem_btrfs_get_subvolume_list_field() {
 }
 alias bl.filesystem.btrfs_subvolume_set_read_only=bl_filesystem_btrfs_subvolume_set_read_only
 bl_filesystem_btrfs_subvolume_set_read_only() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Make subvolume writable or readonly. Also applies to child subvolumes.
     '
@@ -285,7 +277,6 @@ bl_filesystem_btrfs_subvolume_set_read_only() {
 # NOTE: Depends on "bl.filesystem.btrfs_subvolume_set_read_only"
 alias bl.filesystem.btrfs_send=bl_filesystem_btrfs_send
 bl_filesystem_btrfs_send() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Sends snapshots.
 
@@ -320,7 +311,7 @@ bl_filesystem_btrfs_send() {
 # NOTE: Depends on "bl.filesystem.btrfs_subvolume_set_read_only"
 alias bl.filesystem.btrfs_send_update=bl_filesystem_btrfs_send_update
 bl_filesystem_btrfs_send_update() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Update snapshot (needs backing snapshot).
 
@@ -359,7 +350,6 @@ bl_filesystem_btrfs_send_update() {
 }
 alias bl.filesystem.btrfs_snapshot=bl_filesystem_btrfs_snapshot
 bl_filesystem_btrfs_snapshot() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Make snapshot of subvolume.
 
@@ -395,7 +385,6 @@ bl_filesystem_btrfs_snapshot() {
 }
 alias bl.filesystem.btrfs_subvolume_backup=bl_filesystem_btrfs_subvolume_backup
 bl_filesystem_btrfs_subvolume_backup() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Create, delete or list system backups.
 
@@ -453,7 +442,6 @@ bl_filesystem_btrfs_subvolume_backup_autocomplete() {
 complete -F bl_filesystem_btrfs_subvolume_backup_autocomplete bl_filesystem_btrfs_subvolume_backup
 alias bl.filesystem.btrfs_subvolume_delete=bl_filesystem_btrfs_subvolume_delete
 bl_filesystem_btrfs_subvolume_delete() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Delete a subvolume. Also deletes child subvolumes.
 
@@ -477,7 +465,6 @@ bl_filesystem_btrfs_subvolume_delete() {
 ## endregion
 alias bl.filesystem.close_crypt_blockdevice=bl_filesystem_close_crypt_blockdevice
 bl_filesystem_close_crypt_blockdevice() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Mounts encrypted blockdevices as analyseable blockdevice.
 
@@ -509,7 +496,6 @@ bl_filesystem_create_partition_via_offset() {
 }
 alias bl.filesystem.find_block_device=bl_filesystem_find_block_device
 bl_filesystem_find_block_device() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> bl.filesystem.find_block_device "boot_partition"
         /dev/sdb1
@@ -564,7 +550,6 @@ bl_filesystem_find_block_device() {
 ## region file links
 alias bl.filesystem.find_hardlinks=bl_filesystem_find_hardlinks
 bl_filesystem_find_hardlinks() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Finds same files as given file (hardlinks).
 
@@ -577,7 +562,6 @@ bl_filesystem_find_hardlinks() {
 }
 alias bl.filesystem.show_symbolic_links=bl_filesystem_show_symbolic_links
 bl_filesystem_show_symbolic_links() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Shows symbolic links in current directory if no argument is provided or
         in given location and their subdirectories (recursive).
@@ -600,7 +584,6 @@ bl_filesystem_show_symbolic_links() {
 ## endregion
 alias bl.filesystem.make_crypt_blockdevice=bl_filesystem_make_crypt_blockdevice
 bl_filesystem_make_crypt_blockdevice() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Creates encrypted blockdevices.
 
@@ -613,7 +596,7 @@ bl_filesystem_make_crypt_blockdevice() {
 }
 alias bl.filesystem.make_uefi_boot_entry=bl_filesystem_make_uefi_boot_entry
 bl_filesystem_make_uefi_boot_entry() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Creates an uefi boot entry.
 
@@ -647,7 +630,6 @@ bl_filesystem_make_uefi_boot_entry() {
 }
 alias bl.filesystem.open_crypt_blockdevice=bl_filesystem_open_crypt_blockdevice
 bl_filesystem_open_crypt_blockdevice() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Mounts encrypted blockdevices as analyseable blockdevice.
 
@@ -660,7 +642,6 @@ bl_filesystem_open_crypt_blockdevice() {
 }
 alias bl.filesystem.overlay_location=bl_filesystem_overlay_location
 bl_filesystem_overlay_location() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Mounts an overlay over given location. This could be useful if we have a
         read only system caused by physical reasons.
@@ -676,7 +657,6 @@ bl_filesystem_overlay_location() {
 }
 alias bl.filesystem.repair=bl_filesystem_repair
 bl_filesystem_repair() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Finds filesystem errors on linux based filesystem and repairs them.
 
@@ -694,7 +674,6 @@ bl_filesystem_repair() {
 }
 alias bl.filesystem.set_maximum_user_watches=bl_filesystem_set_maximum_user_watches
 bl_filesystem_set_maximum_user_watches() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Sets the maximum number of concurrent allowed file observations via
         inotify.
@@ -708,7 +687,7 @@ bl_filesystem_set_maximum_user_watches() {
 }
 alias bl.filesystem.write_blockdevice_to_image=bl_filesystem_write_blockdevice_to_image
 bl_filesystem_write_blockdevice_to_image() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Writes a given backup from given blockdevice.
 
@@ -731,7 +710,7 @@ bl_filesystem_write_blockdevice_to_image() {
 }
 alias bl.filesystem.write_image_to_blockdevice=bl_filesystem_write_image_to_blockdevice
 bl_filesystem_write_image_to_blockdevice() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Writes a given image to given blockdevice.
 

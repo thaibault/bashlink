@@ -9,11 +9,15 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
+# region variables
+bl_array__documentation__='
+    The array module implements utility functions concerning arrays.
+'
+# endregion
 # region functions
 alias bl.array.contains=bl_array_contains
 bl_array_contains() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Checks if given item equals to one item in given array.
 
@@ -38,7 +42,6 @@ bl_array_contains() {
 }
 alias bl.array.filter=bl_array_filter
 bl_array_filter() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Filters values from given array by given regular expression.
 
@@ -56,7 +59,6 @@ bl_array_filter() {
 }
 alias bl.array.get_index=bl_array_get_index
 bl_array_get_index() {
-    # shellcheck disable=SC2016
     local __documentation__='
         Get index of value in an array
 
@@ -86,7 +88,6 @@ bl_array_get_index() {
 }
 alias bl.array.slice=bl_array_slice
 bl_array_slice() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Returns a slice of an array (similar to Python). One way to remember
         how slices work is to think of the indices as pointing between

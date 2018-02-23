@@ -9,11 +9,10 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region functions
 alias bl.number.calculate_percent=bl_number_calculate_percent
 bl_number_calculate_percent() {
-    # shellcheck disable=SC2016,SC2034
     __documentation__='
         Calculates percent of second argument from the first argument.
 
