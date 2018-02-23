@@ -10,6 +10,12 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
+# region variables
+bl_display__documentation__='
+    The display module implements utility functions concerning display
+    configuration.
+'
+# endregion
 # region functions
 alias bl.display.load_xinit_sources=bl_display_load_xinit_sources
 bl_display_load_xinit_sources() {

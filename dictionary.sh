@@ -15,6 +15,12 @@
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.tools
 # endregion
+# region variables
+bl_dictionary__documentation__='
+    The dictionary module implements utility functions concerning dictionary
+    operations.
+'
+# endregion
 # region functions
 alias bl.dictionary.get=bl_dictionary_get
 bl_dictionary_get() {

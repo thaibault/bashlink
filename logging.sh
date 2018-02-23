@@ -135,6 +135,7 @@ bl_logging_get_prefix() {
     # shellcheck disable=SC2154
     local loglevel=${color}${level}${bl_cli_color_default}
     local path="${BASH_SOURCE[2]##./}"
+    path="${path%.sh}"
     # shellcheck disable=SC2154
     echo "${loglevel}:${bl_cli_color_light_gray}$(basename "$path")${bl_cli_color_default}:${bl_cli_color_light_cyan}${BASH_LINENO[1]}${bl_cli_color_default}:"
 }
