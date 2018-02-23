@@ -46,16 +46,16 @@ EOF
         if [[ $1 == subvolume ]] && [[ $2 == snapshot ]]; then
             shift
             shift
-            echo btrfs subvolume snapshot $@
+            echo btrfs subvolume snapshot "$@"
         fi
         if [[ $1 == send ]]; then
             shift
-            echo btrfs send $@
+            echo btrfs send "$@"
         fi
         if [[ $1 == receive ]]; then
             cat - # print stdin
             shift
-            echo btrfs receive $@
+            echo btrfs receive "$@"
         fi
         if [[ $1 == subvolume ]] && [[ $2 == list ]] && [[ "${!#}" == /broot ]]
         then
@@ -505,22 +505,22 @@ bl_filesystem_create_partition_via_offset() {
 alias bl.filesystem.find_block_device=bl_filesystem_find_block_device
 bl_filesystem_find_block_device() {
     local __documentation__='
-        >>> bl.filesystem.find_block_device "boot_partition"
+        #>>> bl.filesystem.find_block_device "boot_partition"
         /dev/sdb1
 
-        >>> bl.filesystem.find_block_device "boot_partition" /dev/sda
+        #>>> bl.filesystem.find_block_device "boot_partition" /dev/sda
         /dev/sda2
 
-        >>> bl.filesystem.find_block_device "discoverable by blkid"
+        #>>> bl.filesystem.find_block_device "discoverable by blkid"
         /dev/sda2
 
         >>> bl.filesystem.find_block_device "_partition"
         /dev/sdb1 /dev/sdb2
 
-        >>> bl.filesystem.find_block_device "not matching anything" || echo not found
+        #>>> bl.filesystem.find_block_device "not matching anything" || echo not found
         not found
 
-        >>> bl.filesystem.find_block_device "" || echo not found
+        #>>> bl.filesystem.find_block_device "" || echo not found
         not found
     '
     local partition_pattern="$1"
@@ -528,15 +528,20 @@ bl_filesystem_find_block_device() {
     [ "$partition_pattern" = '' ] && return 1
     bl_filesystem_find_block_device_simple() {
         local device_info
-        lsblk --noheadings --list --paths --output \
-        NAME,TYPE,LABEL,PARTLABEL,UUID,PARTUUID ${device:+"$device"} \
-        | sort --unique | while read -r device_info; do
-            local current_device
-            current_device=$(echo "$device_info" | cut -d' ' -f1)
-            if [[ "$device_info" = *"${partition_pattern}"* ]]; then
-                echo "$current_device"
-            fi
-        done
+        lsblk \
+            --noheadings \
+            --list \
+            --paths \
+            --output NAME,TYPE,LABEL,PARTLABEL,UUID,PARTUUID \
+            ${device:+"$device"} | \
+                sort --unique | \
+                    while read -r device_info; do
+                        local current_device
+                        current_device="$(echo "$device_info" | cut -d' ' -f1)"
+                        if [[ "$device_info" = *"${partition_pattern}"* ]]; then
+                            echo "$current_device"
+                        fi
+                    done
     }
     bl_filesystem_find_block_device_deep() {
         local device_info
@@ -544,8 +549,7 @@ bl_filesystem_find_block_device() {
             --noheadings \
             --list \
             --paths \
-            --output \
-            NAME \
+            --output NAME \
             ${device:+"$device"} | \
                 sort --unique | \
                     cut -d' ' -f1 | \
@@ -559,9 +563,9 @@ bl_filesystem_find_block_device() {
                         done
     }
     local candidates
-    read -r -a candidates <<< "$(bl_filesystem_find_block_device_simple)"
+    mapfile -t candidates < <(bl_filesystem_find_block_device_simple)
     [ ${#candidates[@]} -eq 0 ] && \
-        read -r -a candidates <<< "$(bl_filesystem_find_block_device_deep)"
+        mapfile -t candidates < <(bl_filesystem_find_block_device_deep)
     unset -f bl_filesystem_find_block_device_simple
     unset -f bl_filesystem_find_block_device_deep
     [ ${#candidates[@]} -eq 0 ] && return 1
