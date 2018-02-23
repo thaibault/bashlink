@@ -744,6 +744,8 @@ bl_doctest_test() {
             function_names_to_test+="$name"
         fi
     done
+    local total=0
+    local success=0
     if [[ -d "$file_path" ]]; then
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
@@ -766,15 +768,17 @@ bl_doctest_test() {
                 done
             fi
             if ! $excluded; then
+                (( total++ ))
                 # shellcheck disable=SC1117
                 bl.doctest.test "$(bl.module.remove_known_file_extension "$(
                     echo "$sub_file_path" | \
                         command sed \
                             --regexp-extended \
                             "s:${scope_name}/([^/]+):${scope_name}.\1:"
-                )")"
+                )")" && (( success++ ))
             fi
         done
+        (( success != total )) && exit 1
         return 0
     fi
     (
@@ -793,8 +797,6 @@ bl_doctest_test() {
         # NOTE: Removes duplicates.
         function_names_to_test="$(bl.string.get_unique_lines <(
             echo "$function_names_to_test"))"
-        local total=0
-        local success=0
         bl.time.start
         if [ "$given_function_names_to_test" = '' ]; then
             # Module level tests
@@ -867,7 +869,7 @@ bl_doctest_main() {
     fi
     bl.time.start
     if [[ $# == 0 ]]; then
-        bl.doctest.test bashlink
+        bl.doctest.test bashlink &
     else
         local name
         for name in "$@"; do
