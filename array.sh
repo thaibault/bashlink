@@ -12,7 +12,7 @@
 # shellcheck disable=SC2016,SC2034,SC2155
 # region variables
 bl_array__documentation__='
-    The array module implements utility functions concerning arrays.
+    This module implements utility functions concerning arrays.
 '
 # endregion
 # region functions

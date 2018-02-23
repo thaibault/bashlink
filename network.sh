@@ -10,6 +10,12 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
+# region variables
+bl_network__documentation__='
+    The network module implements utility functions concerning network
+    confgurations.
+'
+# endregion
 # region functions
 alias bl.network.restart_network='sudo ifdown -a &>/dev/null && sudo ifup -a &>/dev/null'
 alias bl.network.wlan_start=bl.network_wlan_start
