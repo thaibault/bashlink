@@ -9,7 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./globals.sh
 # shellcheck source=./module.sh
@@ -21,7 +21,6 @@ bl.module.import bashlink.string
 alias bl.tools.is_defined=bl_module_is_defined
 alias bl.tools.is_empty=bl_tools_is_empty
 bl_tools_is_empty() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Tests if variable is empty (undefined variables are not empty)
 
@@ -43,7 +42,6 @@ bl_tools_is_empty() {
 }
 alias bl.tools.is_main=bl_tools_is_main
 bl_tools_is_main() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Returns true if current script is being executed.
 
@@ -57,7 +55,6 @@ bl_tools_is_main() {
 }
 alias bl.tools.make_openssl_pem_file=bl_tools_make_openssl_pem_file
 bl_tools_make_openssl_pem_file() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Creates a concatenated pem file needed for server with https support.
 
@@ -82,7 +79,6 @@ bl_tools_make_openssl_pem_file() {
 }
 alias bl.tools.make_single_executbale=bl_tools_make_single_executable
 bl_tools_make_single_executable() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Creates a bsd and virtually posix shell compatible single executable
         file from an application directory.
@@ -124,7 +120,7 @@ EOF
 }
 alias bl.tools.run_with_appended_shebang=bl_tools_run_with_appended_shebang
 bl_tools_run_with_appended_shebang() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         This function reads and returns the shebang from given file if exist.
 
@@ -182,7 +178,7 @@ bl_tools_run_with_appended_shebang() {
 }
 alias bl.tools.send_e_mail=bl_tools_send_e_mail
 bl_tools_send_e_mail() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Sends an email.
 

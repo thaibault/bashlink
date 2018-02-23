@@ -9,7 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./cli.sh
 # shellcheck source=./module.sh
@@ -23,7 +23,6 @@ bl_string_generate_random() {
 }
 alias bl.string.get_unique_lines=bl_string_get_unique_lines
 bl_string_get_unique_lines() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> local foo="a\nb\na\nb\nc\nb\nc"
         >>> echo -e "$foo" | bl.string.get_unique_lines
@@ -39,7 +38,7 @@ bl_string_get_unique_lines() {
 }
 alias bl.string.images_to_css_classes=bl_string_images_to_css_classes
 bl_string_images_to_css_classes() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         This function converts a folder of images to a single includeable css
         file.
@@ -99,7 +98,6 @@ alias bl.string.make_command_promt_prefix=bl_string_make_command_promt_prefix
 bl_string_make_command_promt_prefix() {
     # NOTE: This have to be the first statement to retrieve last return code.
     local return_code=$?
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Generates a new user prompt with useful runtime parameters.
 
@@ -150,7 +148,7 @@ bl_string_make_command_promt_prefix() {
 }
 alias bl.string.merge_text_files=bl_string_merge_text_files
 bl_string_merge_text_files() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Concatenate files and print on the standard output.
 
@@ -220,7 +218,6 @@ bl_string_merge_text_files() {
 }
 alias bl.string.translate=bl_string_translate
 bl_string_translate() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Translates a given string in a given (or automatic detected) language
         and gives a translation in given language (German by default) back.
@@ -350,7 +347,6 @@ EOF
 }
 alias bl.string.validate_argument=bl_string_validate_argument
 bl_string_validate_argument() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Validates a given bash argument.
 
@@ -375,7 +371,6 @@ bl_string_validate_argument() {
 }
 alias bl.string.validate_regular_expression_replacement=bl_string_validate_regular_expression_replacement
 bl_string_validate_regular_expression_replacement() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         This functions escapes every special meaning character for a sed
         replacement.

@@ -9,11 +9,10 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region functions
 alias bl.display.load_xinit_sources=bl_display_load_xinit_sources
 bl_display_load_xinit_sources() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         This functions loads all xinit source scripts.
 
@@ -32,7 +31,6 @@ bl_display_load_xinit_sources() {
 }
 alias bl.display.wacom_map=bl_display_wacom_map
 bl_display_wacom_map() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         This function maps wacom input device to given output display.
 
@@ -70,7 +68,6 @@ bl_display_wacom_map() {
 }
 alias bl.display.wacom_rotate=bl_display_wacom_rotate
 bl_display_wacom_rotate() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Rotates a wacom display orientation by 180 degree.
 
@@ -154,7 +151,6 @@ EOF
 }
 alias bl.display.wacom_toggle_finger_touch_state=bl_display_wacom_toggle_finger_touch_state
 bl_display_wacom_toggle_finger_touch_state() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Toggles between enabled and disabled finger touch on wacom displays.
 

@@ -9,7 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./cli.sh
 # shellcheck source=./module.sh
@@ -25,7 +25,6 @@ bl.module.import bashlink.time
 bl.module.import bashlink.tools
 # endregion
 # region variables
-# shellcheck disable=SC2034,SC2016
 bl_doctest__documentation__='
     The doctest module implements function and module level testing via
     documentation strings. Tests can be run by invoking:
@@ -152,7 +151,6 @@ bl_doctest_use_side_by_side_output=true
 # region functions
 alias bl.doctest.compare_result=bl_doctest_compare_result
 bl_doctest_compare_result() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> local buffer="line 1
         >>> line 2"
@@ -348,7 +346,6 @@ bl_doctest_compare_result() {
 }
 alias bl.doctest.eval=bl_doctest_eval
 bl_doctest_eval() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> local test_buffer="
         >>> echo foo
@@ -481,7 +478,6 @@ bl_doctest_get_function_docstring() {
 }
 alias bl.doctest.parse_docstring=bl_doctest_parse_docstring
 bl_doctest_parse_docstring() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> local docstring="
         >>>     (test)block
@@ -823,7 +819,6 @@ bl_doctest_test() {
 # NOTE: Depends on "bl.doctest.test"
 alias bl.doctest.main=bl_doctest_main
 bl_doctest_main() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         +bl.documentation.exclude
         >>> bl.doctest.main non_existing_module

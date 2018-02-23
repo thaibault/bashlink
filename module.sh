@@ -9,7 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # Ensure to load module "module" once.
 if [ ${#bl_module_imported[@]} -ne 0 ]; then
     return 0
@@ -48,7 +48,6 @@ bl_module_allowed_scope_names=()
 bl_module_bash_version_test=''
 bl_module_declared_function_names_after_source=''
 bl_module_declared_function_names_before_source_file_path=''
-# shellcheck disable=SC2034
 bl_module_declared_names_after_source=''
 bl_module_declared_names_before_source_file_path=''
 bl_module_directory_names_to_ignore=(apiDocumentation documentation node_modules)
@@ -107,7 +106,6 @@ bl_module_check_name() {
 }
 alias bl.module.determine_aliases=bl_module_determine_aliases
 bl_module_determine_aliases() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Returns all defined aliases in the current scope.
     '
@@ -116,7 +114,6 @@ bl_module_determine_aliases() {
 }
 alias bl.module.determine_declared_names=bl_module_determine_declared_names
 bl_module_determine_declared_names() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Return all declared variables and function in the current scope.
 
@@ -135,7 +132,6 @@ bl_module_determine_declared_names() {
 }
 alias bl.module.is_defined=bl_module_is_defined
 bl_module_is_defined() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Tests if variable is defined (can also be empty)
 
@@ -179,7 +175,6 @@ bl_module_is_defined() {
             # NOTE: ${varname:-foo} expands to foo if varname is unset or set to
             # the empty string; ${varname-foo} only expands to foo if varname is
             # unset.
-            # shellcheck disable=SC2016
             eval \
                 '! [[ "${'"$1"'-this_variable_is_undefined_!!!}"' \
                 ' == "this_variable_is_undefined_!!!" ]]'
@@ -205,7 +200,6 @@ bl_module_is_imported() {
 }
 alias bl.module.log=bl_module_log
 bl_module_log() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Logs arbitrary strings with given level.
     '
@@ -240,7 +234,6 @@ bl_module_import_raw() {
 # NOTE: Depends on "bl.module.log"
 alias bl.module.import_with_namespace_check=bl_module_import_with_namespace_check
 bl_module_import_with_namespace_check() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Sources a script and checks variable definitions before and after sourcing.
     '
@@ -333,7 +326,7 @@ bl_module_import_with_namespace_check() {
 # NOTE: Depends on "bl.module.import_raw" and "bl.module.import_with_namespace_check"
 alias bl.module.import=bl_module_import
 bl_module_import() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         NOTE: Do not use `bl.module.import` inside functions -> aliases do not
         work.
@@ -453,7 +446,6 @@ alias bl.module.resolve=bl_module_resolve
 bl_module_resolve() {
     local name="$1"
     local caller_path
-    # shellcheck disable=SC2034
     bl_module_declared_function_names_after_source=''
     local current_path="$(dirname "$(dirname "$(bl.path.convert_to_absolute "${BASH_SOURCE[0]}")")")"
     if (( $# == 1 )) || [ "${!#}" = true ] || [ "${!#}" = false ]; then

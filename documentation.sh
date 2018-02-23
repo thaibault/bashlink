@@ -9,7 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
@@ -21,7 +21,6 @@ bl.module.import bashlink.string
 bl.module.import bashlink.tools
 # endregion
 # region variables
-# shellcheck disable=SC2034,SC2016
 bl_documentation__documentation__='
     The documentation module implements function and module level documentation
     generation in markdown.
@@ -46,7 +45,6 @@ bl_documentation_format_buffers() {
     local text_buffer="$3"
     [[ "$text_buffer" != '' ]] && echo "$text_buffer"
     if [[ "$buffer" != '' ]]; then
-        # shellcheck disable=SC2016
         echo '```bash'
         echo "$buffer"
         if [[ "$output_buffer" != '' ]]; then

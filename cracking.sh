@@ -9,11 +9,16 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
+# region variables
+bl_cracking__documentation__='
+    The cracking module implements utility functions to make a system
+    unusable or trigger unexpected behavior.
+'
+# endregion
 # region functions
 alias bl.cracking.endless_loop=bl_cracking_endless_loop
 bl_cracking_endless_loop() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Starts an endless loop.
 
@@ -28,7 +33,6 @@ bl_cracking_endless_loop() {
 }
 alias bl.cracking.fake_sudo_password_attempt=bl_cracking_fake_sudo_password_attempt
 bl_cracking_fake_sudo_password_attempt() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Shows a fake sudo password attempt.
 
@@ -47,7 +51,6 @@ bl_cracking_fake_sudo_password_attempt() {
 }
 alias bl.cracking.fork_bomb=bl_cracking_fork_bomb
 bl_cracking_fork_bomb() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Implementation for fork bomb. Note short version:
 
@@ -64,7 +67,6 @@ bl_cracking_fork_bomb() {
 }
 alias bl.cracking.grab_sudo_password=bl_cracking_grab_sudo_password
 bl_cracking_grab_sudo_password() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Shows a fake sudo password attempt and send to password to server.
 
@@ -99,7 +101,6 @@ bl_cracking_grab_sudo_password() {
 }
 alias bl.cracking.make_simple_ddos_attach=bl_cracking_make_simple_ddos_attack
 bl_cracking_make_simple_ddos_attack() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Makes a ddos attack to given host on given port. First argument: Number
         of requests. Second argument: Port
@@ -117,7 +118,6 @@ bl_cracking_make_simple_ddos_attack() {
 }
 alias bl.cracking.make_system_unattainable=bl_cracking_make_system_unattainable
 bl_cracking_make_system_unattainable() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Uses a stress system algorithm in its own process to avoid solving the
         problem by process tree killing.
@@ -131,7 +131,6 @@ bl_cracking_make_system_unattainable() {
 }
 alias bl.cracking.stress_system=bl_cracking_stress_system
 bl_cracking_stress_system() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Stress system with given number of endless loops.
 
@@ -147,7 +146,6 @@ bl_cracking_stress_system() {
 }
 alias bl.cracking.stress_system_with_fork_bomb=bl_cracking_stress_system_with_fork_bomb
 bl_cracking_stress_system_with_fork_bomb() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Runs a forkbomb in an endless loop. This is useful if operating system
         kills the whole process tree.
