@@ -33,7 +33,7 @@ bl_doctest__documentation__='
         doctest.sh file1 folder1 file2 ...
     ```
 
-    #### Options:
+    Options:
 
     ```
         --help|-h               Print help message.
@@ -44,7 +44,7 @@ bl_doctest__documentation__='
         --verbose|-v            Be more verbose
     ```
 
-    #### Example output for `./doctest.sh -v arguments.sh`
+    Example output for `./doctest.sh -v arguments.sh`
 
     ```bash
         [verbose:doctest.sh:330] bl.arguments:[PASS]
@@ -54,7 +54,7 @@ bl_doctest__documentation__='
         [verbose:doctest.sh:330] bl.arguments.get_positional:[PASS]
         [verbose:doctest.sh:330] bl.arguments.set:[PASS]
         [info:doctest.sh:590] bl.arguments - passed 6/6 tests in 918 ms
-        [info:doctest.sh:643] Total: passed 1/1 modules in 941 ms
+        [info:doctest.sh:643] Total: passed 1/1 items in 941 ms
     ```
 
     A docstring can be defined for a function by defining a variable named
@@ -63,7 +63,7 @@ bl_doctest__documentation__='
     `bl_arguments__documentation__` for the example above). NOTE: The
     "docstring" needs to be defined with single quotes. Code contained in a
     module level variable named `<module_name>__bl_doctest_setup__` will be run
-    once before all the tests of a module are run. This is usefull for defining
+    once before all the tests of a module are run. This is useful for defining
     mockup functions/data that can be used throughout all tests.
 
     +bl.documentation.exclude_print
@@ -76,15 +76,18 @@ bl_doctest__documentation__='
     >>> echo bar
     bar
 
-    ##### Single quotes can be escaped like so:
+    Single quotes can be escaped like so:
+
     >>> echo '"'"'$foos'"'"'
     $foos
 
-    ##### Or so
+    Or so
+
     >>> echo '\''$foos'\''
     $foos
 
-    ##### Some text in between.
+    Some text in between.
+
     Multiline output
     >>> local i
     >>> for i in 1 2; do
@@ -93,7 +96,8 @@ bl_doctest__documentation__='
     1
     2
 
-    ##### Check ellipsis support
+    Check ellipsis support
+
     >>> local i
     >>> for i in 1 2 3 4 5; do
     >>>     echo $i;
@@ -103,7 +107,8 @@ bl_doctest__documentation__='
     2
     ...
 
-    ##### Multi line ellipsis are non greedy.
+    Multi line ellipsis are non greedy.
+
     >>> local i
     >>> for i in 1 2 3 4 5; do
     >>>     echo $i;
@@ -114,7 +119,8 @@ bl_doctest__documentation__='
     4
     5
 
-    ##### Ellipsis matches one line.
+    Ellipsis matches one line.
+
     >>> local i
     >>> for i in 1 2 3 4 5; do
     >>>     echo $i;
@@ -126,13 +132,15 @@ bl_doctest__documentation__='
     4
     5
 
-    ##### Each testcase has its own scope:
+    Each testcase has its own scope:
+
     >>> local testing="foo"; echo $testing
     foo
     >>> [ -z "${testing:-}" ] && echo empty
     empty
 
-    ##### Check for syntax error in test code:
+    Check for syntax error in test code:
+
     >>> f() {a}
     +bl.doctest.multiline_contains
     {a}
@@ -324,20 +332,20 @@ bl_doctest_compare_result() {
                 ellipsis_on=false
             fi
             if $bl_doctest_debug; then
-                echo -e "${bl_cli_color_light_green}Matched by ellipsis ${bl_cli_powerline_ok}${bl_cli_color_default}"
+                echo -e "Matched by ellipsis ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
             fi
         elif bl_doctest_compare_line; then
             if $bl_doctest_debug; then
-                echo -e "${bl_cli_color_light_green}Matched ${bl_cli_powerline_ok}${bl_cli_color_default}"
+                echo -e "Matched ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
             fi
             if ! $multiline_contains; then
                 contains=false
             fi
         else
             if $contains; then
-                echo -e "${bl_cli_color_light_red}\"$buffer_line\" is not in \"$got_line\". ${bl_cli_powerline_fail}${bl_cli_color_default}"
+                echo -e "\"$buffer_line\" is not in \"$got_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
             else
-                echo -e "${bl_cli_color_light_red}\"$got_line\" is not \"$buffer_line\". ${bl_cli_powerline_fail}${bl_cli_color_default}"
+                echo -e "\"$got_line\" is not \"$buffer_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
             fi
             if ! $multiline_contains; then
                 contains=false
@@ -435,9 +443,8 @@ bl_doctest_eval() {
     rm "$declared_names_before_run_file_path"
     rm "$declared_names_after_run_file_path"
     local reason
-    if ! reason="$(bl.doctest.compare_result "$output_buffer" "$output")"
-    then
-        echo -e "Error: ${reason}"$'\n'
+    if ! reason="$(bl.doctest.compare_result "$output_buffer" "$output")"; then
+        echo -e "${bl_cli_color_light_red}error:${bl_cli_color_default} ${reason}"
         echo -e "${bl_cli_color_light_red}test:${bl_cli_color_default}"
         echo "$test_buffer"
         echo -e "${bl_cli_color_light_red}expected:${bl_cli_color_default}"
@@ -736,6 +743,8 @@ bl_doctest_test() {
             function_names_to_test+="$name"
         fi
     done
+    local total=0
+    local success=0
     if [[ -d "$file_path" ]]; then
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
@@ -764,9 +773,17 @@ bl_doctest_test() {
                         command sed \
                             --regexp-extended \
                             "s:${scope_name}/([^/]+):${scope_name}.\1:"
-                )")"
+                )")" &
             fi
         done
+        local job
+        for job in $(jobs -p); do
+            (( total++ ))
+            wait "$job" && (( success++ ))
+        done
+        bl.logging.info "Total: passed $success/$total items in" \
+            "$(bl.time.get_elapsed) ms from \"$module_name\"."
+        (( success != total )) && return 1
         return 0
     fi
     (
@@ -785,8 +802,6 @@ bl_doctest_test() {
         # NOTE: Removes duplicates.
         function_names_to_test="$(bl.string.get_unique_lines <(
             echo "$function_names_to_test"))"
-        local total=0
-        local success=0
         bl.time.start
         if [ "$given_function_names_to_test" = '' ]; then
             # Module level tests
@@ -814,7 +829,7 @@ bl_doctest_test() {
             fi
         done
         bl.logging.info "$module_name - passed $success/$total tests in" \
-            "$(bl.time.get_elapsed) ms"
+            "$(bl.time.get_elapsed) ms from \"$module_name\"."
         (( success != total )) && exit 1
         exit 0
     )
@@ -858,11 +873,17 @@ bl_doctest_main() {
         bl.logging.set_level info
     fi
     bl.time.start
+    local item_names=''
     if [[ $# == 0 ]]; then
-        bl.doctest.test bashlink
+        item_names=bashink
+        bl.doctest.test bashlink &
     else
         local name
         for name in "$@"; do
+            if [[ "$item_names" != '' ]]; then
+                item_names+="\", \""
+            fi
+            item_names+="$name"
             local module_name="${name/:*/}"
             local function_name="${name/*:/}"
             if [ "$function_name" = "$name" ]; then
@@ -878,8 +899,8 @@ bl_doctest_main() {
         (( total++ ))
         wait "$job" && (( success++ ))
     done
-    bl.logging.info "Total: passed $success/$total modules in" \
-        "$(bl.time.get_elapsed) ms"
+    bl.logging.info "Total: passed $success/$total items in" \
+        "$(bl.time.get_elapsed) ms from \"$item_names\""
     (( success != total )) && return 1
     return 0
 }

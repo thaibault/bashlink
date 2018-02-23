@@ -10,6 +10,11 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
+# region variables
+bl_string__documentation__='
+    This module implements utility functions concerning strings.
+'
+# endregion
 # region import
 # shellcheck source=./cli.sh
 # shellcheck source=./module.sh
@@ -19,6 +24,19 @@ bl.module.import bashlink.cli
 # region functions
 alias bl.string.generate_random=bl_string_generate_random
 bl_string_generate_random() {
+    local __documentation__='
+        Generates a random string with given length.
+
+        >>> local output="$(bl.string.generate_random 5)"
+        >>> echo ${#output}
+        5
+
+        >>> bl.string.generate_random 0
+
+        >>> local output="$(bl.string.generate_random 1)"
+        >>> echo ${#output}
+        1
+    '
     tr -dc 'a-zA-Z0-9' </dev/urandom | head -c "$1"
 }
 alias bl.string.get_unique_lines=bl_string_get_unique_lines

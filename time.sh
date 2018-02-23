@@ -11,18 +11,41 @@
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region variables
+bl_time__documentation__='
+    The time module implements utility functions concerning time measurments.
+'
 bl_time_start=0
 # endregion
 # region functions
 alias bl.time.get_elapsed=bl_time_get_elapsed
 bl_time_get_elapsed() {
+    local __documentation__='
+        Prints elapsed time in milliseconds since last `bl.time.start` call.
+
+        >>> local time=$(bl.time.get_elapsed)
+        >>> (( time > 0 )) && echo $?
+        0
+
+        >>> bl.time.start
+        >>> local time=$(bl.time.get_elapsed)
+        >>> (( time > 0 )) && echo $?
+        0
+    '
     local end_time="$(date +%s%N)"
     local elapsed_time_in_ns=$(( end_time  - bl_time_start ))
-    local elapsed_time_in_ms=$(( elapsed_time_in_ns / 1000000 ))
-    echo "$elapsed_time_in_ms"
+    echo $(( elapsed_time_in_ns / 1000000 ))
 }
 alias bl.time.start=bl_time_start
 bl_time_start() {
+    local __documentation__='
+        Prints elapsed time in milliseconds since last `bl.time.start` call.
+
+        >>> bl.time.start
+        >>> bl.time.start
+        >>> local time=$(bl.time.get_elapsed)
+        >>> (( time > 0 )) && echo $?
+        0
+    '
     bl_time_start=$(date +%s%N)
 }
 # endregion

@@ -10,6 +10,11 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
+# region variables
+bl_ssh__documentation__='
+    This module implements utility functions concerning ssh connections.
+'
+# endregion
 # region import
 # shellcheck source=./globals.sh
 # shellcheck source=./module.sh
