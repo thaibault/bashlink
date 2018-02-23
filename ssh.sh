@@ -9,7 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./globals.sh
 # shellcheck source=./module.sh
@@ -19,7 +19,6 @@ bl.module.import bashlink.globals
 # region functions
 alias bl.ssh.make_key=bl_ssh_make_key
 bl_ssh_make_key() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
     Generates a new ssh key.
 
@@ -37,7 +36,6 @@ bl_ssh_make_key() {
 }
 alias bl.ssh.print=bl_ssh_print
 bl_ssh_print() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Prints a file via ssh. A given printable file will be sent to a given
         location via scp. The file be stored in remotes home directory with
@@ -107,7 +105,6 @@ bl_ssh_print() {
 }
 alias bl.ssh.screen=bl_ssh_screen
 bl_ssh_screen() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Wraps the ssh client for automatically starting a screen session on
         server.

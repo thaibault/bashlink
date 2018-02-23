@@ -9,17 +9,19 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region imports
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.logging
 # endregion
 # region variables
-# shellcheck disable=SC2034
 bl_changeroot__dependencies__=(mountpoint mount umount mkdir)
-# shellcheck disable=SC2034
 bl_changeroot__optional_dependencies__=(fakeroot fakechroot)
+bl_array__documentation__='
+    The changeroot module implements utility functions concerning advanced
+    change roots with kernel filesystem application interfaces.
+'
 bl_changeroot_kernel_api_locations=(
     /proc \
     /sys \
@@ -33,7 +35,6 @@ bl_changeroot_kernel_api_locations=(
 # region functions
 alias bl.changeroot=bl_changeroot
 bl_changeroot() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         This function performs a linux change root if needed and provides all
         kernel api filesystems in target root by using a change root interface
@@ -53,7 +54,7 @@ bl_changeroot() {
 }
 alias bl.changeroot.with_fake_fallback=bl_changeroot_with_fake_fallback
 bl_changeroot_with_fake_fallback() {
-    # shellcheck disable=SC2016,SC2034,SC1004
+    # shellcheck disable=SC1004
     local __documentation__='
         Perform the available change root program wich needs at least rights.
 
@@ -71,16 +72,16 @@ bl_changeroot_with_fake_fallback() {
 }
 alias bl.changeroot.with_kernel_api=bl_changeroot_with_kernel_api
 bl_changeroot_with_kernel_api() {
-    # shellcheck disable=SC2016,SC2034,SC1004
+    # shellcheck disable=SC1004
     local __documentation__='
-    Performs a change root by mounting needed host locations in change root
-    environment.
+        Performs a change root by mounting needed host locations in change root
+        environment.
 
-    ```bash
-        bl_changeroot_with_kernel_api \
-            /new_root \
-            /usr/bin/env bash some arguments
-    ```
+        ```bash
+            bl_changeroot_with_kernel_api \
+                /new_root \
+                /usr/bin/env bash some arguments
+        ```
     '
     local new_root_location="$1"
     if [[ ! "$new_root_location" =~ .*/$ ]]; then

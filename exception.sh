@@ -9,14 +9,13 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.logging
 # endregion
 # region variables
-# shellcheck disable=SC2034,SC2016
 bl_exception__documentation__='
     NOTE: The try block is executed in a subshell, so no outer variables can be
     assigned.
@@ -220,7 +219,6 @@ bl_exception_activate() {
 }
 alias bl.exception.deactivate=bl_exception_deactivate
 bl_exception_deactivate() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
     >>> set -o errtrace
     >>> trap '\''echo $foo'\'' ERR
@@ -277,7 +275,6 @@ bl_exception_exit_try() {
     (( bl_exception_try_catch_level-- ))
     if (( bl_exception_try_catch_level == 0 )); then
         $bl_exception_active_before_try && bl.exception.activate
-        # shellcheck disable=SC2034
         bl_exception_last_traceback="$(
             bl.logging.cat "$bl_exception_last_traceback_file_path")"
         rm "$bl_exception_last_traceback_file_path"

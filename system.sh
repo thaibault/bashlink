@@ -9,11 +9,10 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region functions
 alias bl.system.compile_and_install_without_root=bl_system_compile_and_install_without_root
 bl_system_compile_and_install_without_root() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Compiles and installs a program by its given source code. Your have to
         be inside the source code folder to run this function.
@@ -35,7 +34,6 @@ bl_system_compile_and_install_without_root() {
 }
 alias bl.system.mount_root_file_system_writable=bl_system_mount_root_file_system_writable
 bl_system_mount_root_file_system_writable() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         If root file system is mounted as read only this command makes it
         runnable.
@@ -49,7 +47,6 @@ bl_system_mount_root_file_system_writable() {
 }
 alias bl.system.restore_grub=bl_system_restore_grub
 bl_system_restore_grub() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Restores the linux boot-manager grub if it was overwritten (e.g. in
         windows).

@@ -9,11 +9,10 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region functions
 alias bl.path.convert_to_absolute=bl_path_convert_to_absolute
 bl_path_convert_to_absolute() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
     Converts given path into an absolute one.
 
@@ -32,7 +31,6 @@ bl_path_convert_to_absolute() {
 }
 alias bl.path.convert_to_relative=bl_path_convert_to_relative
 bl_path_convert_to_relative() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Computes relative path from first given argument to second one.
 
@@ -100,7 +98,6 @@ bl_path_convert_to_relative() {
 }
 alias bl.path.open=bl_path_open
 bl_path_open() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Opens a given path with a useful program.
 
@@ -138,7 +135,6 @@ bl_path_open() {
 }
 alias bl.path.pack=bl_path_pack
 bl_path_pack() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Packs files in an archive.
 
@@ -201,7 +197,6 @@ bl_path_pack() {
 }
 alias bl.path.run_in_programs_location=bl_path_run_in_programs_location
 bl_path_run_in_programs_location() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Changes current working directory to given program path and runs the
         program.
@@ -221,7 +216,6 @@ bl_path_run_in_programs_location() {
 }
 alias bl.path.unpack=bl_path_unpack
 bl_path_unpack() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Unpack archives in various formats.
 

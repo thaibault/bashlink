@@ -9,7 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./arguments.sh
 # shellcheck source=./cli.sh
@@ -20,7 +20,6 @@ bl.module.import bashlink.array
 bl.module.import bashlink.cli
 # endregion
 # region variables
-# shellcheck disable=SC2034
 bl_logging__documentation__='
     The available log levels are:
     error critical warn info debug
@@ -141,7 +140,6 @@ bl_logging_get_prefix() {
 }
 alias bl.logging.plain=bl_logging_plain
 bl_logging_plain() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> bl.logging.set_level info
         >>> bl.logging.set_commands_level debug
@@ -189,7 +187,7 @@ alias bl.logging.warn='bl_logging_log warn'
 alias bl.logging.warning=bl.logging.warn
 alias bl.logging.set_file_descriptors=bl_logging_set_file_descriptors
 bl_logging_set_file_descriptors() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         >>> local test_file="$(mktemp)"
         >>> bl.logging.plain "test_file:" >"$test_file"
@@ -399,7 +397,6 @@ bl_logging_set_file_descriptors() {
         trap '[ -p "$bl_logging_tee_fifo" ] && rm -rf "$bl_logging_tee_fifo_dir"; exit' EXIT
         tee --append "$log_file" <"$bl_logging_tee_fifo" &
         exec 1>>"$bl_logging_tee_fifo" 2>>"$bl_logging_tee_fifo"
-        # shellcheck disable=SC2034
         bl_logging_commands_tee_fifo_active=true
         if [[ "$bl_logging_options_log" != tee ]]; then
             bl_logging_output_to_saved_file_descriptors=true
@@ -416,7 +413,6 @@ bl_logging_set_file_descriptors() {
 # NOTE: Depends on "bl.logging.set_file_descriptors"
 alias bl.logging.set_command_output_off=bl_logging_set_command_output_off
 bl_logging_set_command_output_off() {
-    # shellcheck disable=SC2034
     bl_logging_commands_output_saved="$bl_logging_options_command"
     bl.logging.set_file_descriptors "$bl_logging_log_file" \
         --logging="$bl_logging_options_log" --commands="off"
@@ -444,7 +440,6 @@ bl_logging_set_commands_level() {
 }
 alias bl.logging.set_level=bl_logging_set_level
 bl_logging_set_level() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> bl.logging.set_commands_level info
         >>> bl.logging.set_level info
@@ -466,7 +461,6 @@ bl_logging_set_level() {
 }
 alias bl.logging.set_log_file=bl_logging_set_log_file
 bl_logging_set_log_file() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> local test_file_path="$(mktemp)"
         >>> bl.logging.plain "test_file:" >"$test_file_path"
