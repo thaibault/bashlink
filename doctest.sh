@@ -139,7 +139,7 @@ bl_doctest__documentation__='
 
     -bl.documentation.exclude_print
 '
-bl_doctest_debug=true
+bl_doctest_debug=false
 bl_doctest_module_reference_under_test=''
 bl_doctest_name_indicator=__documentation__
 bl_doctest_nounset=false
@@ -164,6 +164,7 @@ bl_doctest_compare_result() {
         >>> local got="line 1
         >>> line 2"
         >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+        +bl.doctest.contains
         "line 2" is not "foo".
         4
 
@@ -181,6 +182,7 @@ bl_doctest_compare_result() {
         >>> local got="line 1
         >>> line 2"
         >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+        +bl.doctest.contains
         "line 2" is not "foo".
         4
 
@@ -219,6 +221,7 @@ bl_doctest_compare_result() {
         >>> line 3
         >>> "
         >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+        +bl.doctest.contains
         "ignore" is not "line 2".
         4
     '
