@@ -117,14 +117,14 @@ EOF
         fi
     }
     mv() {
-        echo mv $@
+        echo mv "$@"
     }
     pv() {
         cat - | tr -d "\n" # print stdin
         echo -n " | pv | "
     }
     rmdir() {
-        echo rmdir $@
+        echo rmdir "$@"
     }
 '
 # endregion
@@ -507,21 +507,26 @@ bl_filesystem_find_block_device() {
     local __documentation__='
         >>> bl.filesystem.find_block_device "boot_partition"
         /dev/sdb1
+
         >>> bl.filesystem.find_block_device "boot_partition" /dev/sda
         /dev/sda2
+
         >>> bl.filesystem.find_block_device "discoverable by blkid"
         /dev/sda2
+
         >>> bl.filesystem.find_block_device "_partition"
         /dev/sdb1 /dev/sdb2
+
         >>> bl.filesystem.find_block_device "not matching anything" || echo not found
         not found
+
         >>> bl.filesystem.find_block_device "" || echo not found
         not found
     '
     local partition_pattern="$1"
     local device="${2-}"
     [ "$partition_pattern" = '' ] && return 1
-    find_block_device_simple() {
+    bl_filesystem_find_block_device_simple() {
         local device_info
         lsblk --noheadings --list --paths --output \
         NAME,TYPE,LABEL,PARTLABEL,UUID,PARTUUID ${device:+"$device"} \
@@ -533,24 +538,32 @@ bl_filesystem_find_block_device() {
             fi
         done
     }
-    find_block_device_deep() {
+    bl_filesystem_find_block_device_deep() {
         local device_info
-        lsblk --noheadings --list --paths --output NAME ${device:+"$device"} \
-        | sort --unique | cut -d' ' -f1 | while read -r current_device; do
-            blkid -p -o value "$current_device" \
-            | while read -r device_info; do
-                if [[ "$device_info" = *"${partition_pattern}"* ]]; then
-                    echo "$current_device"
-                fi
-            done
-        done
+        lsblk \
+            --noheadings \
+            --list \
+            --paths \
+            --output \
+            NAME \
+            ${device:+"$device"} | \
+                sort --unique | \
+                    cut -d' ' -f1 | \
+                        while read -r current_device; do
+                            blkid -p -o value "$current_device" | \
+                                while read -r device_info; do
+                                    if [[ "$device_info" = *"${partition_pattern}"* ]]; then
+                                        echo "$current_device"
+                                    fi
+                                done
+                        done
     }
     local candidates
-    read -r -a candidates <<< "$(find_block_device_simple)"
+    read -r -a candidates <<< "$(bl_filesystem_find_block_device_simple)"
     [ ${#candidates[@]} -eq 0 ] && \
-        read -r -a candidates <<< "$(find_block_device_deep)"
-    unset -f find_block_device_simple
-    unset -f find_block_device_deep
+        read -r -a candidates <<< "$(bl_filesystem_find_block_device_deep)"
+    unset -f bl_filesystem_find_block_device_simple
+    unset -f bl_filesystem_find_block_device_deep
     [ ${#candidates[@]} -eq 0 ] && return 1
     [ ${#candidates[@]} -ne 1 ] && echo "${candidates[@]}" && return 1
     bl.logging.plain "${candidates[0]}"
