@@ -15,6 +15,12 @@
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.number
 # endregion
+# region variables
+bl_pacman__documentation__='
+    This module implements utility functions concerning the package manager
+    `pacman`.
+'
+# endregion
 # region functions
 alias bl.pacman.show_config_backups=bl_pacman_show_config_backups
 bl_pacman_show_config_backups() {

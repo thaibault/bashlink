@@ -10,15 +10,20 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
+# region variables
+bl_path__documentation__='
+    The path module implements utility functions concerning path.
+'
+# endregion
 # region functions
 alias bl.path.convert_to_absolute=bl_path_convert_to_absolute
 bl_path_convert_to_absolute() {
     local __documentation__='
-    Converts given path into an absolute one.
+        Converts given path into an absolute one.
 
-    >>> bl.path.convert_to_absolute ./
-    +bl.doctest.contains
-    /
+        >>> bl.path.convert_to_absolute ./
+        +bl.doctest.contains
+        /
     '
     local path="$1"
     if [ -d "$path" ]; then

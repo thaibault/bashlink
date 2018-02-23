@@ -10,6 +10,11 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
+# region variables
+bl_number__documentation__='
+    The number module implements utility functions concerning numbers.
+'
+# endregion
 # region functions
 alias bl.number.calculate_percent=bl_number_calculate_percent
 bl_number_calculate_percent() {
