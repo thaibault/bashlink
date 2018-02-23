@@ -18,7 +18,7 @@ bl.module.import bashlink.logging
 # region variables
 bl_changeroot__dependencies__=(mountpoint mount umount mkdir)
 bl_changeroot__optional_dependencies__=(fakeroot fakechroot)
-bl_array__documentation__='
+bl_changeroot__documentation__='
     The changeroot module implements utility functions concerning advanced
     change roots with kernel filesystem application interfaces.
 '
