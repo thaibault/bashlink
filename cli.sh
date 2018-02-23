@@ -84,15 +84,23 @@ bl_cli_glyph_available_in_font() {
 
         >>> bl.cli.glyph_available_in_font
     '
-    local current_font="$(xrdb -q | command grep -i facename | cut -d: -f2)"
+    local current_font
+    if ! current_font="$(
+        xrdb -q 2>/dev/null | \
+            command grep -i facename | \
+                cut -d: -f2
+    )"; then
+        return 1
+    fi
     local font_file_name="$(fc-match "$current_font" | cut -d: -f1)"
     #font_path=$(fc-list "$current_font" | command grep "$font_file_name" | cut -d: -f1)
     local font_file_extension="${font_file_name##*.}"
     # Alternative or to be sure
     #font_path=$(lsof -p $(ps -o ppid= -p $$) | command grep fonts)
-    if [[ $font_file_extension == otf ]]; then
-        otfinfo /usr/share/fonts/OTF/Hack-Regular.otf -u | command grep -i uni27a1
-    elif [[ $font_file_extension == ttf ]]; then
+    if [ "$font_file_extension" = otf ]; then
+        otfinfo /usr/share/fonts/OTF/Hack-Regular.otf -u | \
+            command grep -i uni27a1
+    elif [ "$font_file_extension" = ttf ]; then
         ttfdump -t cmap /usr/share/fonts/TTF/Hack-Regular.ttf 2>/dev/null | \
             command grep 'Char 0x27a1'
     else
