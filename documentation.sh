@@ -20,37 +20,75 @@ bl.module.import bashlink.path
 bl.module.import bashlink.string
 bl.module.import bashlink.tools
 # endregion
+# region variables
+# shellcheck disable=SC2034,SC2016
+bl_documentation__documentation__='
+    The documentation module implements function and module level documentation
+    generation in markdown.
+'
+# endregion
 # region functions
 alias bl.documentation.format_buffers=bl_documentation_format_buffers
 bl_documentation_format_buffers() {
+    local __documentation__='
+        Converts given docstring into markdown compatible code description
+        block.
+
+        >>> bl.documentation.format_buffers a b c
+        c
+        ```bash
+        a
+        b
+        ```
+    '
     local buffer="$1"
     local output_buffer="$2"
     local text_buffer="$3"
-    [[ "$text_buffer" != "" ]] && echo "$text_buffer"
-    if [[ "$buffer" != "" ]]; then
+    [[ "$text_buffer" != '' ]] && echo "$text_buffer"
+    if [[ "$buffer" != '' ]]; then
         # shellcheck disable=SC2016
         echo '```bash'
         echo "$buffer"
-        echo "$output_buffer"
+        if [[ "$output_buffer" != '' ]]; then
+            echo "$output_buffer"
+        fi
         echo '```'
     fi
 }
 alias bl.documentation.format_docstring=bl_documentation_format_docstring
 bl_documentation_format_docstring() {
+    local __documentation__='
+        Removes doctest documentation exclude modifier and their content from
+        given docstring and converts doctest to markdown code blocks.
+
+        >>> bl.documentation.format_buffers "echo a"
+        ```bash
+        echo a
+        ```
+    '
     local docstring="$1"
     docstring="$(
         echo "$docstring" | \
             command sed '/+bl.documentation.exclude_print/d' | \
-            command sed '/-bl.documentation.exclude_print/d' | \
-            command sed \
-                '/+bl.documentation.exclude/,/-bl.documentation.exclude/d')"
+                command sed '/-bl.documentation.exclude_print/d' | \
+                    command sed \
+                        '/+bl.documentation.exclude/,/-bl.documentation.exclude/d')"
     bl.doctest.parse_docstring "$docstring" bl_documentation_format_buffers \
         --preserve-prompt
 }
 alias bl.documentation.generate=bl_documentation_generate
 bl_documentation_generate() {
-    # TODO add doc test setup function to documentation
-    module_reference="$1"
+    local __documentation__='
+        Generates a documentation in markdown for given module reference.
+
+        >>> bl.documentation.generate bashlink.documentation
+        +bl.doctest.multiline_ellipsis
+        ## Module bashlink.documentation
+        +bl.doctest.contains
+        The documentation module implements function and module level documen
+        ...
+    '
+    local module_reference="$1"
     local result="$(bl.module.resolve "$module_reference" true)"
     local file_path="$(
         echo "$result" | command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
@@ -60,6 +98,7 @@ bl_documentation_generate() {
         bl.module.rewrite_scope_name "$module_name" | \
             command sed --regexp-extended 's:\.:_:g')"
     if [[ -d "$file_path" ]]; then
+        bl.logging.plain "# Package $module_reference"
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
             local excluded=false
@@ -126,17 +165,20 @@ bl_documentation_generate() {
         done
     )
 }
-alias bl.documentation.parse_arguments=bl_documentation_parse_arguments
-bl_documentation_parse_arguments() {
-    bl.arguments.set "$@"
-    bl.arguments.get_flag --serve serve
-    bl.arguments.apply_new
+alias bl.documentation.main=bl_documentation_main
+bl_documentation_main() {
+    local __documentation__='
+        Initializes main documentation task after consuming given command line
+        arguments.
+
+        >>> bl.documentation.main
+        +bl.doctest.multiline_ellipsis
+        # Package bashlink
+        ...
+    '
     if [[ $# == 0 ]]; then
-        bl.logging.plain
-        bl.logging.plain '# Generated documentation'
         bl.documentation.generate bashlink
     else
-        bl.logging.plain '# Generated documentation'
         local name
         for name in "$@"; do
             bl.documentation.generate "$name"
@@ -146,6 +188,13 @@ bl_documentation_parse_arguments() {
 }
 alias bl.documentation.print_docstring=bl_documentation_print_docstring
 bl_documentation_print_docstring() {
+    local __documentation__='
+        Prints given docstring without sliced elements specified by their
+        modifier.
+
+        >>> bl.documentation.print_docstring test
+        test
+    '
     local docstring="$1"
     echo "$docstring" | \
         command sed '/+bl.documentation.exclude_print/,/-bl.documentation.exclude_print/d' | \
@@ -156,7 +205,7 @@ bl_documentation_print_docstring() {
 if bl.tools.is_main; then
     bl.logging.set_level debug
     bl.logging.set_commands_level info
-    bl.documentation.parse_arguments "$@"
+    bl.documentation.main "$@"
 fi
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
