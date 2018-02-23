@@ -17,6 +17,11 @@ source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.globals
 bl.module.import bashlink.string
 # endregion
+# region variables
+bl_tools__documentation__='
+    This module provides generic utility functions.
+'
+# endregion
 # region functions
 alias bl.tools.is_defined=bl_module_is_defined
 alias bl.tools.is_empty=bl_tools_is_empty

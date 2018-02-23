@@ -62,6 +62,7 @@
     "document:show:error": "./documentation.sh bashlink 1>/dev/null",
     "lint": "hash shellcheck && shellcheck -x *.sh || echo Please install \"shellcheck\". || true",
     "lint:given": "shellcheck -x",
+    "report:coverage": "true",
     "test": "./doctest.sh --verbose",
     "update": "npm version patch && npm publish",
     "update:documentation": "documentationWebsite --log-level info"
