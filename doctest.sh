@@ -97,18 +97,30 @@ bl_doctest__documentation__='
     >>> for i in 1 2 3 4 5; do
     >>>     echo $i;
     >>> done
-    +bl.doctest.ellipsis
+    +bl.doctest.multiline_ellipsis
     1
     2
     ...
 
-    ##### Ellipsis are non greedy.
+    ##### Multi line ellipsis are non greedy.
+    >>> local i
+    >>> for i in 1 2 3 4 5; do
+    >>>     echo $i;
+    >>> done
+    +bl.doctest.multiline_ellipsis
+    1
+    ...
+    4
+    5
+
+    ##### Ellipsis matches one line.
     >>> local i
     >>> for i in 1 2 3 4 5; do
     >>>     echo $i;
     >>> done
     +bl.doctest.ellipsis
     1
+    ...
     ...
     4
     5
@@ -121,11 +133,12 @@ bl_doctest__documentation__='
 
     ##### Check for syntax error in test code:
     >>> f() {a}
-    +bl.doctest.contains
-    `{a}
+    +bl.doctest.multiline_contains
+    {a}
 
     -bl.documentation.exclude_print
 '
+bl_doctest_debug=false
 bl_doctest_module_reference_under_test=''
 bl_doctest_name_indicator=__documentation__
 bl_doctest_nounset=false
@@ -145,26 +158,32 @@ bl_doctest_compare_result() {
         >>> line 2"
         >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
         0
+
         >>> local buffer="line 1
         >>> foo"
         >>> local got="line 1
         >>> line 2"
         >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
-        1
-        >>> local buffer="+bl.doctest.contains
+        "line 2" is not "foo".
+        4
+
+        >>> local buffer="+bl.doctest.multiline_contains
         >>> line
         >>> line"
         >>> local got="line 1
         >>> line 2"
         >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
         0
+
         >>> local buffer="+bl.doctest.contains
         >>> line
         >>> foo"
         >>> local got="line 1
         >>> line 2"
         >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
-        1
+        "line 2" is not "foo".
+        4
+
         >>> local buffer="+bl.doctest.ellipsis
         >>> line
         >>> ...
@@ -174,7 +193,8 @@ bl_doctest_compare_result() {
         >>> "
         >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
         0
-        >>> local buffer="+bl.doctest.ellipsis
+
+        >>> local buffer="+bl.doctest.multiline_ellipsis
         >>> line
         >>> ...
         >>> line 2
@@ -186,6 +206,7 @@ bl_doctest_compare_result() {
         >>> "
         >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
         0
+
         >>> local buffer="+bl.doctest.ellipsis
         >>> line
         >>> ...
@@ -198,7 +219,8 @@ bl_doctest_compare_result() {
         >>> line 3
         >>> "
         >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
-        1
+        "ignore" is not "line 2".
+        4
     '
     local buffer="$1"
     local got="$2"
@@ -211,67 +233,127 @@ bl_doctest_compare_result() {
     local ellipsis_waiting=false
     local end_of_buffer=false
     local end_of_got=false
-    bl_doctest_compare_lines() {
+    local multiline_contains=false
+    local multiline_ellipsis=false
+    bl_doctest_compare_line() {
         if $contains; then
-            [[ "$got_line" == *"$buffer_line"* ]] || return 1
+            [[ "$got_line" = *"$buffer_line"* ]] || return 1
         else
             [ "$got_line" = "$buffer_line" ] || return 1
         fi
     }
     while true; do
         # parse buffer line
-        if ! $ellipsis_waiting && ! $end_of_buffer && ! read -r -u3 buffer_line; then
+        if ! read -r -u3 buffer_line; then
             end_of_buffer=true
         fi
-        if [[ "$buffer_line" == "+bl.doctest.no_capture_stderr"* ]]; then
+        if [[ "$buffer_line" = "+bl.doctest.no_capture_stderr"* ]]; then
             continue
-        fi
-        if [[ "$buffer_line" == "+bl.doctest.contains"* ]]; then
+        elif [[ "$buffer_line" = "+bl.doctest.contains"* ]]; then
             contains=true
             continue
-        fi
-        if [[ "$buffer_line" == "+bl.doctest.ellipsis"* ]]; then
+        elif [[ "$buffer_line" = "+bl.doctest.multiline_contains"* ]]; then
+            contains=true
+            multiline_contains=true
+            continue
+        elif [[ "$buffer_line" = "-bl.doctest.multiline_contains"* ]]; then
+            contains=false
+            multiline_contains=false
+            continue
+        elif [[ "$buffer_line" = "-bl.doctest.contains"* ]]; then
+            contains=false
+            continue
+        elif [[ "$buffer_line" = "+bl.doctest.ellipsis"* ]]; then
             ellipsis=true
+            ellipsis_waiting=true
+            continue
+        elif [[ "$buffer_line" = "-bl.doctest.ellipsis"* ]]; then
+            ellipsis=false
+            continue
+        elif [[ "$buffer_line" = "+bl.doctest.multiline_ellipsis"* ]]; then
+            ellipsis_waiting=true
+            multiline_ellipsis=true
+            continue
+        elif [[ "$buffer_line" = "-bl.doctest.multiline_ellipsis"* ]]; then
+            multiline_ellipsis=false
             continue
         fi
         # parse got line
-        if $end_of_got || ! read -r -u4 got_line; then
+        if ! read -r -u4 got_line; then
             end_of_got=true
         fi
         # set result
-        if $ellipsis; then
+        if $ellipsis || $multiline_ellipsis; then
             if [ "$buffer_line" = '...' ]; then
                 ellipsis_on=true
-            elif [[ "$buffer_line" != '' ]] && $ellipsis_on; then
-                ellipsis_waiting=true
+                ellipsis_waiting=false
             fi
         fi
-        $end_of_buffer && $end_of_got && break
-        $end_of_buffer && $ellipsis_waiting && result=1 && break
-        $end_of_got && $ellipsis_waiting && result=1 && break
-        $end_of_buffer && $ellipsis_on && break
+        if $end_of_buffer; then
+            if $ellipsis_waiting; then
+                echo No expected ellipsis found.
+                return 1
+            fi
+            if $end_of_got || $multiline_ellipsis || $multiline_contains; then
+                return
+            fi
+            echo More output given than expected.
+            return 2
+        fi
+        if $end_of_got; then
+            echo Missing expected output.
+            return 3
+        fi
+        if $bl_doctest_debug; then
+            echo "Compare given \"$got_line\" with \"$buffer_line\":"
+        fi
         if $ellipsis_on; then
-            if bl_doctest_compare_lines; then
+            if ! $multiline_ellipsis || bl_doctest_compare_line; then
                 ellipsis_on=false
-                ellipsis_waiting=false
-            else
-                $end_of_got && result=1
+            fi
+            if $bl_doctest_debug; then
+                echo Matched by ellipsis.
+            fi
+        elif bl_doctest_compare_line; then
+            if $bl_doctest_debug; then
+                echo Matched.
+            fi
+            if ! $multiline_contains; then
+                contains=false
             fi
         else
-            bl_doctest_compare_lines || result=1
+            if $contains; then
+                echo "\"$buffer_line\" is not in \"$got_line\"."
+            else
+                echo "\"$got_line\" is not \"$buffer_line\"."
+            fi
+            if ! $multiline_contains; then
+                contains=false
+            fi
+            return 4
         fi
     done 3<<< "$buffer" 4<<< "$got"
     return $result
 }
 alias bl.doctest.get_function_docstring=bl_doctest_get_function_docstring
 bl_doctest_get_function_docstring() {
+    local __documentation__='
+        Retrieves the docstring from given function name in current scope.
+
+        >>> bl.doctest.get_function_docstring bl_doctest_get_function_docstring
+        +bl.doctest.ellipsis
+        ...
+        Retrieves the docstring from given function name in current scope.
+        +bl.doctest.multiline_ellipsis
+        ...
+    '
     local function_name="$1"
     (
-        if ! docstring="$(type "$function_name" | \
+        if ! docstring="$(type "$function_name" 2>/dev/null | \
             command grep "$bl_doctest_regular_expression_one_line")"
         then
             docstring="$(
-                type "$function_name" | \
+                type "$function_name" 2>/dev/null | \
                     command sed --quiet "$bl_doctest_regular_expression")"
         fi
         eval "unset $bl_doctest_name_indicator"
@@ -279,12 +361,12 @@ bl_doctest_get_function_docstring() {
         echo "${!bl_doctest_name_indicator}"
     )
 }
-alias bl.doctest.parse_arguments=bl_doctest_parse_arguments
-bl_doctest_parse_arguments() {
+alias bl.doctest.main=bl_doctest_main
+bl_doctest_main() {
     # shellcheck disable=SC2016,SC2034
     local __documentation__='
         +bl.documentation.exclude
-        >>> bl.doctest.parse_arguments non_existing_module
+        >>> bl.doctest.main non_existing_module
         >>> echo $?
         +bl.doctest.contains
         +bl.doctest.ellipsis
@@ -319,7 +401,12 @@ bl_doctest_parse_arguments() {
     else
         local name
         for name in "$@"; do
-            bl.doctest.test "$name" &
+            local module_name="${name/:*/}"
+            local function_name="${name/*:/}"
+            if [ "$function_name" = "$name" ]; then
+                function_name=''
+            fi
+            bl.doctest.test "$module_name" "$function_name" &
         done
     fi
     local success=0
@@ -611,7 +698,10 @@ bl_doctest_eval() {
     fi
     rm "$declared_names_before_run_file_path"
     rm "$declared_names_after_run_file_path"
-    if ! bl.doctest.compare_result "$output_buffer" "$output"; then
+    local reason
+    if ! reason="$(bl.doctest.compare_result "$output_buffer" "$output")"
+    then
+        echo -e "Error: ${reason}\n"
         echo -e "${bl_cli_color_light_red}test:${bl_cli_color_default}"
         echo "$test_buffer"
         if $bl_doctest_use_side_by_side_output; then
@@ -624,7 +714,7 @@ bl_doctest_eval() {
             echo -e "${bl_cli_color_light_red}expected:${bl_cli_color_default}"
             echo "$output_buffer"
             echo -e "${bl_cli_color_light_red}got:${bl_cli_color_default}"
-            echo "$output"
+            echo "\"$output\""
         fi
         return 1
     fi
@@ -648,6 +738,7 @@ bl_doctest_run_test() {
 alias bl_doctest_test=bl.doctest.test
 bl_doctest_test() {
     bl_doctest_module_reference_under_test="$1"
+    local given_function_names_to_test="$2"
     local result
     if ! result="$(
         bl.module.resolve "$bl_doctest_module_reference_under_test" true
@@ -662,13 +753,27 @@ bl_doctest_test() {
     local scope_name="$(
         bl.module.rewrite_scope_name "$module_name" | \
             command sed --regexp-extended 's:\.:_:g')"
+    local name
+    local function_names_to_test=''
+    for name in $given_function_names_to_test; do
+        if [[ "$function_names_to_test" != '' ]]; then
+            function_names_to_test+=' '
+        fi
+        if [ "${name/$scope_name/}" = "$name" ]; then
+            function_names_to_test+="${scope_name}_${name}"
+        else
+            function_names_to_test+="$name"
+        fi
+    done
     if [[ -d "$file_path" ]]; then
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
             local excluded=false
             local excluded_name
             for excluded_name in "${bl_module_directory_names_to_ignore[@]}"; do
-                if [[ -d "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
+                if [[ -d "$sub_file_path" ]] && [
+                    "$excluded_name" = "$(basename "$sub_file_path")"
+                ]; then
                     excluded=true
                     break
                 fi
@@ -696,27 +801,35 @@ bl_doctest_test() {
     (
         bl.module.import_without_namespace_check \
             "$bl_doctest_module_reference_under_test"
-        # NOTE: Get all external module prefix and unprefixed function names.
-        # shellcheck disable=SC2154
-        local declared_function_names="$module_declared_function_names_after_source"
-        # NOTE: Adds internal already loaded but correctly prefixed functions.
-        declared_function_names+=" $(! declare -F | cut -d' ' -f3 | command grep -e "^$scope_name" )"
+        if [ "$function_names_to_test" = '' ]; then
+            # NOTE: Get all external module prefix and unprefixed function
+            # names.
+            # shellcheck disable=SC2154
+            local function_names_to_test="$module_declared_function_names_after_source"
+            # NOTE: Adds internal already loaded but correctly prefixed
+            # functions.
+            function_names_to_test+=" $(
+                ! declare -F | cut -d' ' -f3 | command grep -e "^$scope_name")"
+        fi
         # NOTE: Removes duplicates.
-        declared_function_names="$(bl.string.get_unique_lines <(echo "$declared_function_names"))"
+        function_names_to_test="$(bl.string.get_unique_lines <(
+            echo "$function_names_to_test"))"
         local total=0
         local success=0
         bl.time.start
-        # Module level tests
-        local module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
-        local docstring="${!module_documentation_variable_name}"
-        if ! [ -z "$docstring" ]; then
-            (( total++ ))
-            bl.doctest.run_test "$docstring" "$module_name" && \
-                (( success++ ))
+        if [ "$given_function_names_to_test" = '' ]; then
+            # Module level tests
+            local module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
+            local docstring="${!module_documentation_variable_name}"
+            if ! [ -z "$docstring" ]; then
+                (( total++ ))
+                bl.doctest.run_test "$docstring" "$module_name" && \
+                    (( success++ ))
+            fi
         fi
         # Function level tests
         local name
-        for name in $declared_function_names; do
+        for name in $function_names_to_test; do
             # shellcheck disable=SC2089
             local docstring="$(bl.doctest.get_function_docstring "$name")"
             if [[ "$docstring" != '' ]]; then
@@ -735,7 +848,7 @@ bl_doctest_test() {
 }
 # endregion
 if bl.tools.is_main; then
-    bl.doctest.parse_arguments "$@"
+    bl.doctest.main "$@"
 fi
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
