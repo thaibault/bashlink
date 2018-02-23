@@ -11,6 +11,9 @@
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region variables
+bl_globals__documentation__='
+    The globals module provides generic re-usable variables.
+'
 bl_globals_configuration_path=~/config/
 bl_globals_data_path=~/
 bl_globals_user_e_mail_address=example@domain.tld

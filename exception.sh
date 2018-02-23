@@ -22,7 +22,7 @@ bl_exception__documentation__='
 
     >>> bl.exception.activate
     >>> false
-    +bl.doctest.ellipsis
+    +bl.doctest.multiline_ellipsis
     Traceback (most recent call first):
     ...
 
@@ -37,7 +37,7 @@ bl_exception__documentation__='
     exception in a subshell:
     >>> bl.exception.activate
     >>> ( false )
-    +bl.doctest.ellipsis
+    +bl.doctest.multiline_ellipsis
     Traceback (most recent call first):
     ...
     Traceback (most recent call first):
@@ -49,7 +49,6 @@ bl_exception__documentation__='
     >>> } bl.exception.catch {
     >>>     echo caught
     >>> }
-    +bl.doctest.ellipsis
     caught
 
     Nested exception:
@@ -89,7 +88,7 @@ bl_exception__documentation__='
     >>> foo "exception NOT ACTIVE:"
     >>> bl.exception.activate
     >>> foo "exception ACTIVE:"
-    +bl.doctest.ellipsis
+    +bl.doctest.multiline_ellipsis
     exception NOT ACTIVE:
     caught inside foo
     this should never be printed
@@ -119,7 +118,7 @@ bl_exception__documentation__='
     >>>     echo caught
     >>>     echo "$bl_exception_last_traceback"
     >>> }
-    +bl.doctest.ellipsis
+    +bl.doctest.multiline_ellipsis
     caught
     Traceback (most recent call first):
     ...
@@ -170,6 +169,18 @@ declare -ig bl_exception_try_catch_level=0
 # region functions
 alias bl.exception.activate=bl_exception_activate
 bl_exception_activate() {
+    local __documentation__='
+        Activates exception handling for following code.
+
+        >>> set -o errtrace
+        >>> trap '\''echo $activate'\'' ERR
+        >>> bl.exception.activate
+        >>> trap -p ERR | cut --delimiter "'\''" --fields 2
+        >>> bl.exception.deactivate
+        >>> trap -p ERR | cut --delimiter "'\''" --fields 2
+        bl_exception_error_handler
+        echo $activate
+    '
     $bl_exception_active && return 0
 
     bl_exception_errtrace_saved=$(set -o | awk '/errtrace/ {print $2}')
@@ -220,14 +231,17 @@ bl_exception_activate() {
 alias bl.exception.deactivate=bl_exception_deactivate
 bl_exception_deactivate() {
     local __documentation__='
-    >>> set -o errtrace
-    >>> trap '\''echo $foo'\'' ERR
-    >>> bl.exception.activate
-    >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-    >>> bl.exception.deactivate
-    >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-    bl_exception_error_handler
-    echo $foo
+        Deactivates exception handling for code which where activated
+        previously.
+
+        >>> set -o errtrace
+        >>> trap '\''echo $foo'\'' ERR
+        >>> bl.exception.activate
+        >>> trap -p ERR | cut --delimiter "'\''" --fields 2
+        >>> bl.exception.deactivate
+        >>> trap -p ERR | cut --delimiter "'\''" --fields 2
+        bl_exception_error_handler
+        echo $foo
     '
     $bl_exception_active || return 0
     [ "$bl_exception_errtrace_saved" = "off" ] && set +o errtrace
@@ -240,6 +254,16 @@ bl_exception_deactivate() {
 }
 alias bl.exception.enter_try=bl_exception_enter_try
 bl_exception_enter_try() {
+    local __documentation__='
+        Catches exceptions for following code blocks.
+
+        >>> bl.exception.enter_try; (bl.exception.activate; {
+        >>>     false
+        >>> } bl.exception.catch {
+        >>>     echo caught
+        >>> }
+        caught
+    '
     if (( bl_exception_try_catch_level == 0 )); then
         bl_exception_last_traceback_file_path="$(
             mktemp --suffix=rebash-exception)"
@@ -251,6 +275,14 @@ bl_exception_enter_try() {
 alias bl.exception.error_handler=bl_exception_error_handler
 bl_exception_error_handler() {
     local error_code=$?
+    local __documentation__='
+        Error handler for catched exceptions.
+
+        >>> bl.exception.error_handler
+        +bl.doctest.multiline_ellipsis
+        Traceback (most recent call first):
+        ...
+    '
     local traceback='Traceback (most recent call first):'
     local -i index=0
     while caller $index > /dev/null; do
@@ -271,6 +303,16 @@ bl_exception_error_handler() {
 }
 alias bl.exception.exit_try=bl_exception_exit_try
 bl_exception_exit_try() {
+    local __documentation__='
+        Introduces an exception handling code block.
+
+        >>> bl.exception.try {
+        >>>     false
+        >>> }; true); bl.exception.exit_try $? || {
+        >>>     echo caught
+        >>> }
+        caught
+    '
     local bl_exception_result=$1
     (( bl_exception_try_catch_level-- ))
     if (( bl_exception_try_catch_level == 0 )); then

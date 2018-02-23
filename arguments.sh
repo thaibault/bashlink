@@ -49,6 +49,16 @@ bl_arguments__documentation__='
 bl_arguments_new=()
 # endregion
 # region functions
+alias bl.arguments.apply_new='set -- "${bl_arguments_new[@]}"'
+bl_arguments_apply_new() {
+    local __documentation__='
+        Call this function after you are finished with argument parsing. The
+        arguments array ($@) will then contain all unparsed arguments that are
+        left.
+    '
+    # NOTE: Implemented as alias.
+    true
+}
 alias bl.arguments.get_flag=bl_arguments_get_flag
 bl_arguments_get_flag() {
     local __documentation__='
@@ -208,16 +218,6 @@ bl_arguments_get_positional() {
     (( index-- )) # $0 is not available here
     local variable="$2"
     eval "${variable}=${bl_arguments_new[index]}"
-}
-alias bl.arguments.apply_new='set -- "${bl_arguments_new[@]}"'
-bl_arguments_apply_new() {
-    local __documentation__='
-        Call this function after you are finished with argument parsing. The
-        arguments array ($@) will then contain all unparsed arguments that are
-        left.
-    '
-    # NOTE: Implemented as alias.
-    true
 }
 alias bl.arguments.set=bl_arguments_set
 bl_arguments_set() {
