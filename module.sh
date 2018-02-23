@@ -43,6 +43,10 @@ if $bl_module_tidy_up_path; then
 fi
 # endregion
 #  region variables
+bl_module__documentation__='
+    Central module import mechanism. To scope modules and ensure running each
+    module only once.
+'
 bl_module_allowed_names=(BASH_REMATCH COLUMNS HISTFILESIZE HISTSIZE LINES)
 bl_module_allowed_scope_names=()
 bl_module_bash_version_test=''
@@ -73,6 +77,18 @@ bl_module_scope_rewrites=('^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/')
 # region functions
 alias bl.module.check_name=bl_module_check_name
 bl_module_check_name() {
+    local __documentation__='
+        Checks if given name is belongs to given scope.
+
+        >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
+        0
+
+        >>> bl.module.check_name "bl_module_check_name" "bl_other_module"; echo $?
+        1
+
+        >>> bl.module.check_name "bl_other_module_not_existing" "bl_module"; echo $?
+        1
+    '
     local name="$1"
     local resolved_scope_name="$2"
     local alternate_resolved_scope_name="$(echo "$resolved_scope_name" | \
@@ -184,6 +200,15 @@ bl_module_is_defined() {
 }
 alias bl.module.is_imported=bl_module_is_imported
 bl_module_is_imported() {
+    local __documentation__='
+        Checks if giveb module is already imported.
+
+        >>> bl.module.is_imported bashlink.module; echo $?
+        0
+
+        >>> bl.module.is_imported bashlink.not_existing; echo $?
+        1
+    '
     local caller_file_path="${BASH_SOURCE[1]}"
     if (( $# == 2 )); then
         caller_file_path="$2"
@@ -202,6 +227,9 @@ alias bl.module.log=bl_module_log
 bl_module_log() {
     local __documentation__='
         Logs arbitrary strings with given level.
+
+        >>> bl.module.log test
+        info: test
     '
     if hash bl.logging.log &>/dev/null; then
         bl.logging.log "$@"
@@ -219,13 +247,24 @@ bl_module_log() {
 # NOTE: Depends on "bl.module.log"
 alias bl.module.import_raw=bl_module_import_raw
 bl_module_import_raw() {
+    local __documentation__='
+        Imports given module into current scope.
+
+        >>> bl.module.import_raw bashlink.not_existing; echo $?
+        +bl.doctest.ellipsis
+        ...
+        critical: Failed to source module "bashlink.not_existing".
+        1
+    '
     bl_module_import_level=$((bl_module_import_level + 1))
+    local return_code
     # shellcheck disable=SC1090
     source "$1"
+    return_code=$?
     if $bl_module_tidy_up && [[ "$1" == "$bl_module_remote_module_cache_path"* ]]; then
         rm "$1"
     fi
-    if [ $? = 1 ]; then
+    if (( return_code == 1 )); then
         bl.module.log critical "Failed to source module \"$1\"."
         return 1
     fi
@@ -235,7 +274,12 @@ bl_module_import_raw() {
 alias bl.module.import_with_namespace_check=bl_module_import_with_namespace_check
 bl_module_import_with_namespace_check() {
     local __documentation__='
-        Sources a script and checks variable definitions before and after sourcing.
+        Sources a script and checks variable definitions before and after
+        sourcing.
+
+        >>> bl.module.import_with_namespace_check test bl_module bashlink.module; echo $?
+        +bl.doctest.multiline_contains
+        warning: Namespace "bl_module" in "bashlink.module" is not clean: Name "
     '
     local file_path="$1"
     local resolved_scope_name="$2"
@@ -247,8 +291,9 @@ bl_module_import_with_namespace_check() {
     bl_module_declared_function_names_after_source=''
     local declared_names_after_source_file_path="$(mktemp \
         --suffix=bashlink-module-declared-names-after-source)"
-    # NOTE: All variables which are declared after "determine_declared_names"
-    # will be interpreted as newly introduced variables from given module.
+    # NOTE: All variables which are declared after
+    # "bl.module.determine_declared_names" will be interpreted as newly
+    # introduced variables from given module.
     local name
     bl.module.determine_declared_names \
         true \
@@ -328,6 +373,9 @@ alias bl.module.import=bl_module_import
 bl_module_import() {
     # shellcheck disable=SC1004
     local __documentation__='
+        Main function to do all checks and module reference resolves to source
+        given module.
+
         NOTE: Do not use `bl.module.import` inside functions -> aliases do not
         work.
 
@@ -336,12 +384,13 @@ bl_module_import() {
         >>>     bl_logging_set_level warn
         >>>     bl.module.import bashlink.mockup.b false
         >>> )
-        +bl.doctest.contains
+        +bl.doctest.multiline_contains
         imported module c
         introduces a global unprefixed name: "foo123". Maybe it should be
         imported module b
 
         Modules should be imported only once.
+
         >>> (
         >>>     bl.module.import bashlink.mockup.a
         >>>     bl.module.import bashlink.mockup.a
@@ -359,7 +408,7 @@ bl_module_import() {
         >>>     bl.module.import bashlink.mockup.c false
         >>>     echo $bl_module_declared_function_names_after_source
         >>> )
-        +bl.doctest.contains
+        +bl.doctest.multiline_contains
         imported module b
         imported module c
         introduces a global unprefixed name: "foo123". Maybe it should be
@@ -429,6 +478,13 @@ bl_module_import() {
 }
 alias bl.module.import_without_namespace_check=bl_module_import_without_namespace_check
 bl_module_import_without_namespace_check() {
+    local __documentation__='
+        Imports given module without any namespace checks. Needed for internal
+        usage.
+
+        >>> bl.module.import_without_namespace_check bashlink.module; echo $?
+        0
+    '
     local caller_file_path="${BASH_SOURCE[1]}"
     if (( $# == 2 )); then
         caller_file_path="$2"
@@ -444,6 +500,13 @@ bl_module_import_without_namespace_check() {
 }
 alias bl.module.resolve=bl_module_resolve
 bl_module_resolve() {
+    local __documentation__='
+        Resolves given module reference to its corresponding file path.
+
+        >>> bl.module.resolve bashlink.module
+        +bl.doctest.contains
+        /bashlink/module.sh
+    '
     local name="$1"
     local caller_path
     bl_module_declared_function_names_after_source=''
@@ -569,6 +632,12 @@ bl_module_resolve() {
 }
 alias bl.module.remove_known_file_extension=bl_module_remove_known_file_extension
 bl_module_remove_known_file_extension() {
+    local __documentation__='
+        Removes known file extension from given module references.
+
+        >>> bl.module.remove_known_file_extension module.sh
+        module
+    '
     local name="$1"
     local extension
     for extension in "${bl_module_known_extensions[@]}"; do
@@ -582,7 +651,14 @@ bl_module_remove_known_file_extension() {
 }
 alias bl.module.rewrite_scope_name=bl_module_rewrite_scope_name
 bl_module_rewrite_scope_name() {
+    local __documentation__='
+        Rewrite scope name. Usually needed to shorten a scope name.
+
+        >>> bl.module.rewrite_scope_name bashlink.module
+        bl.module
+    '
     local resolved_scope_name="$1"
+    local rewrite
     for rewrite in "${bl_module_scope_rewrites[@]}"; do
         resolved_scope_name="$(
             echo "$resolved_scope_name" | \

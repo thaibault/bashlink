@@ -54,7 +54,7 @@ bl_doctest__documentation__='
         [verbose:doctest.sh:330] bl.arguments.get_positional:[PASS]
         [verbose:doctest.sh:330] bl.arguments.set:[PASS]
         [info:doctest.sh:590] bl.arguments - passed 6/6 tests in 918 ms
-        [info:doctest.sh:643] Total: passed 1/1 modules in 941 ms
+        [info:doctest.sh:643] Total: passed 1/1 items in 941 ms
     ```
 
     A docstring can be defined for a function by defining a variable named
@@ -63,7 +63,7 @@ bl_doctest__documentation__='
     `bl_arguments__documentation__` for the example above). NOTE: The
     "docstring" needs to be defined with single quotes. Code contained in a
     module level variable named `<module_name>__bl_doctest_setup__` will be run
-    once before all the tests of a module are run. This is usefull for defining
+    once before all the tests of a module are run. This is useful for defining
     mockup functions/data that can be used throughout all tests.
 
     +bl.documentation.exclude_print
@@ -445,7 +445,7 @@ bl_doctest_eval() {
     local reason
     if ! reason="$(bl.doctest.compare_result "$output_buffer" "$output")"
     then
-        echo -e "${bl_cli_color_light_red}Error:${bl_cli_color_default} ${reason}"$'\n'
+        echo -e "${bl_cli_color_light_red}error:${bl_cli_color_default} ${reason}"
         echo -e "${bl_cli_color_light_red}test:${bl_cli_color_default}"
         echo "$test_buffer"
         echo -e "${bl_cli_color_light_red}expected:${bl_cli_color_default}"
@@ -768,17 +768,23 @@ bl_doctest_test() {
                 done
             fi
             if ! $excluded; then
-                (( total++ ))
                 # shellcheck disable=SC1117
                 bl.doctest.test "$(bl.module.remove_known_file_extension "$(
                     echo "$sub_file_path" | \
                         command sed \
                             --regexp-extended \
                             "s:${scope_name}/([^/]+):${scope_name}.\1:"
-                )")" && (( success++ ))
+                )")" &
             fi
         done
-        (( success != total )) && exit 1
+        local job
+        for job in $(jobs -p); do
+            (( total++ ))
+            wait "$job" && (( success++ ))
+        done
+        bl.logging.info "Total: passed $success/$total items in" \
+            "$(bl.time.get_elapsed) ms from \"$module_name\"."
+        (( success != total )) && return 1
         return 0
     fi
     (
@@ -824,7 +830,7 @@ bl_doctest_test() {
             fi
         done
         bl.logging.info "$module_name - passed $success/$total tests in" \
-            "$(bl.time.get_elapsed) ms"
+            "$(bl.time.get_elapsed) ms from \"$module_name\"."
         (( success != total )) && exit 1
         exit 0
     )
@@ -868,11 +874,17 @@ bl_doctest_main() {
         bl.logging.set_level info
     fi
     bl.time.start
+    local item_names=''
     if [[ $# == 0 ]]; then
+        item_names=bashink
         bl.doctest.test bashlink &
     else
         local name
         for name in "$@"; do
+            if [[ "$item_names" != '' ]]; then
+                item_names+="\", \""
+            fi
+            item_names+="$name"
             local module_name="${name/:*/}"
             local function_name="${name/*:/}"
             if [ "$function_name" = "$name" ]; then
@@ -888,8 +900,8 @@ bl_doctest_main() {
         (( total++ ))
         wait "$job" && (( success++ ))
     done
-    bl.logging.info "Total: passed $success/$total modules in" \
-        "$(bl.time.get_elapsed) ms"
+    bl.logging.info "Total: passed $success/$total items in" \
+        "$(bl.time.get_elapsed) ms from \"$item_names\""
     (( success != total )) && return 1
     return 0
 }
