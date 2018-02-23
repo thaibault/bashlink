@@ -505,22 +505,22 @@ bl_filesystem_create_partition_via_offset() {
 alias bl.filesystem.find_block_device=bl_filesystem_find_block_device
 bl_filesystem_find_block_device() {
     local __documentation__='
-        #>>> bl.filesystem.find_block_device "boot_partition"
+        >>> bl.filesystem.find_block_device "boot_partition"
         /dev/sdb1
 
-        #>>> bl.filesystem.find_block_device "boot_partition" /dev/sda
+        >>> bl.filesystem.find_block_device "boot_partition" /dev/sda
         /dev/sda2
 
-        #>>> bl.filesystem.find_block_device "discoverable by blkid"
+        >>> bl.filesystem.find_block_device "discoverable by blkid"
         /dev/sda2
 
         >>> bl.filesystem.find_block_device "_partition"
         /dev/sdb1 /dev/sdb2
 
-        #>>> bl.filesystem.find_block_device "not matching anything" || echo not found
+        >>> bl.filesystem.find_block_device "not matching anything" || echo not found
         not found
 
-        #>>> bl.filesystem.find_block_device "" || echo not found
+        >>> bl.filesystem.find_block_device "" || echo not found
         not found
     '
     local partition_pattern="$1"
