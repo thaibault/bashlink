@@ -9,7 +9,17 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
+# region executable header
+if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
+    for bl_doctest_sub_path in / lib/; do
+        if [ -f "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${bl_doctest_sub_path}bashlink/module.sh" ]
+        then
+            exec "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${bl_doctest_sub_path}bashlink/documentation.sh" "$@"
+        fi
+    done
+fi
+# endregion
 # region import
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
@@ -20,40 +30,85 @@ bl.module.import bashlink.path
 bl.module.import bashlink.string
 bl.module.import bashlink.tools
 # endregion
+# region variables
+bl_documentation__documentation__='
+    The documentation module implements function and module level documentation
+    generation in markdown.
+'
+# endregion
 # region functions
 alias bl.documentation.format_buffers=bl_documentation_format_buffers
 bl_documentation_format_buffers() {
+    local __documentation__='
+        Converts given docstring into markdown compatible code description
+        block.
+
+        >>> bl.documentation.format_buffers a b c
+        c
+        ```bash
+        a
+        b
+        ```
+    '
     local buffer="$1"
     local output_buffer="$2"
     local text_buffer="$3"
-    [[ "$text_buffer" != "" ]] && echo "$text_buffer"
-    if [[ "$buffer" != "" ]]; then
-        # shellcheck disable=SC2016
-        echo '```bash'
-        echo "$buffer"
-        echo "$output_buffer"
-        echo '```'
+    [[ "$text_buffer" != '' ]] && bl.logging.plain "$text_buffer"
+    if [[ "$buffer" != '' ]]; then
+        bl.logging.plain '```bash'
+        bl.logging.plain "$buffer"
+        if [[ "$output_buffer" != '' ]]; then
+            bl.logging.plain "$output_buffer"
+        fi
+        bl.logging.plain '```'
     fi
 }
 alias bl.documentation.format_docstring=bl_documentation_format_docstring
 bl_documentation_format_docstring() {
+    local __documentation__='
+        Removes doctest documentation exclude modifier and their content from
+        given docstring and converts doctest to markdown code blocks.
+
+        >>> bl.documentation.format_buffers "echo a"
+        ```bash
+        echo a
+        ```
+    '
     local docstring="$1"
-    docstring="$(echo "$docstring" \
-        | sed '/+bl.documentation.exclude_print/d' \
-        | sed '/-bl.documentation.exclude_print/d' \
-        | sed '/+bl.documentation.exclude/,/-bl.documentation.exclude/d')"
+    docstring="$(
+        bl.logging.plain "$docstring" | \
+            command sed '/+bl.documentation.exclude_print/d' | \
+                command sed '/-bl.documentation.exclude_print/d' | \
+                    command sed \
+                        '/+bl.documentation.exclude/,/-bl.documentation.exclude/d')"
     bl.doctest.parse_docstring "$docstring" bl_documentation_format_buffers \
         --preserve-prompt
 }
 alias bl.documentation.generate=bl_documentation_generate
 bl_documentation_generate() {
-    # TODO add doc test setup function to documentation
-    module_reference="$1"
+    local __documentation__='
+        Generates a documentation in markdown for given module reference.
+
+        >>> bl.documentation.generate bashlink.documentation
+        +bl.doctest.multiline_ellipsis
+        ## Module bashlink.documentation
+        +bl.doctest.contains
+        The documentation module implements function and module level documen
+        ...
+    '
+    local module_reference="$1"
     local result="$(bl.module.resolve "$module_reference" true)"
-    local file_path="$(echo "$result" | sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
-    local module_name="$(echo "$result" | sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
-    local scope_name="$(bl.module.rewrite_scope_name "$module_name" | sed --regexp-extended 's:\.:_:g')"
+    local file_path="$(
+        bl.logging.plain "$result" | \
+            command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
+    local module_name="$(
+        bl.logging.plain "$result" | \
+            command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
+    local scope_name="$(
+        bl.module.rewrite_scope_name "$module_name" | \
+            command sed --regexp-extended 's:\.:_:g')"
     if [[ -d "$file_path" ]]; then
+        bl.logging.plain "# Package $module_reference"
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
             local excluded=false
@@ -74,7 +129,12 @@ bl_documentation_generate() {
             fi
             if ! $excluded; then
                 # shellcheck disable=SC1117
-                local name="$(bl.module.remove_known_file_extension "$(echo "$sub_file_path" | sed --regexp-extended "s:${scope_name}/([^/]+):${scope_name}.\1:")")"
+                local name="$(
+                    bl.module.remove_known_file_extension "$(
+                        bl.logging.plain "$sub_file_path" | \
+                            command sed \
+                                --regexp-extended \
+                                "s:${scope_name}/([^/]+):${scope_name}.\1:")")"
                 bl.documentation.generate "$name"
             fi
         done
@@ -88,7 +148,8 @@ bl_documentation_generate() {
         # NOTE: Adds internal already loaded but correctly prefixed functions.
         declared_function_names+=" $(! declare -F | cut -d' ' -f3 | command grep -e "^$scope_name" )"
         # NOTE: Removes duplicates.
-        declared_function_names="$(bl.string.get_unique_lines <(echo "$declared_function_names"))"
+        declared_function_names="$(bl.string.get_unique_lines <(
+            bl.logging.plain "$declared_function_names"))"
         # Module level documentation
         # shellcheck disable=SC2154
         local module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
@@ -115,17 +176,20 @@ bl_documentation_generate() {
         done
     )
 }
-alias bl.documentation.parse_arguments=bl_documentation_parse_arguments
-bl_documentation_parse_arguments() {
-    bl.arguments.set "$@"
-    bl.arguments.get_flag --serve serve
-    bl.arguments.apply_new
+alias bl.documentation.main=bl_documentation_main
+bl_documentation_main() {
+    local __documentation__='
+        Initializes main documentation task after consuming given command line
+        arguments.
+
+        >>> bl.documentation.main
+        +bl.doctest.multiline_ellipsis
+        # Package bashlink
+        ...
+    '
     if [[ $# == 0 ]]; then
-        bl.logging.plain
-        bl.logging.plain '# Generated documentation'
         bl.documentation.generate bashlink
     else
-        bl.logging.plain '# Generated documentation'
         local name
         for name in "$@"; do
             bl.documentation.generate "$name"
@@ -135,17 +199,24 @@ bl_documentation_parse_arguments() {
 }
 alias bl.documentation.print_docstring=bl_documentation_print_docstring
 bl_documentation_print_docstring() {
+    local __documentation__='
+        Prints given docstring without sliced elements specified by their
+        modifier.
+
+        >>> bl.documentation.print_docstring test
+        test
+    '
     local docstring="$1"
-    echo "$docstring" \
-        | sed '/+bl.documentation.exclude_print/,/-bl.documentation.exclude_print/d' \
-        | sed '/+bl.documentation.exclude/,/-bl.documentation.exclude/d' \
-        | sed '/```/d'
+    bl.logging.plain "$docstring" | \
+        command sed '/+bl.documentation.exclude_print/,/-bl.documentation.exclude_print/d' | \
+            command sed '/+bl.documentation.exclude/,/-bl.documentation.exclude/d' | \
+                command sed '/```/d'
 }
 # endregion
 if bl.tools.is_main; then
     bl.logging.set_level debug
     bl.logging.set_commands_level info
-    bl.documentation.parse_arguments "$@"
+    bl.documentation.main "$@"
 fi
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:

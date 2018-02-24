@@ -9,11 +9,21 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
+# region import
+# shellcheck source=./module.sh
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+bl.module.import bashlink.logging
+# endregion
+# region variables
+bl_display__documentation__='
+    The display module implements utility functions concerning display
+    configuration.
+'
+# endregion
 # region functions
 alias bl.display.load_xinit_sources=bl_display_load_xinit_sources
 bl_display_load_xinit_sources() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         This functions loads all xinit source scripts.
 
@@ -32,7 +42,6 @@ bl_display_load_xinit_sources() {
 }
 alias bl.display.wacom_map=bl_display_wacom_map
 bl_display_wacom_map() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         This function maps wacom input device to given output display.
 
@@ -45,13 +54,13 @@ bl_display_wacom_map() {
         rotation="$1"
         ;;
     '');; *)
-        echo -en \
-            'Usage: bl.display.wacom_map [rotate]\n' \
-            'where [rotate] is one of\n' \
-            '\thalf\tinvert mapping\n' \
-            '\tccw\tturn mapping by 90° to the left\n' \
-            '\tcw\tturn mapping by 90° to the right\n' \
-            '\tnone\treset rotation\n'
+        bl.logging.plain \
+            $'Usage: bl.display.wacom_map [rotate]\n' \
+            $'where [rotate] is one of\n' \
+            $'\thalf\tinvert mapping\n' \
+            $'\tccw\tturn mapping by 90° to the left\n' \
+            $'\tcw\tturn mapping by 90° to the right\n' \
+            $'\tnone\treset rotation\n'
         ;;
     esac
     display=''
@@ -60,7 +69,9 @@ bl_display_wacom_map() {
     fi
     IFS=$'\n'
     local device
-    for device in $(xsetwacom --list devices | cut -f1 | sed 's/ *$//g'); do
+    for device in $(
+        xsetwacom --list devices | cut -f1 | command sed 's/ *$//g'
+    ); do
         xsetwacom set "$device" MapToOutput "$display"
         xsetwacom set "$device" Rotate "$rotation"
     done
@@ -68,7 +79,6 @@ bl_display_wacom_map() {
 }
 alias bl.display.wacom_rotate=bl_display_wacom_rotate
 bl_display_wacom_rotate() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Rotates a wacom display orientation by 180 degree.
 
@@ -84,7 +94,7 @@ bl_display_wacom_rotate() {
     while true; do
         case $1 in
             -h|--help)
-            cat <<EOF
+            bl.logging.cat <<EOF
 Script to rotate mapping and view of an wacom-display (named output).
 
 Usage: $self rotation [output]
@@ -129,7 +139,7 @@ EOF
             return $?
             ;;
         -*)
-            echo "Error: Invalid argument: $1"
+            bl.logging.plain "Error: Invalid argument: $1"
             sh  --help
             return 1
             ;;
@@ -152,7 +162,6 @@ EOF
 }
 alias bl.display.wacom_toggle_finger_touch_state=bl_display_wacom_toggle_finger_touch_state
 bl_display_wacom_toggle_finger_touch_state() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Toggles between enabled and disabled finger touch on wacom displays.
 

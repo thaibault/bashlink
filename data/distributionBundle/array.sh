@@ -9,11 +9,20 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
+# region import
+# NOTE: We cannot import the logging module to avoid a dependency cycle.
+# shellcheck source=./module.sh
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+# endregion
+# region variables
+bl_array__documentation__='
+    This module implements utility functions concerning arrays.
+'
+# endregion
 # region functions
 alias bl.array.contains=bl_array_contains
 bl_array_contains() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Checks if given item equals to one item in given array.
 
@@ -38,7 +47,6 @@ bl_array_contains() {
 }
 alias bl.array.filter=bl_array_filter
 bl_array_filter() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Filters values from given array by given regular expression.
 
@@ -51,12 +59,11 @@ bl_array_filter() {
     shift
     local element
     for element in "$@"; do
-        echo "$element"
+        bl.module.log_plain "$element"
     done | command grep --extended-regexp "$pattern"
 }
 alias bl.array.get_index=bl_array_get_index
 bl_array_get_index() {
-    # shellcheck disable=SC2016
     local __documentation__='
         Get index of value in an array
 
@@ -79,14 +86,13 @@ bl_array_get_index() {
             local index="${i}"
         fi
     done
-    echo "$index"
+    bl.module.log_plain "$index"
     if (( index == -1 )); then
         return 1
     fi
 }
 alias bl.array.slice=bl_array_slice
 bl_array_slice() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Returns a slice of an array (similar to Python). One way to remember
         how slices work is to think of the indices as pointing between
@@ -195,7 +201,7 @@ bl_array_slice() {
     (( start >= array_length )) && return 1
     # parameters start with $1, so add 1 to $start
     (( start = (( start + 1 )) ))
-    echo "${@: $start:$length}"
+    bl.module.log_plain "${@: $start:$length}"
 }
 # endregion
 # region vim modline

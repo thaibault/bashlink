@@ -9,14 +9,14 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
+# NOTE: We cannot import the logging module to avoid a dependency cycle.
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.array
 # endregion
 # region variables
-# shellcheck disable=SC2016,SC2034
 bl_arguments__documentation__='
     The arguments module provides an argument parser that can be used in
     functions and scripts.
@@ -50,9 +50,18 @@ bl_arguments__documentation__='
 bl_arguments_new=()
 # endregion
 # region functions
+alias bl.arguments.apply_new='set -- "${bl_arguments_new[@]}"'
+bl_arguments_apply_new() {
+    local __documentation__='
+        Call this function after you are finished with argument parsing. The
+        arguments array ($@) will then contain all unparsed arguments that are
+        left.
+    '
+    # NOTE: Implemented as alias.
+    true
+}
 alias bl.arguments.get_flag=bl_arguments_get_flag
 bl_arguments_get_flag() {
-    # shellcheck disable=SC2034,SC2016
     local __documentation__='
         Sets `variable_name` to `true` if flag (or on of its aliases) is
         contained in the argument array (see `bl.arguments.set`).
@@ -98,7 +107,6 @@ bl_arguments_get_flag() {
 }
 alias bl.arguments.get_keyword=bl_arguments_get_keyword
 bl_arguments_get_keyword() {
-    # shellcheck disable=SC2034,SC2016
     local __documentation__='
         Sets `variable_name` to the value of `keyword` the argument array (see
         `bl.arguments.set`) contains `keyword=value`.
@@ -146,7 +154,6 @@ bl_arguments_get_keyword() {
 }
 alias bl.arguments.get_parameter=bl_arguments_get_parameter
 bl_arguments_get_parameter() {
-    # shellcheck disable=SC2034,SC2016
     local __documentation__='
         Sets `variable_name` to the field following `parameter` (or one of the
         `parameter_aliases`) from the argument array (see `bl.arguments.set`).
@@ -190,7 +197,6 @@ bl_arguments_get_parameter() {
 }
 alias bl.arguments.get_positional=bl_arguments_get_positional
 bl_arguments_get_positional() {
-    # shellcheck disable=SC2034,SC2016
     local __documentation__='
         Get the positional parameter at `index`. Use after extracting
         parameters, keywords and flags.
@@ -214,22 +220,11 @@ bl_arguments_get_positional() {
     local variable="$2"
     eval "${variable}=${bl_arguments_new[index]}"
 }
-alias bl.arguments.apply_new='set -- "${bl_arguments_new[@]}"'
-bl_arguments_apply_new() {
-    local __documentation__='
-        Call this function after you are finished with argument parsing. The
-        arguments array ($@) will then contain all unparsed arguments that are
-        left.
-    '
-    # NOTE: Implemented as alias.
-    true
-}
 alias bl.arguments.set=bl_arguments_set
 bl_arguments_set() {
-    # shellcheck disable=SC2034,SC2016
     local __documentation__='
-        Set the array the arguments-module is working on. After getting the
-        desired arguments, the new argument array can be accessed via
+        Set the array this module should work on. After getting the desired
+        arguments, the new argument array can be accessed via
         `bl_arguments_new`. This new array contains all remaining arguments.
 
         ```
@@ -265,19 +260,19 @@ bl_arguments_wrapper_with_minimum_number_of_arguments() {
     if [ $# -le $(($1+$2+1)) ]; then
         # Return default arguments.
         # shellcheck disable=SC2068
-        echo ${@:3:$1}
+        bl.module.log_plain ${@:3:$1}
         return $?
     else
         # Return given arguments.
         # shellcheck disable=SC2068
-        echo ${@:3+$1}
+        bl.module.log_plain ${@:3+$1}
         return $?
     fi
 }
 # NOTE: Depends on "bl.arguments.wrapper_with_minimum_number_of_arguments"
 alias bl.arguments.default_wrapper=bl_arguments_default_wrapper
 bl_arguments_default_wrapper() {
-    # shellcheck disable=SC1004,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Wrapper function for
         `bl.arguments.wrapper_with_minimum_number_of_arguments` with second

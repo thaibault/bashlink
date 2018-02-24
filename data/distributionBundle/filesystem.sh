@@ -9,7 +9,7 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./globals.sh
 # shellcheck source=./module.sh
@@ -19,9 +19,11 @@ bl.module.import bashlink.logging
 bl.module.import bashlink.path
 # endregion
 # region variables
-# shellcheck disable=SC2034
 bl_filesystem__dependencies__=(pv)
-# shellcheck disable=SC2034,SC1004
+bl_filesystem__documentation__='
+    Provides filesystem aware utility functions.
+'
+# shellcheck disable=SC1004
 bl_filesystem__doctest_setup__='
     # Runs once before tests are started:
     # region import
@@ -44,16 +46,16 @@ EOF
         if [[ $1 == subvolume ]] && [[ $2 == snapshot ]]; then
             shift
             shift
-            echo btrfs subvolume snapshot $@
+            echo btrfs subvolume snapshot "$@"
         fi
         if [[ $1 == send ]]; then
             shift
-            echo btrfs send $@
+            echo btrfs send "$@"
         fi
         if [[ $1 == receive ]]; then
             cat - # print stdin
             shift
-            echo btrfs receive $@
+            echo btrfs receive "$@"
         fi
         if [[ $1 == subvolume ]] && [[ $2 == list ]] && [[ "${!#}" == /broot ]]
         then
@@ -115,14 +117,14 @@ EOF
         fi
     }
     mv() {
-        echo mv $@
+        echo mv "$@"
     }
     pv() {
         cat - | tr -d "\n" # print stdin
         echo -n " | pv | "
     }
     rmdir() {
-        echo rmdir $@
+        echo rmdir "$@"
     }
 '
 # endregion
@@ -130,11 +132,12 @@ EOF
 ## region btrfs
 alias bl.filesystem.btrfs_is_root=bl_filesystem_btrfs_is_root
 bl_filesystem_btrfs_is_root() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
-        >>> bl.filesystem.btrfs_is_root /broot; echo $?
+        >>> bl.filesystem.btrfs_is_root /broot
+        >>> echo $?
         0
-        >>> bl.filesystem.btrfs_is_root /broot/foo; echo $?
+        >>> bl.filesystem.btrfs_is_root /broot/foo
+        >>> echo $?
         1
     '
     (btrfs subvolume show "$1" | command grep 'is btrfs root') &>/dev/null || \
@@ -145,7 +148,6 @@ bl_filesystem_btrfs_is_root() {
 # NOTE: Depends on "bl.filesystem.is_root"
 alias bl.filesystem.btrfs_find_root=bl_filesystem_btrfs_find_root
 bl_filesystem_btrfs_find_root() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Returns absolute path to btrfs root.
 
@@ -153,20 +155,23 @@ bl_filesystem_btrfs_find_root() {
         /broot
         >>> bl.filesystem.btrfs_find_root /broot/__snapshot/backup_last
         /broot
-        >>> bl.filesystem.btrfs_find_root /not/a/valid/mountpoint; echo $?
+        >>> bl.filesystem.btrfs_find_root /not/a/valid/mountpoint
+        >>> echo $?
         1
     '
     local path="$1"
     while true; do
-        bl.filesystem.btrfs_is_root "$path" && echo "$path" && return 0
-        [[ "$path" == "/" ]] && return 1
+        bl.filesystem.btrfs_is_root "$path" && \
+            bl.logging.plain "$path" && \
+            return 0
+        [ "$path" = '/' ] && \
+            return 1
         path="$(dirname "$path")"
     done
 }
 # NOTE: Depends on "bl.filesystem.is_root"
 alias bl.filesystem.btrfs_subvolume_filter=bl_filesystem_btrfs_subvolume_filter
 bl_filesystem_btrfs_subvolume_filter() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> bl.filesystem.btrfs_subvolume_filter /broot parent 256
         ID 259 parent 256 top level 256 path __active/var
@@ -175,7 +180,7 @@ bl_filesystem_btrfs_subvolume_filter() {
         >>> bl.filesystem.btrfs_subvolume_filter /broot id 256
         ID 256 parent 5 top level 5 path __active
     '
-    local btrfs_root="$(realpath "$1")"
+    local btrfs_root="$(readlink --canonicalize "$1")"
     local target_key="$2"
     local target_value="$3"
     local entry
@@ -183,24 +188,27 @@ bl_filesystem_btrfs_subvolume_filter() {
     btrfs subvolume list -p "$btrfs_root" | while read -r entry; do
         local value="$(bl.filesystem.btrfs_get_subvolume_list_field "$target_key" "$entry")"
         if [[ "$value" == "$target_value" ]]; then
-            echo "$entry"
+            bl.logging.plain "$entry"
         fi
     done
 }
 alias bl.filesystem.btrfs_is_subvolume=bl_filesystem_btrfs_is_subvolume
 bl_filesystem_btrfs_is_subvolume() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Checks if path is a subvolume. Note: The btrfs root is also a
         subvolume.
 
-        >>> bl.filesystem.btrfs_is_subvolume /broot; echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /broot
+        >>> echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /broot/__active; echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /broot/__active
+        >>> echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /broot/__active/usr; echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /broot/__active/usr
+        >>> echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /broot/__active/etc; echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /broot/__active/etc
+        >>> echo $?
         1
     '
     btrfs subvolume show "$1" &>/dev/null
@@ -208,7 +216,6 @@ bl_filesystem_btrfs_is_subvolume() {
 # NOTE: Depends on "bl.filesystem.btrfs_subvolume", "bl.filesystem.btrfs_subvolume_filter"
 alias bl.filesystem.btrfs_get_child_volumes=bl_filesystem_btrfs_get_child_volumes
 bl_filesystem_btrfs_get_child_volumes() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Returns absolute paths to subvolumes.
 
@@ -231,12 +238,12 @@ bl_filesystem_btrfs_get_child_volumes() {
     local volume_id="$(bl.filesystem.btrfs_get_subvolume_list_field id "$entry")"
     bl.filesystem.btrfs_subvolume_filter "$btrfs_root" parent "$volume_id" \
     | while read -r entry; do
-        echo "${btrfs_root}/$(bl.filesystem.btrfs_get_subvolume_list_field path "$entry")"
+        bl.logging.plain "${btrfs_root}/$(
+            bl.filesystem.btrfs_get_subvolume_list_field path "$entry")"
     done
 }
 alias bl.filesystem.btrfs_get_subvolume_list_field=bl_filesystem_btrfs_get_subvolume_list_field
 bl_filesystem_btrfs_get_subvolume_list_field() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> local entry="$(btrfs subvolume list /broot | head -n1)"
         >>> bl.filesystem.btrfs_get_subvolume_list_field path "$entry"
@@ -253,7 +260,7 @@ bl_filesystem_btrfs_get_subvolume_list_field() {
     local field
     for field in "${entry[@]}"; do
         if $found; then
-            echo "$field"
+            bl.logging.plain "$field"
             break
         fi
         # case insensitive match (bash >= 4)
@@ -264,7 +271,6 @@ bl_filesystem_btrfs_get_subvolume_list_field() {
 }
 alias bl.filesystem.btrfs_subvolume_set_read_only=bl_filesystem_btrfs_subvolume_set_read_only
 bl_filesystem_btrfs_subvolume_set_read_only() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Make subvolume writable or readonly. Also applies to child subvolumes.
     '
@@ -285,7 +291,6 @@ bl_filesystem_btrfs_subvolume_set_read_only() {
 # NOTE: Depends on "bl.filesystem.btrfs_subvolume_set_read_only"
 alias bl.filesystem.btrfs_send=bl_filesystem_btrfs_send
 bl_filesystem_btrfs_send() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Sends snapshots.
 
@@ -320,7 +325,7 @@ bl_filesystem_btrfs_send() {
 # NOTE: Depends on "bl.filesystem.btrfs_subvolume_set_read_only"
 alias bl.filesystem.btrfs_send_update=bl_filesystem_btrfs_send_update
 bl_filesystem_btrfs_send_update() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Update snapshot (needs backing snapshot).
 
@@ -359,7 +364,6 @@ bl_filesystem_btrfs_send_update() {
 }
 alias bl.filesystem.btrfs_snapshot=bl_filesystem_btrfs_snapshot
 bl_filesystem_btrfs_snapshot() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Make snapshot of subvolume.
 
@@ -395,7 +399,6 @@ bl_filesystem_btrfs_snapshot() {
 }
 alias bl.filesystem.btrfs_subvolume_backup=bl_filesystem_btrfs_subvolume_backup
 bl_filesystem_btrfs_subvolume_backup() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Create, delete or list system backups.
 
@@ -427,7 +430,7 @@ bl_filesystem_btrfs_subvolume_backup() {
     elif [[ "$1" == list ]]; then
         sudo btrfs subvolume list /
     else
-        cat << EOF
+        bl.logging.cat << EOF
 bl.filesystem.btrfs_subvolume_backup create|delete|list [backupName]
 EOF
     fi
@@ -435,7 +438,9 @@ EOF
 }
 alias bl.filesystem.btrfs_subvolume_backup_autocomplete=bl_filesystem_btrfs_subvolume_backup_autocomplete
 bl_filesystem_btrfs_subvolume_backup_autocomplete() {
-    # Autocompletion function.
+    local __documentation__='
+        Autocompletion function for `bl.filesystem.subvolume_backup`.
+    '
     local last_complete_argument="${COMP_WORDS[${COMP_CWORD}-1]}"
     local current_argument="${COMP_WORDS[-1]}"
     if [[ $COMP_CWORD == 1 ]]; then
@@ -453,7 +458,6 @@ bl_filesystem_btrfs_subvolume_backup_autocomplete() {
 complete -F bl_filesystem_btrfs_subvolume_backup_autocomplete bl_filesystem_btrfs_subvolume_backup
 alias bl.filesystem.btrfs_subvolume_delete=bl_filesystem_btrfs_subvolume_delete
 bl_filesystem_btrfs_subvolume_delete() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Delete a subvolume. Also deletes child subvolumes.
 
@@ -477,7 +481,6 @@ bl_filesystem_btrfs_subvolume_delete() {
 ## endregion
 alias bl.filesystem.close_crypt_blockdevice=bl_filesystem_close_crypt_blockdevice
 bl_filesystem_close_crypt_blockdevice() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Mounts encrypted blockdevices as analyseable blockdevice.
 
@@ -490,6 +493,9 @@ bl_filesystem_close_crypt_blockdevice() {
 }
 alias bl.filesystem.create_partition_via_offset=bl_filesystem_create_partition_via_offset
 bl_filesystem_create_partition_via_offset() {
+    local __documentation__='
+        Creates a partition after given disk offset.
+    '
     local device="$1"
     local name_or_uuid="$2"
     local loop_device="$(losetup --find)"
@@ -497,74 +503,96 @@ bl_filesystem_create_partition_via_offset() {
     # NOTE: partx's NAME field corresponds to partition labels
     local partition_info=$(partx --raw --noheadings --output \
         START,NAME,UUID,TYPE "$device" 2>/dev/null| command grep "$name_or_uuid")
-    local offset_sectors="$(echo "$partition_info"| cut --delimiter ' ' \
-        --fields 1)"
+    local offset_sectors="$(
+        bl.logging.plain "$partition_info" | \
+            cut --delimiter ' ' --fields 1)"
     if [ -z "$offset_sectors" ]; then
         bl.logging.warn "Could not find partition with label/uuid \"$name_or_uuid\" on device \"$device\""
         return 1
     fi
-    local offset_bytes="$(echo | awk -v x="$offset_sectors" -v y="$sector_size" '{print x * y}')"
+    local offset_bytes="$(
+        bl.logging.plain | \
+            awk -v x="$offset_sectors" -v y="$sector_size" '{print x * y}')"
     losetup --offset "$offset_bytes" "$loop_device" "$device"
     bl.logging.plain "$loop_device"
 }
 alias bl.filesystem.find_block_device=bl_filesystem_find_block_device
 bl_filesystem_find_block_device() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> bl.filesystem.find_block_device "boot_partition"
         /dev/sdb1
+
         >>> bl.filesystem.find_block_device "boot_partition" /dev/sda
         /dev/sda2
+
         >>> bl.filesystem.find_block_device "discoverable by blkid"
         /dev/sda2
+
         >>> bl.filesystem.find_block_device "_partition"
         /dev/sdb1 /dev/sdb2
+
         >>> bl.filesystem.find_block_device "not matching anything" || echo not found
         not found
+
         >>> bl.filesystem.find_block_device "" || echo not found
         not found
     '
     local partition_pattern="$1"
     local device="${2-}"
     [ "$partition_pattern" = '' ] && return 1
-    find_block_device_simple() {
+    bl_filesystem_find_block_device_simple() {
         local device_info
-        lsblk --noheadings --list --paths --output \
-        NAME,TYPE,LABEL,PARTLABEL,UUID,PARTUUID ${device:+"$device"} \
-        | sort --unique | while read -r device_info; do
-            local current_device
-            current_device=$(echo "$device_info" | cut -d' ' -f1)
-            if [[ "$device_info" = *"${partition_pattern}"* ]]; then
-                echo "$current_device"
-            fi
-        done
+        lsblk \
+            --noheadings \
+            --list \
+            --paths \
+            --output NAME,TYPE,LABEL,PARTLABEL,UUID,PARTUUID \
+            ${device:+"$device"} | \
+                sort --unique | \
+                    while read -r device_info; do
+                        local current_device
+                        current_device="$(
+                            bl.logging.plain "$device_info" | \
+                                cut -d' ' -f1)"
+                        if [[ "$device_info" = *"${partition_pattern}"* ]]; then
+                            bl.logging.plain "$current_device"
+                        fi
+                    done
     }
-    find_block_device_deep() {
+    bl_filesystem_find_block_device_deep() {
         local device_info
-        lsblk --noheadings --list --paths --output NAME ${device:+"$device"} \
-        | sort --unique | cut -d' ' -f1 | while read -r current_device; do
-            blkid -p -o value "$current_device" \
-            | while read -r device_info; do
-                if [[ "$device_info" = *"${partition_pattern}"* ]]; then
-                    echo "$current_device"
-                fi
-            done
-        done
+        lsblk \
+            --noheadings \
+            --list \
+            --paths \
+            --output NAME \
+            ${device:+"$device"} | \
+                sort --unique | \
+                    cut -d' ' -f1 | \
+                        while read -r current_device; do
+                            blkid -p -o value "$current_device" | \
+                                while read -r device_info; do
+                                    if [[ "$device_info" = *"${partition_pattern}"* ]]; then
+                                        bl.logging.plain "$current_device"
+                                    fi
+                                done
+                        done
     }
     local candidates
-    read -r -a candidates <<< "$(find_block_device_simple)"
+    mapfile -t candidates < <(bl_filesystem_find_block_device_simple)
     [ ${#candidates[@]} -eq 0 ] && \
-        read -r -a candidates <<< "$(find_block_device_deep)"
-    unset -f find_block_device_simple
-    unset -f find_block_device_deep
-    [ ${#candidates[@]} -eq 0 ] && return 1
-    [ ${#candidates[@]} -ne 1 ] && echo "${candidates[@]}" && return 1
+        mapfile -t candidates < <(bl_filesystem_find_block_device_deep)
+    unset -f bl_filesystem_find_block_device_simple
+    unset -f bl_filesystem_find_block_device_deep
+    [ ${#candidates[@]} -eq 0 ] && \
+        return 1
+    [ ${#candidates[@]} -ne 1 ] && \
+        bl.logging.plain "${candidates[@]}" && return 1
     bl.logging.plain "${candidates[0]}"
 }
 ## region file links
 alias bl.filesystem.find_hardlinks=bl_filesystem_find_hardlinks
 bl_filesystem_find_hardlinks() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Finds same files as given file (hardlinks).
 
@@ -572,12 +600,11 @@ bl_filesystem_find_hardlinks() {
             bl.filesystem.find_hardlinks /home/user/test.txt
         ```
     '
-    sudo find / -samefile "$1" 2>/dev/null
+    sudo command find / -samefile "$1" 2>/dev/null
     return $?
 }
 alias bl.filesystem.show_symbolic_links=bl_filesystem_show_symbolic_links
 bl_filesystem_show_symbolic_links() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Shows symbolic links in current directory if no argument is provided or
         in given location and their subdirectories (recursive).
@@ -592,15 +619,14 @@ bl_filesystem_show_symbolic_links() {
     '
     local element
     while IFS= read -r -d '' element; do
-        echo "${element} -> "
+        bl.logging.plain "${element} -> "
         readlink "$element"
-    done < <(find "$1" -type l -print0)
+    done < <(command find "$1" -type l -print0)
     return $?
 }
 ## endregion
 alias bl.filesystem.make_crypt_blockdevice=bl_filesystem_make_crypt_blockdevice
 bl_filesystem_make_crypt_blockdevice() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Creates encrypted blockdevices.
 
@@ -613,7 +639,7 @@ bl_filesystem_make_crypt_blockdevice() {
 }
 alias bl.filesystem.make_uefi_boot_entry=bl_filesystem_make_uefi_boot_entry
 bl_filesystem_make_uefi_boot_entry() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Creates an uefi boot entry.
 
@@ -638,16 +664,16 @@ bl_filesystem_make_uefi_boot_entry() {
     fi
     if [[ -f "$kernel_parameter_file_path" ]]; then
         local command="sudo efibootmgr --verbose --create --disk /dev/sda --part 1 -l \"\\${kernel}\" --label \"$1\" --unicode \"$(cat "$kernel_parameter_file_path")\""
-        echo "Create boot entry \"$1\" with command \"${command}\"."
+        bl.logging.info "Create boot entry \"$1\" with command \"${command}\"."
         eval "$command"
-    else
-        echo "Error: file \"${kernel_parameter_file_path}\" doesn't exists."
+        return $?
     fi
-    return $?
+    bl.logging.critical \
+        "Error: file \"${kernel_parameter_file_path}\" doesn't exists."
+    return 1
 }
 alias bl.filesystem.open_crypt_blockdevice=bl_filesystem_open_crypt_blockdevice
 bl_filesystem_open_crypt_blockdevice() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Mounts encrypted blockdevices as analyseable blockdevice.
 
@@ -660,7 +686,6 @@ bl_filesystem_open_crypt_blockdevice() {
 }
 alias bl.filesystem.overlay_location=bl_filesystem_overlay_location
 bl_filesystem_overlay_location() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Mounts an overlay over given location. This could be useful if we have a
         read only system caused by physical reasons.
@@ -676,7 +701,6 @@ bl_filesystem_overlay_location() {
 }
 alias bl.filesystem.repair=bl_filesystem_repair
 bl_filesystem_repair() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Finds filesystem errors on linux based filesystem and repairs them.
 
@@ -694,7 +718,6 @@ bl_filesystem_repair() {
 }
 alias bl.filesystem.set_maximum_user_watches=bl_filesystem_set_maximum_user_watches
 bl_filesystem_set_maximum_user_watches() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Sets the maximum number of concurrent allowed file observations via
         inotify.
@@ -703,12 +726,13 @@ bl_filesystem_set_maximum_user_watches() {
             bl.filesystem.set_maximum_user_watches 500000
         ```
     '
-    echo "$1" | sudo tee /proc/sys/fs/inotify/max_user_watches
+    bl.logging.plain "$1" | \
+        sudo tee /proc/sys/fs/inotify/max_user_watches
     return $?
 }
 alias bl.filesystem.write_blockdevice_to_image=bl_filesystem_write_blockdevice_to_image
 bl_filesystem_write_blockdevice_to_image() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Writes a given backup from given blockdevice.
 
@@ -731,7 +755,7 @@ bl_filesystem_write_blockdevice_to_image() {
 }
 alias bl.filesystem.write_image_to_blockdevice=bl_filesystem_write_image_to_blockdevice
 bl_filesystem_write_image_to_blockdevice() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Writes a given image to given blockdevice.
 
