@@ -54,13 +54,13 @@ bl_display_wacom_map() {
         rotation="$1"
         ;;
     '');; *)
-        echo -en \
-            'Usage: bl.display.wacom_map [rotate]\n' \
-            'where [rotate] is one of\n' \
-            '\thalf\tinvert mapping\n' \
-            '\tccw\tturn mapping by 90° to the left\n' \
-            '\tcw\tturn mapping by 90° to the right\n' \
-            '\tnone\treset rotation\n'
+        bl.logging.plain \
+            $'Usage: bl.display.wacom_map [rotate]\n' \
+            $'where [rotate] is one of\n' \
+            $'\thalf\tinvert mapping\n' \
+            $'\tccw\tturn mapping by 90° to the left\n' \
+            $'\tcw\tturn mapping by 90° to the right\n' \
+            $'\tnone\treset rotation\n'
         ;;
     esac
     display=''
@@ -139,7 +139,7 @@ EOF
             return $?
             ;;
         -*)
-            echo "Error: Invalid argument: $1"
+            bl.logging.plain "Error: Invalid argument: $1"
             sh  --help
             return 1
             ;;

@@ -16,9 +16,9 @@ bl.module.import bashlink.logging
 bl.module.import b
 # endregion
 foo123() {
-    echo c
+    bl.logging.plain c
 }
-echo imported module c
+bl.logging.plain imported module c
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:

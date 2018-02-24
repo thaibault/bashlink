@@ -12,6 +12,7 @@
 # shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./module.sh
+# shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 # endregion
 # region variables
@@ -297,7 +298,7 @@ else
     bl_cli_disable_color
 fi
 # TODO this breaks dracut (segfault)
-#(echo -e $'\u1F3B7' | command grep -v F3B7) &> /dev/null
+#(bl.module.log_plain -e $'\u1F3B7' | command grep -v F3B7) &> /dev/null
 # NOTE: "bl.tools.is_defined" results in an dependency cycle.
 if bl.module.is_defined NO_UNICODE; then
     bl.cli.disable_unicode_glyphs

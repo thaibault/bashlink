@@ -13,6 +13,7 @@
 # region import
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+bl.module.import bashlink.logging
 bl.module.import bashlink.tools
 # endregion
 # region variables
@@ -66,7 +67,7 @@ bl_dictionary_get() {
     fi
     bl.tools.is_defined "$store" || return 1
     local value="${!store}"
-    echo "$value"
+    bl.logging.plain "$value"
 }
 alias bl.dictionary.get_keys=bl_dictionary_get_keys
 bl_dictionary_get_keys() {
@@ -103,7 +104,7 @@ bl_dictionary_get_keys() {
         for key in $(declare -p | cut -d' ' -f3 | command grep -E "^${store}" | \
             cut -d '=' -f1)
         do
-            echo "${key#${store}_}"
+            bl.logging.plain "${key#${store}_}"
         done
     else
         eval 'keys="${!'"$store"'[@]}"'
@@ -111,7 +112,7 @@ bl_dictionary_get_keys() {
     local key
     # shellcheck disable=SC2154
     for key in ${keys:-}; do
-        echo "$key"
+        bl.logging.plain "$key"
     done
 }
 alias bl.dictionary.set=bl_dictionary_set

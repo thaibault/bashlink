@@ -12,16 +12,17 @@
 # region import
 # shellcheck source=../module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../module.sh"
+bl.module.import bashlink.logging
 bl.module.import bashlink.tools
 # endregion
 bl_mockup_a_foo() {
-    echo a
+    bl.logging.plain a
 }
 if bl.tools.is_main; then
-    echo running a
+    bl.logging.plain running a
     exit 0
 fi
-echo imported module a
+bl.logging.plain imported module a
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:
