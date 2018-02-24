@@ -15,16 +15,10 @@ if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
     for bl_doctest_sub_path in / lib/; do
         if [ -f "$(dirname "$(dirname "${BASH_SOURCE[0]}")")${bl_doctest_sub_path}bashlink/module.sh" ]
         then
-            pushd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")${bl_doctest_sub_path}bashlink" &>/dev/null
-            if [ $# -gt 0 ] && [[ "$1" != /* ]]; then
-                bl_doctest_path="$(dirname "${BASH_SOURCE[0]}")$1"
-                echo A "$bl_doctest_path"
-                shift
-                exec ./doctest.sh "$bl_doctest_path" "$@"
-            else
-                exec ./doctest.sh "$@"
-            fi
-            popd &>/dev/null
+            cd \
+                "$(dirname "$(dirname "${BASH_SOURCE[0]}")")${bl_doctest_sub_path}bashlink" \
+                &>/dev/null && ß
+            exec ./doctest.sh "$@"
         fi
     done
 fi
