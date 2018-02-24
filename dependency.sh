@@ -49,7 +49,7 @@ bl_dependency_check() {
     for dependency in "$@"; do
         if ! hash "$dependency" &>/dev/null; then
             return_code=2
-            echo "$dependency"
+            bl.logging.plain "$dependency"
         fi
     done
     return $return_code
@@ -75,7 +75,7 @@ bl_dependency_check_pkgconfig() {
     for library in "$@"; do
         if ! pkg-config "$library" &>/dev/null; then
             return_code=2
-            echo "$library"
+            bl.logging.plain "$library"
         fi
     done
     return $return_code
@@ -103,7 +103,7 @@ bl_dependency_check_shared_library() {
             command grep "$pattern" &>/dev/null
         then
             return_code=2
-            echo "$pattern"
+            bl.logging.plain "$pattern"
         fi
     done
     return $return_code
