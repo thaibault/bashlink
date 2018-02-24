@@ -464,7 +464,9 @@ bl_doctest_eval() {
     rm "$declared_names_before_run_file_path"
     rm "$declared_names_after_run_file_path"
     local reason
-    if ! reason="$(bl.doctest.compare_result "$output_buffer" "$output")"; then
+    if ! reason="$(
+        bl.doctest.compare_result "$output_buffer" "$output" 2>&1
+    )"; then
         bl.logging.plain "${bl_cli_color_light_red}error:${bl_cli_color_default} ${reason}"
         bl.logging.plain "${bl_cli_color_light_red}test:${bl_cli_color_default}"
         bl.logging.plain "$test_buffer"
