@@ -16,7 +16,7 @@ if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
         if [ -f "$(dirname "$(dirname "${BASH_SOURCE[0]}")")${bl_doctest_sub_path}bashlink/module.sh" ]
         then
             pushd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")${bl_doctest_sub_path}bashlink" &>/dev/null
-            exec ./doctest.sh
+            exec ./doctest.sh "$@"
             popd &>/dev/null
         fi
     done
