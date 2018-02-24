@@ -419,7 +419,7 @@ bl_filesystem_btrfs_subvolume_backup() {
     elif [[ "$1" == list ]]; then
         sudo btrfs subvolume list /
     else
-        cat << EOF
+        bl.logging.cat << EOF
 bl.filesystem.btrfs_subvolume_backup create|delete|list [backupName]
 EOF
     fi

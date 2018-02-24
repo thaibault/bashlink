@@ -13,6 +13,7 @@
 # region import
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+bl.module.import bashlink.logging
 bl.module.import bashlink.number
 # endregion
 # region variables
@@ -55,7 +56,7 @@ bl_pacman_show_not_maintained_by_pacman_system_files() {
         1>"$paths_file_path"
     pacman --query --list --quiet | command sed 's:/$::g' | sort | \
         uniq 1>"$maintained_paths_file_path"
-    cat "$paths_file_path" "$maintained_paths_file_path" | \
+    bl.logging.cat "$paths_file_path" "$maintained_paths_file_path" | \
         command sed 's:^/home/.*$::g' | \
         command sed 's:^/root/.*$::g' | \
         command sed 's:^/dev/.*$::g' | \
@@ -73,7 +74,7 @@ bl_pacman_show_not_maintained_by_pacman_system_files() {
     local number_of_not_maintained_files
     (( number_of_not_maintained_files=(( number_of_files - number_of_maintained_files )) ))
     # shellcheck disable=SC2086
-    cat << EOF
+    bl.logging.cat << EOF
 
 Number of files: $number_of_files 100%
 Number of maintained files: $number_of_maintained_files $(bl.number.calculate_percent $number_of_files $number_of_maintained_files)%

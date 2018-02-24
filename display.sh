@@ -10,6 +10,11 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
+# region import
+# shellcheck source=./module.sh
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+bl.module.import bashlink.logging
+# endregion
 # region variables
 bl_display__documentation__='
     The display module implements utility functions concerning display
@@ -89,7 +94,7 @@ bl_display_wacom_rotate() {
     while true; do
         case $1 in
             -h|--help)
-            cat <<EOF
+            bl.logging.cat <<EOF
 Script to rotate mapping and view of an wacom-display (named output).
 
 Usage: $self rotation [output]
