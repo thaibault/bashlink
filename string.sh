@@ -10,16 +10,17 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
-# region variables
-bl_string__documentation__='
-    This module implements utility functions concerning strings.
-'
-# endregion
 # region import
 # shellcheck source=./cli.sh
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.cli
+bl.module.import bashlink.logging
+# endregion
+# region variables
+bl_string__documentation__='
+    This module implements utility functions concerning strings.
+'
 # endregion
 # region functions
 alias bl.string.generate_random=bl_string_generate_random
@@ -227,7 +228,7 @@ bl_string_merge_text_files() {
             # shellcheck disable=SC2059
             printf "$between" "$file_path"
         fi
-        cat "$file_path"
+        bl.logging.cat "$file_path"
         (( index += 1 ))
     done
     # shellcheck disable=SC2059
@@ -263,7 +264,7 @@ bl_string_translate() {
     '
     local default_target_language=de
     if [[ "$1" = -h || "$1" = --help || "$#" -lt 1 ]]; then
-        cat <<EOF
+        bl.logging.cat <<EOF
 translate <text> [[<source language>] <target language>]
 
 if target missing, use $default_target_language
@@ -271,7 +272,7 @@ if source missing, use "auto"
 list supported languages: translate -l
 EOF
     elif [[ "$1" = -l || "$1" = --languages ]]; then
-        cat <<EOF
+        bl.logging.cat <<EOF
 af=Afrikaans
 sq=Albanisch
 ar=Arabisch
