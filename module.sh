@@ -610,6 +610,7 @@ bl_module_resolve() {
             break
         fi
     done
+    file_path="$(bl.path.convert_to_absolute "$file_path")"
     if [ "$file_path" = '' ]; then
         bl.module.log \
             critical \
@@ -621,11 +622,13 @@ bl_module_resolve() {
     fi
     if [ "$2" = true ]; then
         local scope_name="$(basename "$1")"
-        if [[ "$file_path" == "$current_path"* ]] && [[ "$(basename "$1")" != bashlink.* ]]; then
-            scope_name="bashlink.$(
-                bl_module_remove_known_file_extension "$scope_name")"
+        if [[ "$file_path" == "$current_path"* ]] && [[
+            "$(basename "$1")" != bashlink.*
+        ]]; then
+            scope_name="bashlink.$scope_name"
         fi
-        echo "$(bl.path.convert_to_absolute "$file_path")/$scope_name"
+        echo "$(bl.path.convert_to_absolute "$file_path")/$(
+            bl_module_remove_known_file_extension "$scope_name")"
     else
         bl.path.convert_to_absolute "$file_path"
     fi

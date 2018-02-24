@@ -13,12 +13,9 @@
 # region import
 if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
     for bl_doctest_sub_path in / lib/; do
-        if [ -f "$(dirname "$(dirname "${BASH_SOURCE[0]}")")${bl_doctest_sub_path}bashlink/module.sh" ]
+        if [ -f "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${bl_doctest_sub_path}bashlink/module.sh" ]
         then
-            cd \
-                "$(dirname "$(dirname "${BASH_SOURCE[0]}")")${bl_doctest_sub_path}bashlink" \
-                    &>/dev/null && \
-            exec ./doctest.sh "$@"
+            exec "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${bl_doctest_sub_path}bashlink/doctest.sh" "$@"
         fi
     done
 fi
@@ -171,6 +168,8 @@ bl_doctest_use_side_by_side_output=true
 alias bl.doctest.compare_result=bl_doctest_compare_result
 bl_doctest_compare_result() {
     local __documentation__='
+        Compares specified result with given one.
+
         >>> local buffer="line 1
         >>> line 2"
         >>> local got="line 1
@@ -818,7 +817,7 @@ bl_doctest_test() {
             # Module level tests
             local module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
             local docstring="${!module_documentation_variable_name}"
-            if [ -z "$docstring" ]; then
+            if [ "$docstring" = '' ]; then
                 bl.logging.warn "Module \"$module_name\" is not documented."
             else
                 (( total++ ))
@@ -835,6 +834,9 @@ bl_doctest_test() {
                 (( total++ ))
                 bl.doctest.run_test "$docstring" "$module_name" "$name" && \
                     (( success++ ))
+            elif [ "$given_function_names_to_test" != '' ]; then
+                (( total++ ))
+                bl.logging.critical "Given function \"$name\" is not documented."
             elif ! $bl_doctest_supress_undocumented; then
                 bl.logging.warn "Function \"$name\" is not documented."
             fi
