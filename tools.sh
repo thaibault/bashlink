@@ -24,6 +24,27 @@ bl_tools__documentation__='
 '
 # endregion
 # region functions
+alias bl.tools.compile_and_install_without_root=bl_tools_compile_and_install_without_root
+bl_tools_compile_and_install_without_root() {
+    local __documentation__='
+        Compiles and installs a program by its given source code. Your have to
+        be inside the source code folder to run this function.
+
+        ```bash
+            bl.tools.compile_and_install_without_root /home/user/myUser/
+        ```
+    '
+    local install_location=~/system/
+    if [ "$1" ]; then
+        install_location="$1"
+    fi
+    chmod +x ./configure
+    ./configure prefix="$install_location"
+    # NOTE: Another possibility to install to a specified path is
+    # "make install DESTDIR=$1"
+    make install
+    return $?
+}
 alias bl.tools.is_defined=bl_module_is_defined
 alias bl.tools.is_empty=bl_tools_is_empty
 bl_tools_is_empty() {

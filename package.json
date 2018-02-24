@@ -67,7 +67,6 @@
     "path.sh",
     "ssh.sh",
     "string.sh",
-    "system.sh",
     "time.sh",
     "tools.sh"
   ],
