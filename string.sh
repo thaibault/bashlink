@@ -97,7 +97,9 @@ bl_string_images_to_css_classes() {
         local valid_path=true
         local exclude_path
         for exclude_path in "$@"; do
-            exclude_path="$(echo "$exclude_path" | command sed 's/\/$//g')"
+            exclude_path="$(
+                bl.logging.plain "$exclude_path" | \
+                    command sed 's/\/$//g')"
             if [[ "$exclude_path" == "$(dirname "$image_file_path")" ]] || \
                [[ "$exclude_path" == "$image_file_path" ]]
             then
@@ -106,9 +108,11 @@ bl_string_images_to_css_classes() {
             fi
         done
         if $valid_path; then
-            local image_class_name="$(echo "$image_file_path" | tr '@#&%+./_{; ' '-' | \
+            local image_class_name="$(
+                bl.logging.plain "$image_file_path" | \
+                tr '@#&%+./_{; ' '-' | \
                 command grep --only-matching --extended-regexp '[^-].+$')"
-            echo ".image-data-${image_class_name}{background-image: url(\"data:$(file --brief --mime-type "$image_file_path");base64,$(base64 --wrap 0 "$image_file_path")\")}"
+            bl.logging.plain ".image-data-${image_class_name}{background-image: url(\"data:$(file --brief --mime-type "$image_file_path");base64,$(base64 --wrap 0 "$image_file_path")\")}"
         fi
     done
     return $?
@@ -219,8 +223,11 @@ bl_string_merge_text_files() {
         esac
     done
     # shellcheck disable=SC2059
-    printf "$prepend" "$(echo "$file_paths" | command grep --only-matching \
-        --extended-regexp '^[^ ]+')"
+    printf "$prepend" "$(
+        bl.logging.plain "$file_paths" | \
+            command grep \
+                --only-matching \
+                --extended-regexp '^[^ ]+')"
     local index=0
     local file_path
     for file_path in ${file_paths[*]}; do
@@ -380,11 +387,11 @@ bl_string_validate_argument() {
         h"a"ns
     '
     if ! command grep "'" <<< "$1" &>/dev/null; then
-        echo "'$1'"
+        bl.logging.plain "'$1'"
     elif ! command grep '"' <<< "$1" &>/dev/null; then
-        echo "\"$1\""
+        bl.logging.plain "\"$1\""
     else
-        echo "'$(command sed "s/'/\\'/g" <<< "$1")'"
+        bl.logging.plain "'$(command sed "s/'/\\'/g" <<< "$1")'"
     fi
     return $?
 }
@@ -398,7 +405,7 @@ bl_string_validate_regular_expression_replacement() {
             sed "s/myInputString/$(bl.string.validate_regular_expression_replacement "\hans/peter&klaus")/g"
         ```
     '
-    echo "$1" | \
+    bl.logging.plain "$1" | \
         command sed \
             --expression 's/\\/\\\\/g' \
             --expression 's/\//\\\//g' \

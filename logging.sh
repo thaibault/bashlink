@@ -156,11 +156,41 @@ bl_logging_get_prefix() {
     # shellcheck disable=SC2154
     echo "${loglevel}:${bl_cli_color_light_gray}$(basename "$path")${bl_cli_color_default}:${bl_cli_color_light_cyan}${BASH_LINENO[1]}${bl_cli_color_default}:"
 }
-alias bl.logging.plain=bl_logging_plain
-bl_logging_plain() {
+alias bl.logging.plain_raw=bl_logging_plain_raw
+bl_logging_plain_raw() {
     local __documentation__='
         "bl.logging.plain" can be used to print at any log level and without
         prefix.
+
+        >>> bl.logging.set_level critical
+        >>> bl.logging.set_commands_level debug
+        >>> bl.logging.plain_raw foo
+        foo
+
+        >>> bl.logging.set_level info
+        >>> bl.logging.set_commands_level debug
+        >>> bl.logging.debug "not shown"
+        >>> echo "not shown"
+        >>> bl.logging.plain_raw "shown"
+        shown
+    '
+    $bl_logging_off && return 0
+    if [[ "$bl_logging_log_file_path" != '' ]]; then
+        echo "$@" >> "$bl_logging_log_file_path"
+        if $bl_logging_tee_fifo_active; then
+            echo "$@"
+        fi
+    elif $bl_logging_output_to_saved_file_descriptors; then
+        echo "$@" 1>&3 2>&4
+    else
+        echo "$@"
+    fi
+}
+alias bl.logging.plain=bl_logging_plain
+bl_logging_plain() {
+    local __documentation__='
+        "bl.logging.plain" can be used to print string in evaluated
+        representation at any log level and without prefix.
 
         >>> bl.logging.set_level critical
         >>> bl.logging.set_commands_level debug
@@ -174,17 +204,7 @@ bl_logging_plain() {
         >>> bl.logging.plain "shown"
         shown
     '
-    $bl_logging_off && return 0
-    if [[ "$bl_logging_log_file_path" != '' ]]; then
-        echo -e "$@" >> "$bl_logging_log_file_path"
-        if $bl_logging_tee_fifo_active; then
-            echo -e "$@"
-        fi
-    elif $bl_logging_output_to_saved_file_descriptors; then
-        echo -e "$@" 1>&3 2>&4
-    else
-        echo -e "$@"
-    fi
+    bl_logging_plain_raw -e "$@"
 }
 # NOTE: Depends on "bl.logging.plain"
 alias bl.logging.log=bl_logging_log
@@ -482,7 +502,8 @@ bl_logging_set_commands_level() {
     if [ "$level" = warn ]; then
         level=warning
     fi
-    bl_logging_commands_level=$(bl.array.get_index "$level" "${bl_logging_levels[@]}")
+    bl_logging_commands_level=$(
+        bl.array.get_index "$level" "${bl_logging_levels[@]}")
     if [ "$bl_logging_level" -ge "$bl_logging_commands_level" ]; then
         bl.logging.set_command_output_on
     else

@@ -312,17 +312,17 @@ bl_doctest_compare_result() {
         fi
         if $end_of_buffer; then
             if $ellipsis_waiting; then
-                echo No expected ellipsis found.
+                bl.logging.plain No expected ellipsis found. 1>&2
                 return 1
             fi
             if $end_of_got || $multiline_ellipsis || $multiline_contains; then
                 return
             fi
-            echo More output given than expected.
+            bl.logging.plain More output given than expected. 1>&2
             return 2
         fi
         if $end_of_got; then
-            echo Missing expected output.
+            bl.logging.plain Missing expected output. 1>&2
             return 3
         fi
         if $bl_doctest_debug; then
@@ -335,27 +335,34 @@ bl_doctest_compare_result() {
             else
                 modifier=none
             fi
-            echo "Compare given \"$got_line\" with \"$buffer_line\" (modifier: \"$modifier\"):"
+            bl.logging.plain \
+                "Compare given \"$got_line\" with \"$buffer_line\" (modifier: \"$modifier\"):"
         fi
         if $ellipsis_on; then
             if ! $multiline_ellipsis || bl_doctest_compare_line; then
                 ellipsis_on=false
             fi
             if $bl_doctest_debug; then
-                echo -e "Matched by ellipsis ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
+                bl.logging.plain \
+                    "Matched by ellipsis ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
             fi
         elif bl_doctest_compare_line; then
             if $bl_doctest_debug; then
-                echo -e "Matched ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
+                bl.logging.plain \
+                    "Matched ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
             fi
             if ! $multiline_contains; then
                 contains=false
             fi
         else
             if $contains; then
-                echo -e "\"$buffer_line\" is not in \"$got_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
+                bl.logging.plain \
+                    "\"$buffer_line\" is not in \"$got_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}" \
+                        1>&2
             else
-                echo -e "\"$got_line\" is not \"$buffer_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
+                bl.logging.plain \
+                    "\"$got_line\" is not \"$buffer_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}" \
+                        1>&2
             fi
             if ! $multiline_contains; then
                 contains=false
@@ -400,36 +407,38 @@ bl_doctest_eval() {
     # shellcheck disable=SC2064
     trap "rm --force $declared_names_after_run_file_path; exit" EXIT
     local test_script="$(
-        echo '[ -z "$BASH_REMATCH" ] && BASH_REMATCH=""'
-        echo source "$module_module_file_path"
+        bl.logging.plain '[ -z "$BASH_REMATCH" ] && BASH_REMATCH=""'
+        bl.logging.plain source "$module_module_file_path"
         # Suppress the warnings here because they have already been printed
         # when analyzing the module initially.
-        echo "bl_module_prevent_namespace_check=true"
-        echo "bl.module.import '$bl_doctest_module_reference_under_test' '${BASH_SOURCE[1]}'"
-        echo "bl_module_prevent_namespace_check=false"
-        echo "$setup_string"
+        bl.logging.plain "bl_module_prevent_namespace_check=true"
+        bl.logging.plain "bl.module.import '$bl_doctest_module_reference_under_test' '${BASH_SOURCE[1]}'"
+        bl.logging.plain "bl_module_prevent_namespace_check=false"
+        bl.logging.plain_raw "$setup_string"
         # _ can be used as anonymous variable (without warning)
-        echo "_=''"
-        echo "bl.module.determine_declared_names > $declared_names_before_run_file_path"
-        $bl_doctest_nounset && echo 'set -o nounset'
+        bl.logging.plain "_=''"
+        bl.logging.plain "bl.module.determine_declared_names > $declared_names_before_run_file_path"
+        $bl_doctest_nounset && bl.logging.plain 'set -o nounset'
         # NOTE: We havt to wrap the test context a function to ensure the
         # "local" keyword has an effect inside.
-        echo "
+        bl.logging.plain_raw "
             _() {
                 $test_buffer
             }
             _
         "
-        echo "bl.module.determine_declared_names > $declared_names_after_run_file_path"
+        bl.logging.plain "bl.module.determine_declared_names > $declared_names_after_run_file_path"
     )"
     # run in clean environment
     local output
-    if echo "$output_buffer" | command grep '+bl.doctest.no_capture_stderr' \
+    if bl.logging.plain "$output_buffer" | command grep '+bl.doctest.no_capture_stderr' \
         &>/dev/null
     then
-        output="$(bash --noprofile --norc <(echo "$test_script"))"
+        output="$(bash --noprofile --norc <(
+            bl.logging.plain_raw "$test_script"))"
     else
-        output="$(bash --noprofile --norc 2>&1 <(echo "$test_script"))"
+        output="$(bash --noprofile --norc 2>&1 <(
+            bl.logging.plain_raw "$test_script"))"
     fi
     bl_doctest_new_declared_names="$(diff \
         "$declared_names_before_run_file_path" \
@@ -454,18 +463,18 @@ bl_doctest_eval() {
     rm "$declared_names_after_run_file_path"
     local reason
     if ! reason="$(bl.doctest.compare_result "$output_buffer" "$output")"; then
-        echo -e "${bl_cli_color_light_red}error:${bl_cli_color_default} ${reason}"
-        echo -e "${bl_cli_color_light_red}test:${bl_cli_color_default}"
-        echo "$test_buffer"
-        echo -e "${bl_cli_color_light_red}expected:${bl_cli_color_default}"
-        echo "\"$output_buffer\""
-        echo -e "${bl_cli_color_light_red}got:${bl_cli_color_default}"
-        echo "\"$output\""
+        bl.logging.plain "${bl_cli_color_light_red}error:${bl_cli_color_default} ${reason}"
+        bl.logging.plain "${bl_cli_color_light_red}test:${bl_cli_color_default}"
+        bl.logging.plain "$test_buffer"
+        bl.logging.plain "${bl_cli_color_light_red}expected:${bl_cli_color_default}"
+        bl.logging.plain "\"$output_buffer\""
+        bl.logging.plain "${bl_cli_color_light_red}got:${bl_cli_color_default}"
+        bl.logging.plain "\"$output\""
         if $bl_doctest_use_side_by_side_output; then
-            echo -e "${bl_cli_color_light_red}difference:${bl_cli_color_default}"
+            bl.logging.plain "${bl_cli_color_light_red}difference:${bl_cli_color_default}"
             local diff=diff
             bl.dependency.check colordiff && diff=colordiff
-            $diff --side-by-side <(echo "$output_buffer") <(echo "$output")
+            $diff --side-by-side <(bl.logging.plain "$output_buffer") <(bl.logging.plain "$output")
         fi
         return 1
     fi
@@ -493,7 +502,7 @@ bl_doctest_get_function_docstring() {
         fi
         eval "unset $bl_doctest_name_indicator"
         eval "$docstring"
-        echo "${!bl_doctest_name_indicator}"
+        bl.logging.plain_raw "${!bl_doctest_name_indicator}"
     )
 }
 alias bl.doctest.parse_docstring=bl_doctest_parse_docstring
@@ -731,13 +740,13 @@ bl_doctest_test() {
     if ! result="$(
         bl.module.resolve "$bl_doctest_module_reference_under_test" true
     )"; then
-        echo "$result" 1>&2
+        bl.logging.plain "$result" 1>&2
         return 1
     fi
     local file_path="$(
-        echo "$result" | command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
+        bl.logging.plain "$result" | command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
     local module_name="$(
-        echo "$result" | command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
+        bl.logging.plain "$result" | command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
     local scope_name="$(
         bl.module.rewrite_scope_name "$module_name" | \
             command sed --regexp-extended 's:\.:_:g')"
@@ -779,7 +788,7 @@ bl_doctest_test() {
             if ! $excluded; then
                 # shellcheck disable=SC1117
                 bl.doctest.test "$(bl.module.remove_known_file_extension "$(
-                    echo "$sub_file_path" | \
+                    bl.logging.plain "$sub_file_path" | \
                         command sed \
                             --regexp-extended \
                             "s:${scope_name}/([^/]+):${scope_name}.\1:"
@@ -811,7 +820,7 @@ bl_doctest_test() {
         fi
         # NOTE: Removes duplicates.
         function_names_to_test="$(bl.string.get_unique_lines <(
-            echo "$function_names_to_test"))"
+            bl.logging.plain "$function_names_to_test"))"
         bl.time.start
         if [ "$given_function_names_to_test" = '' ]; then
             # Module level tests
