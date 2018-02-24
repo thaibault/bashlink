@@ -10,6 +10,11 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
+# region import
+# shellcheck source=./module.sh
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+bl.module.import bashlink.logging
+# endregion
 # region variables
 bl_time__documentation__='
     The time module implements utility functions concerning time measurments.
@@ -33,7 +38,7 @@ bl_time_get_elapsed() {
     '
     local end_time="$(date +%s%N)"
     local elapsed_time_in_ns=$(( end_time  - bl_time_start ))
-    echo $(( elapsed_time_in_ns / 1000000 ))
+    bl.logging.plain $(( elapsed_time_in_ns / 1000000 ))
 }
 alias bl.time.start=bl_time_start
 bl_time_start() {

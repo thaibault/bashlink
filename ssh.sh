@@ -10,16 +10,17 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
-# region variables
-bl_ssh__documentation__='
-    This module implements utility functions concerning ssh connections.
-'
-# endregion
 # region import
 # shellcheck source=./globals.sh
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.globals
+bl.module.import bashlink.logging
+# endregion
+# region variables
+bl_ssh__documentation__='
+    This module implements utility functions concerning ssh connections.
+'
 # endregion
 # region functions
 alias bl.ssh.make_key=bl_ssh_make_key
@@ -63,7 +64,7 @@ bl_ssh_print() {
     local default_printer=hp15
     local usage_message="Usage: $0 <file> [login] [printer] [withFileContentPipe]"
     if (( $# = 0 )); then
-        echo "$usage_message"
+        bl.logging.plain "$usage_message"
     # 1. argument: File, which we want to print.
     elif [ -f "$1" ]; then
         # 2. argument: Check for given user name.
@@ -79,12 +80,12 @@ bl_ssh_print() {
             if [[ "$user_row" != '' ]]; then
                 # shellcheck disable=SC2001
                 local user="$(
-                    echo "$user_row" | \
+                    bl.logging.plain "$user_row" | \
                         command sed s/user\\s//ig)"
                 local login="${user}@${host}"
             else
-                echo No login given.
-                echo "$usage_message"
+                bl.logging.plain No login given.
+                bl.logging.plain "$usage_message"
             fi
         fi
         # 3. argument: Select printer.
@@ -94,18 +95,18 @@ bl_ssh_print() {
         fi
         # 4. argument: Determines which way to use for transport file content.
         if [ "$4" ]; then
-            echo Pipe file content through ssh.
+            bl.logging.info Pipe file content through ssh.
             ssh "$login" lpr -P"$printer" < "$1"
             return $?
         else
-            echo "Copy file to server via scp ($login)."
+            bl.logging.info "Copy file to server via scp ($login)."
             scp "$1" "${login}:/tmp/.sshPrint"
             ssh "$login" lpr -P"$printer" ~/.sshPrint
             return $?
         fi
     else
-        echo "Given file doesn't exist."
-        return $?
+        bl.logging.critical "Given file \"$1\" doesn't exist."
+        return 1
     fi
 }
 alias bl.ssh.screen=bl_ssh_screen

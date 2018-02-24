@@ -244,6 +244,20 @@ bl_module_log() {
         echo "info: $*"
     fi
 }
+alias bl.module.log_plain=bl_module_log_plain
+bl_module_log_plain() {
+    local __documentation__='
+        Prints arbitrary strings, no matter which output descriptor is defined.
+
+        >>> bl.module.log_plain test
+        test
+    '
+    if hash bl.logging.plain &>/dev/null; then
+        bl.logging.plain "$@"
+    else
+        echo "$@"
+    fi
+}
 # NOTE: Depends on "bl.module.log"
 alias bl.module.import_raw=bl_module_import_raw
 bl_module_import_raw() {

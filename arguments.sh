@@ -11,6 +11,7 @@
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region import
+# NOTE: We cannot import the logging module to avoid a dependency cycle.
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.array
@@ -259,12 +260,12 @@ bl_arguments_wrapper_with_minimum_number_of_arguments() {
     if [ $# -le $(($1+$2+1)) ]; then
         # Return default arguments.
         # shellcheck disable=SC2068
-        echo ${@:3:$1}
+        bl.module.log_plain ${@:3:$1}
         return $?
     else
         # Return given arguments.
         # shellcheck disable=SC2068
-        echo ${@:3+$1}
+        bl.module.log_plain ${@:3+$1}
         return $?
     fi
 }
