@@ -10,6 +10,8 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
+# NOTE: This module is the only dependency of `bashlink.module` and so can not
+# import any other modules to avoid a cyclic dependency graph.
 # region variables
 bl_path__documentation__='
     The path module implements utility functions concerning path.
@@ -27,10 +29,14 @@ bl_path_convert_to_absolute() {
     '
     local path="$1"
     if [ -d "$path" ]; then
-        echo "$(cd "$path" &>/dev/null && pwd)"
+        pushd "$path" &>/dev/null || return 1
+        pwd
+        popd &>/dev/null || return 1
     else
         local file_name="$(basename "$path")"
-        local absolute_path="$(cd "$(dirname "$path")" &>/dev/null && pwd)"
+        pushd "$(dirname "$path")" &>/dev/null || return 1
+        local absolute_path="$(pwd)"
+        popd &>/dev/null || return 1
         echo "${absolute_path}/${file_name}"
     fi
 }
@@ -68,8 +74,8 @@ bl_path_convert_to_relative() {
     # returns relative path to $2/$target from $1/$source
     local source="$1"
     local target="$2"
-    if [[ "$source" == "$target" ]]; then
-        echo "."
+    if [ "$source" = "$target" ]; then
+        echo .
         return
     fi
     local common_part="$source" # for now
