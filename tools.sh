@@ -52,15 +52,19 @@ bl_tools_is_empty() {
         Tests if variable is empty (undefined variables are not empty)
 
         >>> local foo="bar"
-        >>> bl.tools.is_empty foo; echo $?
+        >>> bl.tools.is_empty foo
+        >>> echo $?
         1
         >>> local defined_and_empty=""
-        >>> bl.tools.is_empty defined_and_empty; echo $?
+        >>> bl.tools.is_empty defined_and_empty
+        >>> echo $?
         0
-        >>> bl.tools.is_empty undefined_variable; echo $?
+        >>> bl.tools.is_empty undefined_variable
+        >>> echo $?
         1
         >>> set -u
-        >>> bl.tools.is_empty undefined_variable; echo $?
+        >>> bl.tools.is_empty undefined_variable
+        >>> echo $?
         1
     '
     local variable_name="$1"
@@ -115,7 +119,8 @@ bl_tools_make_single_executable() {
         ```
     '
     if [[ ! "$1" ]]; then
-        echo "Usage: $0 <DIRECTOTY_PATH> [EXECUTABLE_FILE_NAME] [RELATIVE_START_FILE_PATH]"
+        bl.logging.plain \
+            "Usage: $0 <DIRECTOTY_PATH> [EXECUTABLE_FILE_NAME] [RELATIVE_START_FILE_PATH]"
         exit 1
     fi
     local file_name=index.sh
@@ -198,8 +203,6 @@ bl_tools_run_with_appended_shebang() {
                 --regexp-extended \
                 's/^#!(.+)$/\1/g'
     )$shebang_arguments $application_file_path $arguments"
-    # NOTE: The following line could be useful for debugging scenarios.
-    #echo "Run: \"$command\""
     eval "$command"
     return $?
 }

@@ -80,19 +80,23 @@ bl_module_check_name() {
     local __documentation__='
         Checks if given name is belongs to given scope.
 
-        >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
+        >>> bl.module.check_name "bl_module_check_name" "bl_module"
+        >>> echo $?
         0
 
-        >>> bl.module.check_name "bl_module_check_name" "bl_other_module"; echo $?
+        >>> bl.module.check_name "bl_module_check_name" "bl_other_module"
+        >>> echo $?
         1
 
-        >>> bl.module.check_name "bl_other_module_not_existing" "bl_module"; echo $?
+        >>> bl.module.check_name "bl_other_module_not_existing" "bl_module"
+        >>> echo $?
         1
     '
     local name="$1"
     local resolved_scope_name="$2"
-    local alternate_resolved_scope_name="$(echo "$resolved_scope_name" | \
-        command sed --regexp-extended 's/\./_/g')"
+    local alternate_resolved_scope_name="$(
+        bl.module.log_plain "$resolved_scope_name" | \
+            command sed --regexp-extended 's/\./_/g')"
     if ! [[ \
         "$name" =~ ^${resolved_scope_name}([_A-Z]+|$) || \
         "$name" =~ ^${alternate_resolved_scope_name//\./\\./}([_A-Z]+|$) \
@@ -152,34 +156,43 @@ bl_module_is_defined() {
         Tests if variable is defined (can also be empty)
 
         >>> local foo=bar
-        >>> bl.module.is_defined foo; echo $?
-        >>> [[ -v foo ]]; echo $?
+        >>> bl.module.is_defined foo
+        >>> echo $?
+        >>> [[ -v foo ]]
+        >>> echo $?
         0
         0
         >>> local defined_but_empty=""
-        >>> bl.module.is_defined defined_but_empty; echo $?
+        >>> bl.module.is_defined defined_but_empty
+        >>> echo $?
         0
-        >>> bl.module.is_defined undefined_variable; echo $?
+        >>> bl.module.is_defined undefined_variable
+        >>> echo $?
         1
         >>> set -o nounset
-        >>> bl.module.is_defined undefined_variable; echo $?
+        >>> bl.module.is_defined undefined_variable
+        >>> echo $?
         1
 
         # Same Tests for bash < 4.3
         >>> bl_module_bash_version_test=true
         >>> local foo="bar"
-        >>> bl.module.is_defined foo; echo $?
+        >>> bl.module.is_defined foo
+        >>> echo $?
         0
         >>> bl_module_bash_version_test=true
         >>> local defined_but_empty=""
-        >>> bl.module.is_defined defined_but_empty; echo $?
+        >>> bl.module.is_defined defined_but_empty
+        >>> echo $?
         0
         >>> bl_module_bash_version_test=true
-        >>> bl.module.is_defined undefined_variable; echo $?
+        >>> bl.module.is_defined undefined_variable
+        >>> echo $?
         1
         >>> bl_module_bash_version_test=true
         >>> set -o nounset
-        >>> bl.module.is_defined undefined_variable; echo $?
+        >>> bl.module.is_defined undefined_variable
+        >>> echo $?
         1
     '
     (
@@ -203,10 +216,12 @@ bl_module_is_imported() {
     local __documentation__='
         Checks if giveb module is already imported.
 
-        >>> bl.module.is_imported bashlink.module; echo $?
+        >>> bl.module.is_imported bashlink.module
+        >>> echo $?
         0
 
-        >>> bl.module.is_imported bashlink.not_existing; echo $?
+        >>> bl.module.is_imported bashlink.not_existing
+        >>> echo $?
         1
     '
     local caller_file_path="${BASH_SOURCE[1]}"
@@ -223,6 +238,21 @@ bl_module_is_imported() {
     done
     return 1
 }
+alias bl.module.log_plain=bl_module_log_plain
+bl_module_log_plain() {
+    local __documentation__='
+        Prints arbitrary strings, no matter which output descriptor is defined.
+
+        >>> bl.module.log_plain test
+        test
+    '
+    if hash bl.logging.plain &>/dev/null; then
+        bl.logging.plain "$@"
+    else
+        echo "$@"
+    fi
+}
+# NOTE: Depends on "bl.module.log_plain"
 alias bl.module.log=bl_module_log
 bl_module_log() {
     local __documentation__='
@@ -239,23 +269,9 @@ bl_module_log() {
         if [ "$level" = warn ]; then
             level=warning
         fi
-        echo "${level}: $*"
+        bl.module.log_plain "${level}: $*"
     else
-        echo "info: $*"
-    fi
-}
-alias bl.module.log_plain=bl_module_log_plain
-bl_module_log_plain() {
-    local __documentation__='
-        Prints arbitrary strings, no matter which output descriptor is defined.
-
-        >>> bl.module.log_plain test
-        test
-    '
-    if hash bl.logging.plain &>/dev/null; then
-        bl.logging.plain "$@"
-    else
-        echo "$@"
+        bl.module.log_plain "info: $*"
     fi
 }
 # NOTE: Depends on "bl.module.log"
@@ -264,7 +280,8 @@ bl_module_import_raw() {
     local __documentation__='
         Imports given module into current scope.
 
-        >>> bl.module.import_raw bashlink.not_existing; echo $?
+        >>> bl.module.import_raw bashlink.not_existing
+        >>> echo $?
         +bl.doctest.ellipsis
         ...
         critical: Failed to source module "bashlink.not_existing".
@@ -291,7 +308,8 @@ bl_module_import_with_namespace_check() {
         Sources a script and checks variable definitions before and after
         sourcing.
 
-        >>> bl.module.import_with_namespace_check test bl_module bashlink.module; echo $?
+        >>> bl.module.import_with_namespace_check test bl_module bashlink.module
+        >>> echo $?
         +bl.doctest.multiline_contains
         warning: Namespace "bl_module" in "bashlink.module" is not clean: Name "
     '
@@ -344,7 +362,7 @@ bl_module_import_with_namespace_check() {
     for name in $new_declared_names; do
         if ! bl.module.check_name "$name" "$resolved_scope_name"; then
             local alternate_resolved_scope_name="$(
-                echo "$resolved_scope_name" | \
+                bl.module.log_plain "$resolved_scope_name" | \
                     command sed --regexp-extended 's/\./_/g'
             )"
             bl.module.log \
@@ -439,10 +457,10 @@ bl_module_import() {
     local result
     if result="$(bl.module.resolve "$1" true "$caller_file_path")"; then
         local file_path="$(
-            echo "$result" | \
+            bl.module.log_plain "$result" | \
                 command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
         local scope_name="$(
-            echo "$result" | \
+            bl.module.log_plain "$result" | \
                 command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
         if [[ -d "$file_path" ]]; then
             local sub_file_path
@@ -466,7 +484,7 @@ bl_module_import() {
                 if ! $excluded; then
                     # shellcheck disable=SC1117
                     local name="$(
-                        echo "$sub_file_path" | \
+                        bl.module.log_plain "$sub_file_path" | \
                             command sed \
                                 --regexp-extended \
                                 "s:${scope_name}/([^/]+):${scope_name}.\1:")"
@@ -486,7 +504,7 @@ bl_module_import() {
             fi
         fi
     else
-        echo "$result" 1>&2
+        bl.module.log_plain "$result" 1>&2
         return 1
     fi
 }
@@ -496,7 +514,8 @@ bl_module_import_without_namespace_check() {
         Imports given module without any namespace checks. Needed for internal
         usage.
 
-        >>> bl.module.import_without_namespace_check bashlink.module; echo $?
+        >>> bl.module.import_without_namespace_check bashlink.module
+        >>> echo $?
         0
     '
     local caller_file_path="${BASH_SOURCE[1]}"
@@ -611,7 +630,7 @@ bl_module_resolve() {
             extension_pattern+=')'
             # shellcheck disable=SC1117
             local new_name="$(
-                echo "$name" | \
+                bl.module.log_plain "$name" | \
                     command sed \
                         --regexp-extended \
                         "s:\.([^.]+?)(\.$extension_pattern)?$:/\1\2:")"
@@ -641,7 +660,7 @@ bl_module_resolve() {
         ]]; then
             scope_name="bashlink.$scope_name"
         fi
-        echo "$(bl.path.convert_to_absolute "$file_path")/$(
+        bl.module.log_plain "$(bl.path.convert_to_absolute "$file_path")/$(
             bl_module_remove_known_file_extension "$scope_name")"
     else
         bl.path.convert_to_absolute "$file_path"
@@ -660,11 +679,11 @@ bl_module_remove_known_file_extension() {
     for extension in "${bl_module_known_extensions[@]}"; do
         local result="${name%$extension}"
         if [[ "$name" != "$result" ]]; then
-            echo "$result"
+            bl.module.log_plain "$result"
             return 0
         fi
     done
-    echo "$1"
+    bl.module.log_plain "$1"
 }
 alias bl.module.rewrite_scope_name=bl_module_rewrite_scope_name
 bl_module_rewrite_scope_name() {
@@ -678,10 +697,10 @@ bl_module_rewrite_scope_name() {
     local rewrite
     for rewrite in "${bl_module_scope_rewrites[@]}"; do
         resolved_scope_name="$(
-            echo "$resolved_scope_name" | \
+            bl.module.log_plain "$resolved_scope_name" | \
                 command sed --regexp-extended "s/$rewrite")"
     done
-    echo "$resolved_scope_name"
+    bl.module.log_plain "$resolved_scope_name"
 }
 # endregion
 # region vim modline
