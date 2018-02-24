@@ -11,6 +11,16 @@
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region import
+if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
+    for bl_doctest_sub_path in / lib/; do
+        if [ -f "$(dirname "$(dirname "${BASH_SOURCE[0]}")")${bl_doctest_sub_path}bashlink/module.sh" ]
+        then
+            pushd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")${bl_doctest_sub_path}bashlink" &>/dev/null
+            exec ./doctest.sh
+            popd &>/dev/null
+        fi
+    done
+fi
 # shellcheck source=./cli.sh
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
