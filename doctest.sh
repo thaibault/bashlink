@@ -17,7 +17,7 @@ if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
         then
             cd \
                 "$(dirname "$(dirname "${BASH_SOURCE[0]}")")${bl_doctest_sub_path}bashlink" \
-                &>/dev/null && ß
+                    &>/dev/null && \
             exec ./doctest.sh "$@"
         fi
     done
