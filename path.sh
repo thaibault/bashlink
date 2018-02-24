@@ -27,7 +27,7 @@ bl_path_convert_to_absolute() {
     '
     local path="$1"
     if [ -d "$path" ]; then
-        cd "$path" &>/dev/null && pwd
+        echo "$(cd "$path" &>/dev/null && pwd)"
     else
         local file_name="$(basename "$path")"
         local absolute_path="$(cd "$(dirname "$path")" &>/dev/null && pwd)"
