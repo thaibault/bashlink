@@ -33,7 +33,7 @@
   "deprecated": false,
   "description": "a high reliable bash library",
   "devDependencies": {
-    "documentation-website": "^1.0.104",
+    "documentation-website": "^1.0.106",
     "shellcheck": "0.0.8"
   },
   "documentationWebsite": {
