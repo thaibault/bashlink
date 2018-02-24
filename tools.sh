@@ -15,6 +15,7 @@
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.globals
+bl.module.import bashlink.logging
 bl.module.import bashlink.string
 # endregion
 # region variables
@@ -71,15 +72,15 @@ bl_tools_make_openssl_pem_file() {
     if [[ "$1" ]]; then
         host="$1"
     fi
-    echo 'Create your private key without a password.'
+    bl.logging.info Create your private key without a password.
     openssl genrsa -out "${host}.key" 1024
-    echo 'Create a temporary csr file.'
+    bl.logging.info Create a temporary csr file.
     openssl req -new -key "${host}.key" -out "${host}.csr"
-    echo 'Self-sign your certificate.'
+    bl.logging.info Self-sign your certificate.
     openssl x509 -req -days 365 -in "${host}.csr" -signkey "${host}.key" -out \
         "${host}.crt"
-    echo 'Creating a pem file.'
-    cat "${host}.key" "${host}.crt" 1>"${host}.pem"
+    bl.logging.info Creating a pem file.
+    bl.logging.cat "${host}.key" "${host}.crt" 1>"${host}.pem"
     return $?
 }
 alias bl.tools.make_single_executbale=bl_tools_make_single_executable
@@ -106,7 +107,7 @@ bl_tools_make_single_executable() {
     fi
     local directory_name="$(basename "$(readlink --canonicalize "$1")")"
     # NOTE: short option is necessary for mac compatibility.
-    cat << EOF 1>"$file_name"
+    bl.logging.cat << EOF 1>"$file_name"
 #!/usr/bin/env bash
 executable_directory_path="\$(mktemp -d 2>/dev/null || mktemp -d -t '' 2>/dev/null)" && \\
 data_offset="\$(("\$(command grep --text --line-number '^exit \\\$?$' "\$0" | \\
@@ -119,7 +120,7 @@ EOF
     local temporary_archiv_file_path="$(mktemp).tar.gz"
     tar --create --verbose --gzip --posix --file \
         "$temporary_archiv_file_path" "$1"
-    cat "$temporary_archiv_file_path" 1>>"$file_name"
+    bl.logging.cat "$temporary_archiv_file_path" 1>>"$file_name"
     chmod +x "$file_name"
     return $?
 }
