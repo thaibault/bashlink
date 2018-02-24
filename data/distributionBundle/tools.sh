@@ -9,32 +9,62 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./globals.sh
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.globals
+bl.module.import bashlink.logging
 bl.module.import bashlink.string
 # endregion
+# region variables
+bl_tools__documentation__='
+    This module provides generic utility functions.
+'
+# endregion
 # region functions
+alias bl.tools.compile_and_install_without_root=bl_tools_compile_and_install_without_root
+bl_tools_compile_and_install_without_root() {
+    local __documentation__='
+        Compiles and installs a program by its given source code. Your have to
+        be inside the source code folder to run this function.
+
+        ```bash
+            bl.tools.compile_and_install_without_root /home/user/myUser/
+        ```
+    '
+    local install_location=~/system/
+    if [ "$1" ]; then
+        install_location="$1"
+    fi
+    chmod +x ./configure
+    ./configure prefix="$install_location"
+    # NOTE: Another possibility to install to a specified path is
+    # "make install DESTDIR=$1"
+    make install
+    return $?
+}
 alias bl.tools.is_defined=bl_module_is_defined
 alias bl.tools.is_empty=bl_tools_is_empty
 bl_tools_is_empty() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Tests if variable is empty (undefined variables are not empty)
 
         >>> local foo="bar"
-        >>> bl.tools.is_empty foo; echo $?
+        >>> bl.tools.is_empty foo
+        >>> echo $?
         1
         >>> local defined_and_empty=""
-        >>> bl.tools.is_empty defined_and_empty; echo $?
+        >>> bl.tools.is_empty defined_and_empty
+        >>> echo $?
         0
-        >>> bl.tools.is_empty undefined_variable; echo $?
+        >>> bl.tools.is_empty undefined_variable
+        >>> echo $?
         1
         >>> set -u
-        >>> bl.tools.is_empty undefined_variable; echo $?
+        >>> bl.tools.is_empty undefined_variable
+        >>> echo $?
         1
     '
     local variable_name="$1"
@@ -43,7 +73,6 @@ bl_tools_is_empty() {
 }
 alias bl.tools.is_main=bl_tools_is_main
 bl_tools_is_main() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Returns true if current script is being executed.
 
@@ -57,7 +86,6 @@ bl_tools_is_main() {
 }
 alias bl.tools.make_openssl_pem_file=bl_tools_make_openssl_pem_file
 bl_tools_make_openssl_pem_file() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Creates a concatenated pem file needed for server with https support.
 
@@ -69,20 +97,19 @@ bl_tools_make_openssl_pem_file() {
     if [[ "$1" ]]; then
         host="$1"
     fi
-    echo 'Create your private key without a password.'
+    bl.logging.info Create your private key without a password.
     openssl genrsa -out "${host}.key" 1024
-    echo 'Create a temporary csr file.'
+    bl.logging.info Create a temporary csr file.
     openssl req -new -key "${host}.key" -out "${host}.csr"
-    echo 'Self-sign your certificate.'
+    bl.logging.info Self-sign your certificate.
     openssl x509 -req -days 365 -in "${host}.csr" -signkey "${host}.key" -out \
         "${host}.crt"
-    echo 'Creating a pem file.'
-    cat "${host}.key" "${host}.crt" 1>"${host}.pem"
+    bl.logging.info Creating a pem file.
+    bl.logging.cat "${host}.key" "${host}.crt" 1>"${host}.pem"
     return $?
 }
 alias bl.tools.make_single_executbale=bl_tools_make_single_executable
 bl_tools_make_single_executable() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Creates a bsd and virtually posix shell compatible single executable
         file from an application directory.
@@ -92,7 +119,8 @@ bl_tools_make_single_executable() {
         ```
     '
     if [[ ! "$1" ]]; then
-        echo "Usage: $0 <DIRECTOTY_PATH> [EXECUTABLE_FILE_NAME] [RELATIVE_START_FILE_PATH]"
+        bl.logging.plain \
+            "Usage: $0 <DIRECTOTY_PATH> [EXECUTABLE_FILE_NAME] [RELATIVE_START_FILE_PATH]"
         exit 1
     fi
     local file_name=index.sh
@@ -105,7 +133,7 @@ bl_tools_make_single_executable() {
     fi
     local directory_name="$(basename "$(readlink --canonicalize "$1")")"
     # NOTE: short option is necessary for mac compatibility.
-    cat << EOF 1>"$file_name"
+    bl.logging.cat << EOF 1>"$file_name"
 #!/usr/bin/env bash
 executable_directory_path="\$(mktemp -d 2>/dev/null || mktemp -d -t '' 2>/dev/null)" && \\
 data_offset="\$(("\$(command grep --text --line-number '^exit \\\$?$' "\$0" | \\
@@ -118,13 +146,13 @@ EOF
     local temporary_archiv_file_path="$(mktemp).tar.gz"
     tar --create --verbose --gzip --posix --file \
         "$temporary_archiv_file_path" "$1"
-    cat "$temporary_archiv_file_path" 1>>"$file_name"
+    bl.logging.cat "$temporary_archiv_file_path" 1>>"$file_name"
     chmod +x "$file_name"
     return $?
 }
 alias bl.tools.run_with_appended_shebang=bl_tools_run_with_appended_shebang
 bl_tools_run_with_appended_shebang() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         This function reads and returns the shebang from given file if exist.
 
@@ -169,17 +197,18 @@ bl_tools_run_with_appended_shebang() {
                 ;;
         esac
     done
-    local command="$(head --lines 1 "$application_file_path" | sed \
-        --regexp-extended \
-        's/^#!(.+)$/\1/g')$shebang_arguments $application_file_path $arguments"
-    # NOTE: The following line could be useful for debugging scenarios.
-    #echo "Run: \"$command\""
+    local command="$(
+        head --lines 1 "$application_file_path" | \
+            command sed \
+                --regexp-extended \
+                's/^#!(.+)$/\1/g'
+    )$shebang_arguments $application_file_path $arguments"
     eval "$command"
     return $?
 }
 alias bl.tools.send_e_mail=bl_tools_send_e_mail
 bl_tools_send_e_mail() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Sends an email.
 

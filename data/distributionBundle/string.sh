@@ -9,21 +9,39 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./cli.sh
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.cli
+bl.module.import bashlink.logging
+# endregion
+# region variables
+bl_string__documentation__='
+    This module implements utility functions concerning strings.
+'
 # endregion
 # region functions
 alias bl.string.generate_random=bl_string_generate_random
 bl_string_generate_random() {
+    local __documentation__='
+        Generates a random string with given length.
+
+        >>> local output="$(bl.string.generate_random 5)"
+        >>> echo ${#output}
+        5
+
+        >>> bl.string.generate_random 0
+
+        >>> local output="$(bl.string.generate_random 1)"
+        >>> echo ${#output}
+        1
+    '
     tr -dc 'a-zA-Z0-9' </dev/urandom | head -c "$1"
 }
 alias bl.string.get_unique_lines=bl_string_get_unique_lines
 bl_string_get_unique_lines() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         >>> local foo="a\nb\na\nb\nc\nb\nc"
         >>> echo -e "$foo" | bl.string.get_unique_lines
@@ -31,12 +49,15 @@ bl_string_get_unique_lines() {
         b
         c
     '
-    nl "$@" | sort --key 2 | uniq --skip-fields 1 | sort --numeric-sort | \
-        sed 's/\s*[0-9]\+\s\+//'
+    nl "$@" | \
+        sort --key 2 | \
+            uniq --skip-fields 1 | \
+                sort --numeric-sort | \
+                    command sed 's/\s*[0-9]\+\s\+//'
 }
 alias bl.string.images_to_css_classes=bl_string_images_to_css_classes
 bl_string_images_to_css_classes() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         This function converts a folder of images to a single includeable css
         file.
@@ -70,11 +91,15 @@ bl_string_images_to_css_classes() {
         shift
     fi
     local image_file_path
-    find "$source" -regex "^$path_pattern$" | while read -r image_file_path; do
+    command find "$source" -regex "^$path_pattern$" | \
+        while read -r image_file_path
+    do
         local valid_path=true
         local exclude_path
         for exclude_path in "$@"; do
-            exclude_path="$(echo "$exclude_path" | sed 's/\/$//g')"
+            exclude_path="$(
+                bl.logging.plain "$exclude_path" | \
+                    command sed 's/\/$//g')"
             if [[ "$exclude_path" == "$(dirname "$image_file_path")" ]] || \
                [[ "$exclude_path" == "$image_file_path" ]]
             then
@@ -83,9 +108,11 @@ bl_string_images_to_css_classes() {
             fi
         done
         if $valid_path; then
-            local image_class_name="$(echo "$image_file_path" | tr '@#&%+./_{; ' '-' | \
+            local image_class_name="$(
+                bl.logging.plain "$image_file_path" | \
+                tr '@#&%+./_{; ' '-' | \
                 command grep --only-matching --extended-regexp '[^-].+$')"
-            echo ".image-data-${image_class_name}{background-image: url(\"data:$(file --brief --mime-type "$image_file_path");base64,$(base64 --wrap 0 "$image_file_path")\")}"
+            bl.logging.plain ".image-data-${image_class_name}{background-image: url(\"data:$(file --brief --mime-type "$image_file_path");base64,$(base64 --wrap 0 "$image_file_path")\")}"
         fi
     done
     return $?
@@ -94,7 +121,6 @@ alias bl.string.make_command_promt_prefix=bl_string_make_command_promt_prefix
 bl_string_make_command_promt_prefix() {
     # NOTE: This have to be the first statement to retrieve last return code.
     local return_code=$?
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Generates a new user prompt with useful runtime parameters.
 
@@ -107,11 +133,19 @@ bl_string_make_command_promt_prefix() {
         error_promt="${bl_cli_color_green}>${bl_cli_color_default}"
     fi
     # shellcheck disable=SC1117
-    local git_branch="$(git branch 2>/dev/null | sed --regexp-extended "s/^\* (.*)$/ $(bl.string.validate_regular_expression_replacement "$bl_cli_color_red")\1$(bl.string.validate_regular_expression_replacement "$bl_cli_color_cyan")/g" | \
-        tr --delete "\n" | \
-        sed 's/  / /g' | \
-        sed 's/^ *//g' | \
-        sed 's/ *$//g')"
+    local git_branch="$(
+        git branch 2>/dev/null | \
+        command sed --regexp-extended "s/^\* (.*)$/ $(
+            bl.string.validate_regular_expression_replacement \
+                "$bl_cli_color_red"
+        )\1$(
+            bl.string.validate_regular_expression_replacement \
+                "$bl_cli_color_cyan"
+        )/g" | \
+            tr --delete "\n" | \
+                command sed 's/  / /g' | \
+                    command sed 's/^ *//g' | \
+                        command sed 's/ *$//g')"
     if [ "$git_branch" ]; then
         git_branch="(${bl_cli_color_light_gray}git${bl_cli_color_default})-(${bl_cli_color_cyan}${git_branch}${bl_cli_color_default})"
     fi
@@ -137,7 +171,7 @@ bl_string_make_command_promt_prefix() {
 }
 alias bl.string.merge_text_files=bl_string_merge_text_files
 bl_string_merge_text_files() {
-    # shellcheck disable=SC1004,SC2016,SC2034
+    # shellcheck disable=SC1004
     local __documentation__='
         Concatenate files and print on the standard output.
 
@@ -189,8 +223,11 @@ bl_string_merge_text_files() {
         esac
     done
     # shellcheck disable=SC2059
-    printf "$prepend" "$(echo "$file_paths" | command grep --only-matching \
-        --extended-regexp '^[^ ]+')"
+    printf "$prepend" "$(
+        bl.logging.plain "$file_paths" | \
+            command grep \
+                --only-matching \
+                --extended-regexp '^[^ ]+')"
     local index=0
     local file_path
     for file_path in ${file_paths[*]}; do
@@ -198,7 +235,7 @@ bl_string_merge_text_files() {
             # shellcheck disable=SC2059
             printf "$between" "$file_path"
         fi
-        cat "$file_path"
+        bl.logging.cat "$file_path"
         (( index += 1 ))
     done
     # shellcheck disable=SC2059
@@ -207,7 +244,6 @@ bl_string_merge_text_files() {
 }
 alias bl.string.translate=bl_string_translate
 bl_string_translate() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Translates a given string in a given (or automatic detected) language
         and gives a translation in given language (German by default) back.
@@ -235,7 +271,7 @@ bl_string_translate() {
     '
     local default_target_language=de
     if [[ "$1" = -h || "$1" = --help || "$#" -lt 1 ]]; then
-        cat <<EOF
+        bl.logging.cat <<EOF
 translate <text> [[<source language>] <target language>]
 
 if target missing, use $default_target_language
@@ -243,7 +279,7 @@ if source missing, use "auto"
 list supported languages: translate -l
 EOF
     elif [[ "$1" = -l || "$1" = --languages ]]; then
-        cat <<EOF
+        bl.logging.cat <<EOF
 af=Afrikaans
 sq=Albanisch
 ar=Arabisch
@@ -337,7 +373,6 @@ EOF
 }
 alias bl.string.validate_argument=bl_string_validate_argument
 bl_string_validate_argument() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Validates a given bash argument.
 
@@ -352,17 +387,16 @@ bl_string_validate_argument() {
         h"a"ns
     '
     if ! command grep "'" <<< "$1" &>/dev/null; then
-        echo "'$1'"
+        bl.logging.plain "'$1'"
     elif ! command grep '"' <<< "$1" &>/dev/null; then
-        echo "\"$1\""
+        bl.logging.plain "\"$1\""
     else
-        echo "'$(sed "s/'/\\'/g" <<< "$1")'"
+        bl.logging.plain "'$(command sed "s/'/\\'/g" <<< "$1")'"
     fi
     return $?
 }
 alias bl.string.validate_regular_expression_replacement=bl_string_validate_regular_expression_replacement
 bl_string_validate_regular_expression_replacement() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         This functions escapes every special meaning character for a sed
         replacement.
@@ -371,8 +405,11 @@ bl_string_validate_regular_expression_replacement() {
             sed "s/myInputString/$(bl.string.validate_regular_expression_replacement "\hans/peter&klaus")/g"
         ```
     '
-    echo "$1" | sed --expression 's/\\/\\\\/g' --expression 's/\//\\\//g' \
-        --expression 's/&/\\\&/g'
+    bl.logging.plain "$1" | \
+        command sed \
+            --expression 's/\\/\\\\/g' \
+            --expression 's/\//\\\//g' \
+            --expression 's/&/\\\&/g'
     return $?
 }
 # endregion

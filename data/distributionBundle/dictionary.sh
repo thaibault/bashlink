@@ -9,16 +9,22 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+bl.module.import bashlink.logging
 bl.module.import bashlink.tools
+# endregion
+# region variables
+bl_dictionary__documentation__='
+    The dictionary module implements utility functions concerning dictionary
+    operations.
+'
 # endregion
 # region functions
 alias bl.dictionary.get=bl_dictionary_get
 bl_dictionary_get() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
 
         ```bash
@@ -61,11 +67,10 @@ bl_dictionary_get() {
     fi
     bl.tools.is_defined "$store" || return 1
     local value="${!store}"
-    echo "$value"
+    bl.logging.plain "$value"
 }
 alias bl.dictionary.get_keys=bl_dictionary_get_keys
 bl_dictionary_get_keys() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         Get keys of a dictionary as array.
 
@@ -99,21 +104,19 @@ bl_dictionary_get_keys() {
         for key in $(declare -p | cut -d' ' -f3 | command grep -E "^${store}" | \
             cut -d '=' -f1)
         do
-            echo "${key#${store}_}"
+            bl.logging.plain "${key#${store}_}"
         done
     else
-        # shellcheck disable=SC2016
         eval 'keys="${!'"$store"'[@]}"'
     fi
     local key
     # shellcheck disable=SC2154
     for key in ${keys:-}; do
-        echo "$key"
+        bl.logging.plain "$key"
     done
 }
 alias bl.dictionary.set=bl_dictionary_set
 bl_dictionary_set() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         ```bash
             bl.dictionary.set dictionary_name key value

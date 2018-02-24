@@ -9,16 +9,21 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.logging
 # endregion
+# region variables
+bl_dependency__documentation__='
+    The dependency module implements utility functions to check current
+    environment again needed assumptions.
+'
+# endregion
 # region functions
 alias bl.dependency.check=bl_dependency_check
 bl_dependency_check() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         This function check if all given dependencies are present.
 
@@ -44,14 +49,13 @@ bl_dependency_check() {
     for dependency in "$@"; do
         if ! hash "$dependency" &>/dev/null; then
             return_code=2
-            echo "$dependency"
+            bl.logging.plain "$dependency"
         fi
     done
     return $return_code
 }
 alias bl.dependency.check_pkgconfig=bl_dependency_check_pkgconfig
 bl_dependency_check_pkgconfig() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         This function check if all given libraries can be found.
 
@@ -71,14 +75,13 @@ bl_dependency_check_pkgconfig() {
     for library in "$@"; do
         if ! pkg-config "$library" &>/dev/null; then
             return_code=2
-            echo "$library"
+            bl.logging.plain "$library"
         fi
     done
     return $return_code
 }
 alias bl.dependency.check_shared_library=bl_dependency_check_shared_library
 bl_dependency_check_shared_library() {
-    # shellcheck disable=SC2016,SC2034
     local __documentation__='
         This function check if all given shared libraries can be found.
 
@@ -100,7 +103,7 @@ bl_dependency_check_shared_library() {
             command grep "$pattern" &>/dev/null
         then
             return_code=2
-            echo "$pattern"
+            bl.logging.plain "$pattern"
         fi
     done
     return $return_code

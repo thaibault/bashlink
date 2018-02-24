@@ -9,12 +9,17 @@
 # This library written by Torben Sickert stand under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck disable=SC2016,SC2155
+# shellcheck disable=SC2016,SC2034,SC2155
+# region variables
+bl_network__documentation__='
+    The network module implements utility functions concerning network
+    confgurations.
+'
+# endregion
 # region functions
 alias bl.network.restart_network='sudo ifdown -a &>/dev/null && sudo ifup -a &>/dev/null'
 alias bl.network.wlan_start=bl.network_wlan_start
 bl_network_wlan_start() {
-    # shellcheck disable=SC2034
     local __documentation__='
         Starts wlan functionality.
 
@@ -28,7 +33,6 @@ bl_network_wlan_start() {
 }
 alias bl.network.wlan_stop=bl_network_wlan_stop
 bl_network_wlan_stop() {
-    # shellcheck disable=SC2034
     local __documentation__='
         Stops wlan functionality.
 
@@ -44,7 +48,6 @@ bl_network_wlan_stop() {
 # NOTE: Depends on "bl.network.wlan_start" and "bl.network.wlan_stop"
 alias bl.network.wlan_restart=bl_network_wlan_restart
 bl_network_wlan_restart() {
-    # shellcheck disable=SC2034
     local __documentation__='
         Restart wlan functionality.
 

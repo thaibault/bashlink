@@ -15,7 +15,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/../module.sh"
 bl.module.import bashlink.logging
 bl.module.import c
 # endregion
-echo imported module b
+bl.logging.plain imported module b
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:
