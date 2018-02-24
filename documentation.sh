@@ -43,14 +43,14 @@ bl_documentation_format_buffers() {
     local buffer="$1"
     local output_buffer="$2"
     local text_buffer="$3"
-    [[ "$text_buffer" != '' ]] && echo "$text_buffer"
+    [[ "$text_buffer" != '' ]] && bl.logging.plain "$text_buffer"
     if [[ "$buffer" != '' ]]; then
-        echo '```bash'
-        echo "$buffer"
+        bl.logging.plain '```bash'
+        bl.logging.plain "$buffer"
         if [[ "$output_buffer" != '' ]]; then
-            echo "$output_buffer"
+            bl.logging.plain "$output_buffer"
         fi
-        echo '```'
+        bl.logging.plain '```'
     fi
 }
 alias bl.documentation.format_docstring=bl_documentation_format_docstring
@@ -66,7 +66,7 @@ bl_documentation_format_docstring() {
     '
     local docstring="$1"
     docstring="$(
-        echo "$docstring" | \
+        bl.logging.plain "$docstring" | \
             command sed '/+bl.documentation.exclude_print/d' | \
                 command sed '/-bl.documentation.exclude_print/d' | \
                     command sed \
@@ -89,9 +89,11 @@ bl_documentation_generate() {
     local module_reference="$1"
     local result="$(bl.module.resolve "$module_reference" true)"
     local file_path="$(
-        echo "$result" | command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
+        bl.logging.plain "$result" | \
+            command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
     local module_name="$(
-        echo "$result" | command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
+        bl.logging.plain "$result" | \
+            command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
     local scope_name="$(
         bl.module.rewrite_scope_name "$module_name" | \
             command sed --regexp-extended 's:\.:_:g')"
@@ -119,7 +121,7 @@ bl_documentation_generate() {
                 # shellcheck disable=SC1117
                 local name="$(
                     bl.module.remove_known_file_extension "$(
-                        echo "$sub_file_path" | \
+                        bl.logging.plain "$sub_file_path" | \
                             command sed \
                                 --regexp-extended \
                                 "s:${scope_name}/([^/]+):${scope_name}.\1:")")"
@@ -136,7 +138,8 @@ bl_documentation_generate() {
         # NOTE: Adds internal already loaded but correctly prefixed functions.
         declared_function_names+=" $(! declare -F | cut -d' ' -f3 | command grep -e "^$scope_name" )"
         # NOTE: Removes duplicates.
-        declared_function_names="$(bl.string.get_unique_lines <(echo "$declared_function_names"))"
+        declared_function_names="$(bl.string.get_unique_lines <(
+            bl.logging.plain "$declared_function_names"))"
         # Module level documentation
         # shellcheck disable=SC2154
         local module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
@@ -194,7 +197,7 @@ bl_documentation_print_docstring() {
         test
     '
     local docstring="$1"
-    echo "$docstring" | \
+    bl.logging.plain "$docstring" | \
         command sed '/+bl.documentation.exclude_print/,/-bl.documentation.exclude_print/d' | \
             command sed '/+bl.documentation.exclude/,/-bl.documentation.exclude/d' | \
                 command sed '/```/d'
