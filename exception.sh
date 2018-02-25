@@ -266,7 +266,7 @@ bl_exception_enter_try() {
     '
     if (( bl_exception_try_catch_level == 0 )); then
         bl_exception_last_traceback_file_path="$(
-            mktemp --suffix=rebash-exception)"
+            mktemp --suffix -bashlink-exception-last-traceback)"
         bl_exception_active_before_try=$bl_exception_active
     fi
     bl.exception.deactivate

@@ -436,7 +436,7 @@ bl_logging_set_file_descriptors() {
     fi
     if [ "$bl_logging_options_command" = tee ]; then
         bl_logging_tee_fifo_path="$(
-            mktemp --directory bashlink-logging-fifo-XXX)"
+            mktemp --directory --suffix -bashlink-logging-fifo)"
         bl_logging_tee_fifo="$bl_logging_tee_fifo_path/fifo"
         mkfifo "$bl_logging_tee_fifo"
         trap '[ -p "$bl_logging_tee_fifo" ] && rm -rf "$bl_logging_tee_fifo_path"; exit' EXIT

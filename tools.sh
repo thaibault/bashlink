@@ -141,12 +141,16 @@ data_offset="\$(("\$(command grep --text --line-number '^exit \\\$?$' "\$0" | \\
 tail -n +\$dataOffset "\$0" | tar -xzf - -C "\$executableDirectory" \\
     1>/dev/null && \\
 "\${executable_directory_path}/${directory_name}/${relative_start_file_path}" "\$@"
+rm --recursive "\$executable_directory_path"
 exit \$?
 EOF
-    local temporary_archiv_file_path="$(mktemp).tar.gz"
+    local temporary_archiv_file_path="$(
+        mktemp --suffix -bashlink-tools-single-executable-archiv.tar.gz)"
     tar --create --verbose --gzip --posix --file \
         "$temporary_archiv_file_path" "$1"
-    bl.logging.cat "$temporary_archiv_file_path" 1>>"$file_name"
+    bl.logging.cat "$temporary_archiv_file_path" \
+        1>>"$file_name"
+    rm "$temporary_archiv_file_path"
     chmod +x "$file_name"
     return $?
 }

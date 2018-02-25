@@ -68,7 +68,7 @@ if $bl_module_retrieve_remote_modules && [[
     "${bl_module_remote_module_cache_path:-}" == ''
 ]]; then
     bl_module_remote_module_cache_path="$(
-        mktemp --directory --suffix bashlink-module-cache)"
+        mktemp --directory --suffix -bashlink-module-cache)"
     bl_module_tidy_up=true
 fi
 bl_module_prevent_namespace_check=true
@@ -317,12 +317,16 @@ bl_module_import_with_namespace_check() {
     local resolved_scope_name="$2"
     local scope_name="$3"
     if (( bl_module_import_level == 0 )); then
-        bl_module_declared_function_names_before_source_file_path="$(mktemp \
-            --suffix=bashlink-module-declared-function-names-before-source)"
+        bl_module_declared_function_names_before_source_file_path="$(
+            mktemp \
+                --suffix \
+                    -bashlink-module-declared-function-names-before-source-"$scope_name")"
     fi
     bl_module_declared_function_names_after_source=''
-    local declared_names_after_source_file_path="$(mktemp \
-        --suffix=bashlink-module-declared-names-after-source)"
+    local declared_names_after_source_file_path="$(
+        mktemp \
+            --suffix \
+                -bashlink-module-declared-names-after-source-"$scope_name")"
     # NOTE: All variables which are declared after
     # "bl.module.determine_declared_names" will be interpreted as newly
     # introduced variables from given module.
@@ -332,8 +336,10 @@ bl_module_import_with_namespace_check() {
         >"$bl_module_declared_function_names_before_source_file_path"
     # region do not declare variables area
     if [ "$bl_module_declared_names_before_source_file_path" = '' ]; then
-        bl_module_declared_names_before_source_file_path="$(mktemp \
-            --suffix=bashlink-module-declared-names-before-source)"
+        bl_module_declared_names_before_source_file_path="$(
+            mktemp \
+                --suffix \
+                    -bashlink-module-declared-variable-names-before-source-"$scope_name")"
     fi
     ## region check if scope is clean before sourcing
     bl.module.determine_declared_names \
@@ -382,8 +388,11 @@ bl_module_import_with_namespace_check() {
     if (( bl_module_import_level == 0 )); then
         rm "$bl_module_declared_names_before_source_file_path"
         bl_module_declared_names_before_source_file_path=""
-        bl_module_declared_function_names_after_source_file_path="$(mktemp \
-            --suffix=bashlink-module-declared-names-after-source)"
+        bl_module_declared_function_names_after_source_file_path="$(
+            mktemp \
+                --suffix \
+                    -bashlink-module-declared-names-after-source-"$scope_name"
+        )"
         bl.module.determine_declared_names \
             true \
             >"$bl_module_declared_function_names_after_source_file_path"
