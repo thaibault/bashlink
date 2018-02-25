@@ -48,7 +48,9 @@ Integrate bashlink into your bash script (only main entry file):
 Integrate bashlink into your standalone bash script:
 
 ```bash
-    module_name_bashlink_path="$(mktemp --directory --suffix bashlink)/bashlink/"
+    module_name_bashlink_path="$(
+        mktemp --directory --suffix -bashlink
+    )/bashlink/"
     mkdir "$module_name_bashlink_file_path"
     wget \
         https://goo.gl/UKF5JG \
@@ -73,7 +75,9 @@ Or combine both to implement a very agnostic script.
         # shellcheck disable=SC1091
         source "/usr/lib/bashlink/module.sh"
     else
-        archInstall_bashlink_path="$(mktemp --directory)/bashlink/"
+        archInstall_bashlink_path="$(
+            mktemp --directory --suffix -arch-install-bashlink
+        )/bashlink/"
         mkdir "$archInstall_bashlink_path"
         if wget \
             https://goo.gl/UKF5JG \

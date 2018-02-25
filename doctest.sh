@@ -389,7 +389,8 @@ bl_doctest_eval() {
         >>> bl.doctest.eval "$test_buffer" "$output_buffer"
     '
     local test_buffer="$1"
-    [[ -z "$test_buffer" ]] && return 0
+    [[ -z "$test_buffer" ]] && \
+        return 0
     local output_buffer="$2"
     local text_buffer="${3-}"
     local module_name="${4-}"
@@ -401,11 +402,13 @@ bl_doctest_eval() {
     local setup_identifier="${scope_name//[^[:alnum:]_]/_}"__doctest_setup__
     local setup_string="${!setup_identifier:-}"
     local declared_names_before_run_file_path="$(
-        mktemp --suffix=bashlink-doctest)"
+        mktemp \
+            --suffix -bashlink-doctest-declared-names-before-"$module_name"-"$function_name"-test
+    )"
     # shellcheck disable=SC2064
     trap "rm --force $declared_names_before_run_file_path; exit" EXIT
     local declared_names_after_run_file_path="$(
-        mktemp --suffix=bashlink-doctest)"
+        mktemp --suffix -bashlink-doctest-declared-names-before-"$module_name"-"$function_name"-test)"
     # shellcheck disable=SC2064
     trap "rm --force $declared_names_after_run_file_path; exit" EXIT
     local test_script="$(

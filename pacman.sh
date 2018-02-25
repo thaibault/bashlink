@@ -50,12 +50,18 @@ bl_pacman_show_not_maintained_by_pacman_system_files() {
             bl.pacman.show_not_maintained_by_pacman_system_file
         ```
     '
-    local paths_file_path="$(mktemp)"
-    local maintained_paths_file_path="$(mktemp)"
-    sudo command find / | sort | command sed 's:/$::g' | sort | uniq \
-        1>"$paths_file_path"
-    pacman --query --list --quiet | command sed 's:/$::g' | sort | \
-        uniq 1>"$maintained_paths_file_path"
+    local paths_file_path="$(mktemp --suffix -bashlink-pacman-file-paths)"
+    local maintained_paths_file_path="$(
+        mktemp --suffix -bashlink-pacman-maintained-file-paths)"
+    sudo command find / | \
+        sort | \
+            command sed 's:/$::g' | \
+                sort | \
+                    uniq 1>"$paths_file_path"
+    pacman --query --list --quiet | \
+        command sed 's:/$::g' | \
+            sort | \
+                uniq 1>"$maintained_paths_file_path"
     bl.logging.cat "$paths_file_path" "$maintained_paths_file_path" | \
         command sed 's:^/home/.*$::g' | \
         command sed 's:^/root/.*$::g' | \
@@ -71,6 +77,8 @@ bl_pacman_show_not_maintained_by_pacman_system_files() {
         uniq --unique
     local number_of_files=$(wc --lines "$paths_file_path" | cut --delimiter ' ' --field 1)
     local number_of_maintained_files=$(wc --lines "$maintained_paths_file_path" | cut --delimiter ' ' --field 1)
+    rm "$paths_file_path"
+    rm "$maintained_paths_file_path"
     local number_of_not_maintained_files
     (( number_of_not_maintained_files=(( number_of_files - number_of_maintained_files )) ))
     # shellcheck disable=SC2086
