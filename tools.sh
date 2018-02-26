@@ -105,7 +105,7 @@ bl_tools_make_openssl_pem_file() {
     openssl x509 -req -days 365 -in "${host}.csr" -signkey "${host}.key" -out \
         "${host}.crt"
     bl.logging.info Creating a pem file.
-    bl.logging.cat "${host}.key" "${host}.crt" 1>"${host}.pem"
+    cat "${host}.key" "${host}.crt" 1>"${host}.pem"
     return $?
 }
 alias bl.tools.make_single_executbale=bl_tools_make_single_executable
@@ -133,7 +133,7 @@ bl_tools_make_single_executable() {
     fi
     local directory_name="$(basename "$(readlink --canonicalize "$1")")"
     # NOTE: short option is necessary for mac compatibility.
-    bl.logging.cat << EOF 1>"$file_name"
+    cat << EOF 1>"$file_name"
 #!/usr/bin/env bash
 executable_directory_path="\$(mktemp -d 2>/dev/null || mktemp -d -t '' 2>/dev/null)" && \\
 data_offset="\$(("\$(command grep --text --line-number '^exit \\\$?$' "\$0" | \\
@@ -148,8 +148,7 @@ EOF
         mktemp --suffix -bashlink-tools-single-executable-archiv.tar.gz)"
     tar --create --verbose --gzip --posix --file \
         "$temporary_archiv_file_path" "$1"
-    bl.logging.cat "$temporary_archiv_file_path" \
-        1>>"$file_name"
+    cat "$temporary_archiv_file_path" 1>>"$file_name"
     rm "$temporary_archiv_file_path"
     chmod +x "$file_name"
     return $?

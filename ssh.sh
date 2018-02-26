@@ -80,7 +80,7 @@ bl_ssh_print() {
             if [[ "$user_row" != '' ]]; then
                 # shellcheck disable=SC2001
                 local user="$(
-                    bl.logging.plain "$user_row" | \
+                    echo "$user_row" | \
                         command sed s/user\\s//ig)"
                 local login="${user}@${host}"
             else

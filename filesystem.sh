@@ -162,7 +162,7 @@ bl_filesystem_btrfs_find_root() {
     local path="$1"
     while true; do
         bl.filesystem.btrfs_is_root "$path" && \
-            bl.logging.plain "$path" && \
+            echo "$path" && \
             return 0
         [ "$path" = '/' ] && \
             return 1
@@ -188,7 +188,7 @@ bl_filesystem_btrfs_subvolume_filter() {
     btrfs subvolume list -p "$btrfs_root" | while read -r entry; do
         local value="$(bl.filesystem.btrfs_get_subvolume_list_field "$target_key" "$entry")"
         if [[ "$value" == "$target_value" ]]; then
-            bl.logging.plain "$entry"
+            echo "$entry"
         fi
     done
 }
@@ -229,18 +229,20 @@ bl_filesystem_btrfs_get_child_volumes() {
         /broot/__snapshot/backup_last/home
     '
     local volume="$1"
-    bl.filesystem.btrfs_is_subvolume "${volume}" || return 1
+    bl.filesystem.btrfs_is_subvolume "${volume}" || \
+        return 1
     local btrfs_root="$(bl.filesystem.btrfs_find_root "$volume")"
-    local volume_relative="$(bl.path.convert_to_relative "$btrfs_root" "$volume")"
+    local volume_relative="$(
+        bl.path.convert_to_relative "$btrfs_root" "$volume")"
     local entry="$(
-        bl.filesystem.btrfs_subvolume_filter "$btrfs_root" path "$volume_relative"
-    )"
-    local volume_id="$(bl.filesystem.btrfs_get_subvolume_list_field id "$entry")"
-    bl.filesystem.btrfs_subvolume_filter "$btrfs_root" parent "$volume_id" \
-    | while read -r entry; do
-        bl.logging.plain "${btrfs_root}/$(
-            bl.filesystem.btrfs_get_subvolume_list_field path "$entry")"
-    done
+        bl.filesystem.btrfs_subvolume_filter "$btrfs_root" path "$volume_relative")"
+    local volume_id="$(
+        bl.filesystem.btrfs_get_subvolume_list_field id "$entry")"
+    bl.filesystem.btrfs_subvolume_filter "$btrfs_root" parent "$volume_id" | \
+        while read -r entry; do
+            echo "${btrfs_root}/$(
+                bl.filesystem.btrfs_get_subvolume_list_field path "$entry")"
+        done
 }
 alias bl.filesystem.btrfs_get_subvolume_list_field=bl_filesystem_btrfs_get_subvolume_list_field
 bl_filesystem_btrfs_get_subvolume_list_field() {
@@ -260,7 +262,7 @@ bl_filesystem_btrfs_get_subvolume_list_field() {
     local field
     for field in "${entry[@]}"; do
         if $found; then
-            bl.logging.plain "$field"
+            echo "$field"
             break
         fi
         # case insensitive match (bash >= 4)
@@ -504,17 +506,17 @@ bl_filesystem_create_partition_via_offset() {
     local partition_info=$(partx --raw --noheadings --output \
         START,NAME,UUID,TYPE "$device" 2>/dev/null| command grep "$name_or_uuid")
     local offset_sectors="$(
-        bl.logging.plain "$partition_info" | \
+        echo "$partition_info" | \
             cut --delimiter ' ' --fields 1)"
     if [ -z "$offset_sectors" ]; then
         bl.logging.warn "Could not find partition with label/uuid \"$name_or_uuid\" on device \"$device\""
         return 1
     fi
     local offset_bytes="$(
-        bl.logging.plain | \
+        echo | \
             awk -v x="$offset_sectors" -v y="$sector_size" '{print x * y}')"
     losetup --offset "$offset_bytes" "$loop_device" "$device"
-    bl.logging.plain "$loop_device"
+    echo "$loop_device"
 }
 alias bl.filesystem.find_block_device=bl_filesystem_find_block_device
 bl_filesystem_find_block_device() {
@@ -552,10 +554,10 @@ bl_filesystem_find_block_device() {
                     while read -r device_info; do
                         local current_device
                         current_device="$(
-                            bl.logging.plain "$device_info" | \
+                            echo "$device_info" | \
                                 cut -d' ' -f1)"
                         if [[ "$device_info" = *"${partition_pattern}"* ]]; then
-                            bl.logging.plain "$current_device"
+                            echo "$current_device"
                         fi
                     done
     }
@@ -573,7 +575,7 @@ bl_filesystem_find_block_device() {
                             blkid -p -o value "$current_device" | \
                                 while read -r device_info; do
                                     if [[ "$device_info" = *"${partition_pattern}"* ]]; then
-                                        bl.logging.plain "$current_device"
+                                        echo "$current_device"
                                     fi
                                 done
                         done
@@ -587,8 +589,9 @@ bl_filesystem_find_block_device() {
     [ ${#candidates[@]} -eq 0 ] && \
         return 1
     [ ${#candidates[@]} -ne 1 ] && \
-        bl.logging.plain "${candidates[@]}" && return 1
-    bl.logging.plain "${candidates[0]}"
+        echo "${candidates[@]}" && \
+        return 1
+    echo "${candidates[0]}"
 }
 ## region file links
 alias bl.filesystem.find_hardlinks=bl_filesystem_find_hardlinks
@@ -668,7 +671,7 @@ bl_filesystem_make_uefi_boot_entry() {
         eval "$command"
         return $?
     fi
-    bl.logging.critical \
+    bl.logging.error \
         "Error: file \"${kernel_parameter_file_path}\" doesn't exists."
     return 1
 }
@@ -726,8 +729,7 @@ bl_filesystem_set_maximum_user_watches() {
             bl.filesystem.set_maximum_user_watches 500000
         ```
     '
-    bl.logging.plain "$1" | \
-        sudo tee /proc/sys/fs/inotify/max_user_watches
+    echo "$1" | sudo tee /proc/sys/fs/inotify/max_user_watches
     return $?
 }
 alias bl.filesystem.write_blockdevice_to_image=bl_filesystem_write_blockdevice_to_image
