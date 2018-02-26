@@ -36,6 +36,21 @@ bl_logging__documentation__='
     - file (outputs to given file)
     - tee (outputs to both: given file and standard output)
 
+    Supported type of configurable logging files
+
+    - Logging output
+    - Error logging output
+    - Command output
+    - Error command output
+
+    NOTE: this module saves and provided given standard und error file
+    descriptors to descriptors to "5" and "6". So you can enforce corresponding
+    output via `command 1>&5 2>&6`.
+    This is needed to restore them later via `bl.logging.set_file_descriptors`.
+    Logging outputs are alway piped through file descriptor "3" and "4". So
+    your able to write your own logging function by logging to this
+    descriptors: `custom_logging_function 1>&3 2&>4`.
+
     The standard loglevel is critical
 
     >>> bl.logging.get_level
@@ -118,8 +133,8 @@ bl_logging_cat() {
         >>> echo foo | bl.logging.cat
         foo
     '
+    sync --file-system
     # NOTE: Hack to free call stack and flush pending tee buffer.
-    sleep 0.0000000000000000000000000000000000000000000000000000000000000000001
     cat "$@" 1>&3 2>&4
 }
 alias bl.logging.get_commands_level=bl_logging_get_commands_level
@@ -181,7 +196,6 @@ bl_logging_plain_raw() {
         shown
     '
     # NOTE: Hack to free call stack and flush pending tee buffer.
-    sleep 0.0000000000000000000000000000000000000000000000000000000000000000001
     echo "$@" 1>&3 2>&4
 }
 alias bl.logging.plain=bl_logging_plain
@@ -271,14 +285,12 @@ bl_logging_set_file_descriptors() {
         test
 
         >>> local test_file="$(mktemp)"
-        >>> echo file: > "$test_file"
         >>> bl.logging.set_file_descriptors "$test_file" --logging-output-target=tee
         >>> bl.logging.plain foo
         >>> bl.logging.set_file_descriptors
         >>> bl.logging.cat "$test_file"
         >>> rm "$test_file"
         foo
-        file:
         foo
 
         >>> local test_file="$(mktemp)"
@@ -302,55 +314,55 @@ bl_logging_set_file_descriptors() {
 
         >>> local test_file="$(mktemp)"
         >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee
-        >>> echo echo
+        >>> echo test
         >>> bl.logging.set_file_descriptors
-        >>> bl.logging.plain logging
+        >>> bl.logging.plain test
         >>> bl.logging.cat "$test_file"
         >>> rm "$test_file"
-        echo
-        logging
-        echo
+        test
+        test
+        test
 
         >>> local test_file="$(mktemp)"
         >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file
-        >>> bl.logging.plain logging
-        >>> echo echo
+        >>> bl.logging.plain test
+        >>> echo test
         >>> bl.logging.set_file_descriptors
         >>> bl.logging.cat "$test_file"
         >>> rm "$test_file"
-        logging
-        echo
+        test
+        test
 
         >>> local test_file="$(mktemp)"
         >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=file
-        >>> bl.logging.plain logging
-        >>> echo echo
+        >>> bl.logging.plain test
+        >>> echo test
         >>> bl.logging.set_file_descriptors
         >>> bl.logging.cat "$test_file"
         >>> rm "$test_file"
-        logging
-        echo
+        test
+        test
 
         >>> local test_file="$(mktemp)"
         >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=file
-        >>> bl.logging.plain logging
-        >>> echo echo
+        >>> bl.logging.plain test
+        >>> echo test
         >>> bl.logging.set_file_descriptors
         >>> bl.logging.cat "$test_file"
         >>> rm "$test_file"
-        logging
-        echo
+        test
+        test
 
         >>> local test_file="$(mktemp)"
         >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee --logging-output-target=file
-        >>> echo echo
-        >>> bl.logging.plain logging
+        >>> echo test
+        >>> bl.logging.plain test
         >>> bl.logging.set_file_descriptors
         >>> bl.logging.cat "$test_file"
         >>> rm "$test_file"
-        echo
-        logging
-        echo
+        test
+        test
+        test
 
         >>> local test_file="$(mktemp)"
         >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=off --logging-output-target=file
@@ -363,15 +375,15 @@ bl_logging_set_file_descriptors() {
 
         >>> local test_file="$(mktemp)"
         >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee --logging-output-target=tee
-        >>> bl.logging.plain logging
-        >>> echo echo
+        >>> bl.logging.plain test
+        >>> echo test
         >>> bl.logging.set_file_descriptors
         >>> bl.logging.cat "$test_file"
         >>> rm "$test_file"
-        logging
-        echo
-        logging
-        echo
+        test
+        test
+        test
+        test
     '
     bl.arguments.set "$@"
     # An output specification have to be one of "file", "std", "tee" or "off".
@@ -408,7 +420,6 @@ bl_logging_set_file_descriptors() {
         bl_logging_commands_error_file_path="$bl_logging_commands_file_path"
     fi
     # NOTE: Hack to free call stack and flush pending tee buffer.
-    sleep 0.0000000000000000000000000000000000000000000000000000000000000000001
     if [ "$bl_logging_output_target" = file ]; then
         if [ "$bl_logging_command_output_target" = file ]; then
             exec \
@@ -514,6 +525,7 @@ bl_logging_set_file_descriptors() {
                 4>&1
         fi
     fi
+    sync --file-system
 }
 # NOTE: Depends on "bl.logging.set_file_descriptors"
 alias bl.logging.set_command_output_off=bl_logging_set_command_output_off
@@ -607,10 +619,10 @@ bl_logging_set_file() {
         >>> bl.logging.set_file_descriptors
         >>> bl.logging.cat "$test_file_path"
         >>> rm "$test_file_path"
-        logging
-        echo
-        logging
-        echo
+        test
+        test
+        test
+        test
     '
     bl.logging.set_file_descriptors \
         "$1" "$2" "$3" "$4" \

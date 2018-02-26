@@ -105,7 +105,7 @@ bl_ssh_print() {
             return $?
         fi
     else
-        bl.logging.critical "Given file \"$1\" doesn't exist."
+        bl.logging.error "Given file \"$1\" doesn't exist."
         return 1
     fi
 }
