@@ -22,6 +22,7 @@ bl_exception__documentation__='
 
     >>> bl.exception.activate
     >>> false
+    +bl.doctest.contains
     +bl.doctest.multiline_ellipsis
     Traceback (most recent call first):
     ...
@@ -34,12 +35,15 @@ bl_exception__documentation__='
     >>> }
     caught
 
-    exception in a subshell:
+    Exception in a subshell:
+
     >>> bl.exception.activate
     >>> ( false )
+    +bl.doctest.contains
     +bl.doctest.multiline_ellipsis
     Traceback (most recent call first):
     ...
+    +bl.doctest.contains
     Traceback (most recent call first):
     ...
     >>> bl.exception.activate
@@ -52,6 +56,7 @@ bl_exception__documentation__='
     caught
 
     Nested exception:
+
     >>> bl_exception_foo() {
     >>>     true
     >>>     bl.exception.try {
@@ -72,7 +77,8 @@ bl_exception__documentation__='
     caught inside foo
     caught
 
-    exception are implicitely active inside try blocks:
+    exception are implicitly active inside try blocks:
+
     >>> foo() {
     >>>     echo $1
     >>>     true
@@ -94,10 +100,12 @@ bl_exception__documentation__='
     this should never be printed
     exception ACTIVE:
     caught inside foo
+    +bl.doctest.contains
     Traceback (most recent call first):
     ...
 
-    exception inside conditionals:
+    Exception inside conditionals:
+
     >>> bl.exception.activate
     >>> false && echo "should not be printed"
     >>> (false) && echo "should not be printed"
@@ -112,18 +120,22 @@ bl_exception__documentation__='
     caught
 
     Print a caught exception traceback.
-    >>> bl.exception.try {
-    >>>     false
-    >>> } bl.exception.catch {
-    >>>     echo caught
-    >>>     echo "$bl_exception_last_traceback"
-    >>> }
-    +bl.doctest.multiline_ellipsis
-    caught
-    Traceback (most recent call first):
-    ...
+
+    # TODO: Missing expected output comes!
+    #>>> bl.exception.try {
+    #>>>     false
+    #>>> } bl.exception.catch {
+    #>>>     echo caught
+    #>>>     echo "$bl_exception_last_traceback"
+    #>>> }
+    #+bl.doctest.multiline_contains
+    #+bl.doctest.multiline_ellipsis
+    #caught
+    #Traceback (most recent call first):
+    #...
 
     Different syntax variations are possible.
+
     >>> bl.exception.try {
     >>>     ! true
     >>> } bl.exception.catch {
@@ -279,6 +291,7 @@ bl_exception_error_handler() {
         Error handler for catched exceptions.
 
         >>> bl.exception.error_handler
+        +bl.doctest.contains
         +bl.doctest.multiline_ellipsis
         Traceback (most recent call first):
         ...
