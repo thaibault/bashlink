@@ -614,8 +614,8 @@ bl_logging_set_file() {
     local __documentation__='
         >>> local test_file_path="$(mktemp)"
         >>> bl.logging.set_file "$test_file_path"
-        >>> bl.logging.plain logging
-        >>> echo echo
+        >>> bl.logging.plain test
+        >>> echo test
         >>> bl.logging.set_file_descriptors
         >>> bl.logging.cat "$test_file_path"
         >>> rm "$test_file_path"
