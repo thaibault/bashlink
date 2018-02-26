@@ -359,7 +359,7 @@ bl_doctest_compare_result() {
         else
             if $contains; then
                 echo \
-                    "\"$buffer_line\" is not in \"$got_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}" \
+                    "Specified \"$buffer_line\" is not in given \"$got_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}" \
                         1>&2
             else
                 echo \
@@ -424,7 +424,7 @@ $setup_string
 # _ can be used as anonymous variable (without warning)
 _=''
 bl.module.determine_declared_names >'$declared_names_before_run_file_path'
-$(bl_doctest_nounset && echo 'set -o nounset')
+$($bl_doctest_nounset && echo 'set -o nounset')
 # NOTE: We havt to wrap the test context a function to ensure the "local"
 # keyword has an effect inside.
 _() {
@@ -468,20 +468,18 @@ EOF
     if ! reason="$(
         bl.doctest.compare_result "$output_buffer" "$output" 2>&1
     )"; then
-        bl.logging.cat <<EOF
-${bl_cli_color_light_red}error:${bl_cli_color_default} ${reason}
-${bl_cli_color_light_red}test:${bl_cli_color_default}
-$test_buffer
-${bl_cli_color_light_red}expected:${bl_cli_color_default}
-"$output_buffer"
-${bl_cli_color_light_red}got:${bl_cli_color_default}
-"$output"
-EOF
+        bl.logging.plain "${bl_cli_color_light_red}error:${bl_cli_color_default} ${reason}"
+        bl.logging.plain "${bl_cli_color_light_red}test:${bl_cli_color_default}"
+        bl.logging.plain "$test_buffer"
+        bl.logging.plain "${bl_cli_color_light_red}expected:${bl_cli_color_default}"
+        bl.logging.plain "$output_buffer"
+        bl.logging.plain "${bl_cli_color_light_red}got:${bl_cli_color_default}"
+        bl.logging.plain "$output"
         if $bl_doctest_use_side_by_side_output; then
             bl.logging.plain "${bl_cli_color_light_red}difference:${bl_cli_color_default}"
             local diff=diff
             bl.dependency.check colordiff && diff=colordiff
-            $diff --side-by-side <(echo "$output_buffer") <(echo "$output")
+            $diff --side-by-side <(echo -e "$output_buffer") <(echo -e "$output")
         fi
         return 1
     fi

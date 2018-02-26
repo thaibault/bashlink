@@ -143,9 +143,9 @@ bl_logging_get_prefix() {
     local __documentation__='
         Determines logging prefix string.
 
-        >>> bl.cli.disable_color
         >>> bl.logging.get_prefix critical 1
-        \033[0;35mcritical:63:14:
+        +bl.doctest.contains
+        critical
     '
     local level=$1
     local level_index=$2
@@ -262,14 +262,14 @@ bl_logging_set_file_descriptors() {
         #>>> rm "$test_file"
         #test
 
-        #>>> local test_file="$(mktemp)"
-        #>>> bl.logging.set_file_descriptors "$test_file" --logging-output-target=tee
-        #>>> bl.logging.plain foo
-        #>>> bl.logging.set_file_descriptors
-        #>>> bl.logging.cat "$test_file"
-        #>>> rm "$test_file"
-        #foo
-        #foo
+        >>> local test_file="$(mktemp)"
+        >>> bl.logging.set_file_descriptors "$test_file" --logging-output-target=tee
+        >>> bl.logging.plain foo
+        >>> bl.logging.set_file_descriptors
+        >>> bl.logging.cat "$test_file"
+        >>> rm "$test_file"
+        foo
+        foo
 
         #>>> local test_file="$(mktemp)"
         #>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=off
@@ -400,7 +400,7 @@ bl_logging_set_file_descriptors() {
                 4>&3
         elif [ "$bl_logging_command_output_target" = tee ]; then
             exec \
-                1>(tee --append "$bl_logging_file_path") \
+                1>(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
                 2>&1 \
                 3>>"$bl_logging_file_path" \
                 4>&3
@@ -422,11 +422,11 @@ bl_logging_set_file_descriptors() {
             exec \
                 1>&5 \
                 2>&6 \
-                3>&1 \
-                4>&2
+                3>&5 \
+                4>&6
         elif [ "$bl_logging_command_output_target" = tee ]; then
             exec \
-                1>(tee --append "$bl_logging_file_path") \
+                1>(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
                 2>&1 \
                 3>&5 \
                 4>&6
@@ -442,17 +442,17 @@ bl_logging_set_file_descriptors() {
             exec \
                 1>>"$bl_logging_file_path" \
                 2>&1 \
-                3>(tee --append "$bl_logging_file_path") \
+                3>(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
                 4>&3
         elif [ "$bl_logging_command_output_target" = std ]; then
             exec \
-                1>(tee --append "$bl_logging_file_path") \
-                2>&1 \
-                3>&5 \
-                4>&6
+                1>&5 \
+                2>&6 \
+                3>(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
+                4>&3
         elif [ "$bl_logging_command_output_target" = tee ]; then
             exec \
-                1>(tee --append "$bl_logging_file_path") \
+                1>(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
                 2>&1 \
                 3>&1 \
                 4>&1
@@ -460,7 +460,7 @@ bl_logging_set_file_descriptors() {
             exec \
                 1>/dev/null \
                 2>&1 \
-                3>(tee --append "$bl_logging_file_path") \
+                3>(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
                 4>&3
         fi
     elif [ "$bl_logging_output_target" = off ]; then
@@ -478,10 +478,10 @@ bl_logging_set_file_descriptors() {
                 4>&3
         elif [ "$bl_logging_command_output_target" = tee ]; then
             exec \
-                1>(tee --append "$bl_logging_file_path") \
+                1>(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
                 2>&1 \
-                3>&5 \
-                4>&6
+                3>/dev/null \
+                4>&3
         elif [ "$bl_logging_command_output_target" = off ]; then
             exec \
                 1>/dev/null \
