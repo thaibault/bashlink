@@ -22,9 +22,22 @@ bl.module.import bashlink.cli
 # region variables
 bl_logging__documentation__='
     The available log levels are:
-    error critical warn info debug
+
+    - error
+    - critical
+    - warn (or warning)
+    - info
+    - debug
+
+    Supported output types for commands and logging are:
+
+    - std (Outputs to standard output)
+    - off (does not output anything)
+    - file (outputs to given file)
+    - tee (outputs to both: given file and standard output)
 
     The standard loglevel is critical
+
     >>> bl.logging.get_level
     >>> bl.logging.get_commands_level
     critical
@@ -60,9 +73,7 @@ bl_logging__documentation__='
     >>> bl.logging.critical foo
     [myprefix - critical] foo
 '
-bl_logging_commands_output_saved=std
-bl_logging_commands_tee_fifo_active=false
-bl_logging_file_descriptors_saved=false
+bl_logging_file_path=''
 # logging levels from low to high
 bl_logging_levels=(
     error
@@ -83,37 +94,27 @@ bl_logging_levels_color=(
 )
 bl_logging_commands_level=$(bl.array.get_index critical "${bl_logging_levels[@]}")
 bl_logging_level=$(bl.array.get_index critical "${bl_logging_levels[@]}")
-bl_logging_log_file_path=''
-bl_logging_off=false
-bl_logging_options_log=std
-bl_logging_options_command=std
-bl_logging_output_to_saved_file_descriptors=false
-bl_logging_tee_fifo=''
-bl_logging_tee_fifo_path=''
-bl_logging_tee_fifo_active=false
+bl_logging_output_target=std
+bl_logging_command_output_target=std
 # endregion
+# Open needed output file descriptors and save existing standard descriptors.
+exec \
+    3>&1 \
+    4>&2 \
+    5>&1 \
+    6>&2
 # region functions
 alias bl.logging.cat=bl_logging_cat
 bl_logging_cat() {
     local __documentation__='
-        "bl.logging.cat" can be used to print files
-        (e.g "bl.logging.cat < file.txt") or heredocs. Like "bl.logging.plain",
+        This function prints files
+        (e.g `bl.logging.cat < file.txt`) or heredocs. Like `bl.logging.plain`,
         it also prints at any log level and without the prefix.
 
         >>> echo foo | bl.logging.cat
         foo
     '
-    $bl_logging_off && return 0
-    if [[ "$bl_logging_log_file_path" != '' ]]; then
-        cat "$@" >> "$bl_logging_log_file_path"
-        if $bl_logging_tee_fifo_active; then
-            cat "$@"
-        fi
-    elif $bl_logging_output_to_saved_file_descriptors; then
-        cat "$@" 1>&3 2>&4
-    else
-        cat "$@"
-    fi
+    cat "$@" 1>&3 2>&4
 }
 alias bl.logging.get_commands_level=bl_logging_get_commands_level
 bl_logging_get_commands_level() {
@@ -159,8 +160,7 @@ bl_logging_get_prefix() {
 alias bl.logging.plain_raw=bl_logging_plain_raw
 bl_logging_plain_raw() {
     local __documentation__='
-        "bl.logging.plain" can be used to print at any log level and without
-        prefix.
+        This function prints at any log level and without prefix.
 
         >>> bl.logging.set_level critical
         >>> bl.logging.set_commands_level debug
@@ -174,23 +174,13 @@ bl_logging_plain_raw() {
         >>> bl.logging.plain_raw "shown"
         shown
     '
-    $bl_logging_off && return 0
-    if [[ "$bl_logging_log_file_path" != '' ]]; then
-        echo "$@" >> "$bl_logging_log_file_path"
-        if $bl_logging_tee_fifo_active; then
-            echo "$@"
-        fi
-    elif $bl_logging_output_to_saved_file_descriptors; then
-        echo "$@" 1>&3 2>&4
-    else
-        echo "$@"
-    fi
+    echo "$@" 1>&3 2>&4
 }
 alias bl.logging.plain=bl_logging_plain
 bl_logging_plain() {
     local __documentation__='
-        "bl.logging.plain" can be used to print string in evaluated
-        representation at any log level and without prefix.
+        This function prints a given string in evaluated representation at any
+        log level and without prefix.
 
         >>> bl.logging.set_level critical
         >>> bl.logging.set_commands_level debug
@@ -239,7 +229,13 @@ bl_logging_log() {
         return 1
     fi
     if [ "$bl_logging_level" -ge "$level_index" ]; then
-        bl.logging.plain "$(bl_logging_get_prefix "$level" "$level_index")" "$@"
+        if [ "$level" = error ]; then
+            bl.logging.plain \
+                "$(bl_logging_get_prefix "$level" "$level_index")" "$@" 3>&4
+        else
+            bl.logging.plain \
+                "$(bl_logging_get_prefix "$level" "$level_index")" "$@"
+        fi
     fi
 }
 alias bl.logging.critical='bl_logging_log critical'
@@ -253,206 +249,246 @@ alias bl.logging.set_file_descriptors=bl_logging_set_file_descriptors
 bl_logging_set_file_descriptors() {
     # shellcheck disable=SC1004
     local __documentation__='
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.plain "test_file:" >"$test_file"
-        >>> bl.logging.set_file_descriptors ""
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        test_file:
+        Sets file descriptors for all generic commands outputs and logging
+        methods defined in this module.
 
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file"
-        >>> bl.logging.set_file_descriptors ""
-        >>> echo "test_file:" >"$test_file"
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        test_file:
+        NOTE: We temporary save "/dev/stdout" and "/dev/stderr" in file
+        descriptors "3" and "4".
 
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --logging=tee
-        >>> bl.logging.plain foo
-        >>> bl.logging.set_file_descriptors ""
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        foo
-        foo
+        #>>> local test_file="$(mktemp)"
+        #>>> bl.logging.plain test >"$test_file"
+        #>>> bl.logging.set_file_descriptors
+        #>>> bl.logging.cat "$test_file"
+        #>>> rm "$test_file"
+        #test
 
-        >>> echo "$test_file"
+        #>>> local test_file="$(mktemp)"
+        #>>> bl.logging.set_file_descriptors "$test_file" --logging-output-target=tee
+        #>>> bl.logging.plain foo
+        #>>> bl.logging.set_file_descriptors
+        #>>> bl.logging.cat "$test_file"
+        #>>> rm "$test_file"
+        #foo
+        #foo
 
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --logging=off --commands=file
-        >>> bl.logging.plain not shown
-        >>> echo foo
-        >>> bl.logging.set_file_descriptors ""
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        foo
+        #>>> local test_file="$(mktemp)"
+        #>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=off
+        #>>> bl.logging.plain not shown
+        #>>> echo foo
+        #>>> bl.logging.info test
+        #>>> bl.logging.set_file_descriptors
+        #>>> cat "$test_file"
+        #>>> rm "$test_file"
+        #foo
 
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --logging=off
-        >>> bl.logging.plain not shown
-        >>> echo foo
-        >>> bl.logging.set_file_descriptors ""
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        foo
+        #>>> local test_file="$(mktemp)"
+        #>>> bl.logging.set_file_descriptors "$test_file" --logging-output-target=off
+        #>>> bl.logging.plain not shown
+        #>>> echo foo
+        #>>> bl.logging.set_file_descriptors
+        #>>> bl.logging.cat "$test_file"
+        #>>> rm "$test_file"
+        #foo
 
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --commands=tee
-        >>> bl.logging.plain logging
-        >>> echo echo
-        >>> bl.logging.set_file_descriptors ""
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        logging
-        echo
-        echo
+        #>>> local test_file="$(mktemp)"
+        #>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee
+        #>>> echo echo
+        #>>> bl.logging.set_file_descriptors
+        #>>> bl.logging.plain logging
+        #>>> bl.logging.cat "$test_file"
+        #>>> rm "$test_file"
+        #echo
+        #logging
+        #echo
 
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --commands=file
-        >>> bl.logging.plain logging
-        >>> echo echo
-        >>> bl.logging.set_file_descriptors ""
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        logging
-        echo
+        #>>> local test_file="$(mktemp)"
+        #>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file
+        #>>> echo echo
+        #>>> bl.logging.plain logging
+        #>>> bl.logging.set_file_descriptors
+        #>>> bl.logging.cat "$test_file"
+        #>>> rm "$test_file"
+        #logging
+        #echo
 
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --logging=file --commands=file
-        >>> bl.logging.plain logging
-        >>> echo echo
-        >>> bl.logging.set_file_descriptors ""
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        logging
-        echo
+        #>>> local test_file="$(mktemp)"
+        #>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=file
+        #>>> bl.logging.plain logging
+        #>>> echo echo
+        #>>> bl.logging.set_file_descriptors
+        #>>> bl.logging.cat "$test_file"
+        #>>> rm "$test_file"
+        #logging
+        #echo
 
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --logging=file --commands=file
-        >>> bl.logging.plain logging
-        >>> echo echo
-        >>> bl.logging.set_file_descriptors ""
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        logging
-        echo
+        #>>> local test_file="$(mktemp)"
+        #>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=file
+        #>>> bl.logging.plain logging
+        #>>> echo echo
+        #>>> bl.logging.set_file_descriptors
+        #>>> bl.logging.cat "$test_file"
+        #>>> rm "$test_file"
+        #logging
+        #echo
 
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --logging=file --commands=tee
-        >>> bl.logging.plain logging
-        >>> echo echo
-        >>> bl.logging.set_file_descriptors ""
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        echo
-        logging
-        echo
+        #>>> local test_file="$(mktemp)"
+        #>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee --logging-output-target=file
+        #>>> bl.logging.plain logging
+        #>>> echo echo
+        #>>> bl.logging.set_file_descriptors
+        #>>> bl.logging.cat "$test_file"
+        #>>> rm "$test_file"
+        #echo
+        #logging
+        #echo
 
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --logging=file --commands=off
-        >>> bl.logging.plain logging
-        >>> echo echo
-        >>> bl.logging.set_file_descriptors ""
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        logging
+        #>>> local test_file="$(mktemp)"
+        #>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=off --logging-output-target=file
+        #>>> bl.logging.plain logging
+        #>>> echo echo
+        #>>> bl.logging.set_file_descriptors
+        #>>> bl.logging.cat "$test_file"
+        #>>> rm "$test_file"
+        #logging
 
-        >>> local test_file="$(mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --logging=tee --commands=tee
-        >>> bl.logging.plain logging
-        >>> echo echo
-        >>> bl.logging.set_file_descriptors ""
-        >>> bl.logging.cat "$test_file"
-        >>> rm "$test_file"
-        logging
-        echo
-        logging
-        echo
-
-        Test exit handler
-
-        >>> local test_file fifo
-        >>> test_file="$(mktemp)"
-        >>> fifo=$(bl.logging.set_file_descriptors "$test_file" --commands=tee; \
-        >>>    echo $bl.logging.tee_fifo)
-        >>> [ -p "$fifo" ] || echo fifo deleted
-        >>> rm "$test_file"
-        fifo deleted
+        #>>> local test_file="$(mktemp)"
+        #>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee --logging-output-target=tee
+        #>>> bl.logging.plain logging
+        #>>> echo echo
+        #>>> bl.logging.set_file_descriptors
+        #>>> bl.logging.cat "$test_file"
+        #>>> rm "$test_file"
+        #logging
+        #echo
+        #logging
+        #echo
     '
     bl.arguments.set "$@"
-    # Must be one off "std", "off", "tee" or "file".
-    local options_log options_command
-    bl.arguments.get_keyword --commands options_command
-    bl.arguments.get_keyword --logging options_log
-    [[ "${options_command-}" == '' ]] && options_command=std
-    [[ "${options_log-}" == '' ]] && options_log=std
-    bl_logging_options_command="$options_command"
-    bl_logging_options_log="$options_log"
+    # An output specification have to be one of "file", "std", "tee" or "off".
+    local output command_output
+    bl.arguments.get_keyword --commands-output-target command_output
+    bl.arguments.get_keyword --logging-output-target output
+    bl_logging_command_output_target="$command_output"
+    bl_logging_output_target="$output"
+    [ "$bl_logging_command_output_target" = '' ] && \
+        bl_logging_command_output_target=std
+    [ "$bl_logging_output_target" = '' ] && \
+        bl_logging_output_target=std
     set -- "${bl_arguments_new[@]:-}"
-    local log_file_path="$1"
-    bl_logging_off=false
-    # restore
-    if $bl_logging_file_descriptors_saved; then
-        exec 1>&3 2>&4 3>&- 4>&-
-        bl_logging_file_descriptors_saved=false
-    fi
-    [ -p "$bl_logging_tee_fifo" ] && rm -rf "$bl_logging_tee_fifo_path"
-    bl_logging_commands_tee_fifo_active=false
-    bl_logging_tee_fifo_active=false
-    bl_logging_output_to_saved_file_descriptors=false
-    if [ "$log_file_path" = '' ]; then
-        bl_logging_log_file_path=''
-        [ "$bl_logging_options_log" = tee ] && return 1
-        [ "$bl_logging_options_command" = tee ] && return 1
-        if [ "$bl_logging_options_log" = off ]; then
-            bl_logging_off=true
+    local bl_logging_file_path="$1"
+    if [ "$bl_logging_file_path" = '' ]; then
+        if [ "$bl_logging_output_target" = file ] || \
+            [ "$bl_logging_output_target" = tee ] || \
+            [ "$bl_logging_command_output_target" = file ] || \
+            [ "$bl_logging_command_output_target" = tee ]
+        then
+            bl_logging_file_path="$(mktemp --suffix -bash-logging)"
         fi
-        if [ "$bl_logging_options_command" = off ]; then
-            exec 3>&1 4>&2
-            bl_logging_file_descriptors_saved=true
-            exec &>/dev/null
-            bl_logging_output_to_saved_file_descriptors=true
-        fi
-        return 0
     fi
-    # It's guaranteed that we have a log file from here on.
-    if ! $bl_logging_file_descriptors_saved; then
-        # save /dev/stdout and /dev/stderr to &3, &4
-        exec 3>&1 4>&2
-        bl_logging_file_descriptors_saved=true
-    fi
-    if [ "$bl_logging_options_log" = tee ]; then
-        if [ "$bl_logging_options_command" != tee ]; then
-            bl_logging_log_file_path="$log_file_path"
-            bl_logging_tee_fifo_active=true
+    if [ "$bl_logging_output_target" = file ]; then
+        if [ "$bl_logging_command_output_target" = file ]; then
+            exec \
+                1>>"$bl_logging_file_path" \
+                2>&1 \
+                3>&1 \
+                4>&1
+        elif [ "$bl_logging_command_output_target" = std ]; then
+            exec \
+                1>&5 \
+                2>&6 \
+                3>>"$bl_logging_file_path" \
+                4>&3
+        elif [ "$bl_logging_command_output_target" = tee ]; then
+            exec \
+                1>(tee --append "$bl_logging_file_path") \
+                2>&1 \
+                3>>"$bl_logging_file_path" \
+                4>&3
+        elif [ "$bl_logging_command_output_target" = off ]; then
+            exec \
+                1>/dev/null \
+                2>&1 \
+                3>>"$bl_logging_file_path" \
+                4>&3
         fi
-    elif [ "$bl_logging_options_log" = stdout ]; then
-        true
-    elif [ "$bl_logging_options_log" = file ]; then
-        bl_logging_log_file_path="$log_file_path"
-    elif [ "$bl_logging_options_log" = off ]; then
-        bl_logging_off=true
-    fi
-    if [ "$bl_logging_options_command" = tee ]; then
-        bl_logging_tee_fifo_path="$(
-            mktemp --directory --suffix -bashlink-logging-fifo)"
-        bl_logging_tee_fifo="$bl_logging_tee_fifo_path/fifo"
-        mkfifo "$bl_logging_tee_fifo"
-        trap '[ -p "$bl_logging_tee_fifo" ] && rm -rf "$bl_logging_tee_fifo_path"; exit' EXIT
-        tee --append "$log_file_path" <"$bl_logging_tee_fifo" &
-        exec 1>>"$bl_logging_tee_fifo" 2>>"$bl_logging_tee_fifo"
-        bl_logging_commands_tee_fifo_active=true
-        if [[ "$bl_logging_options_log" != tee ]]; then
-            bl_logging_output_to_saved_file_descriptors=true
+    elif [ "$bl_logging_output_target" = std ]; then
+        if [ "$bl_logging_command_output_target" = file ]; then
+            exec \
+                1>>"$bl_logging_file_path" \
+                2>&1 \
+                3>&5 \
+                4>&6
+        elif [ "$bl_logging_command_output_target" = std ]; then
+            exec \
+                1>&5 \
+                2>&6 \
+                3>&1 \
+                4>&2
+        elif [ "$bl_logging_command_output_target" = tee ]; then
+            exec \
+                1>(tee --append "$bl_logging_file_path") \
+                2>&1 \
+                3>&5 \
+                4>&6
+        elif [ "$bl_logging_command_output_target" = off ]; then
+            exec \
+                1>/dev/null \
+                2>&1 \
+                3>&5 \
+                4>&6
         fi
-    elif [ "$bl_logging_options_command" = stdout ]; then
-        true
-    elif [ "$bl_logging_options_command" = file ]; then
-        exec 1>>"$log_file_path" 2>>"$log_file_path"
-        bl_logging_output_to_saved_file_descriptors=true
-    elif [ "$bl_logging_options_command" = off ]; then
-        exec 1>>/dev/null 2>>/dev/null
+    elif [ "$bl_logging_output_target" = tee ]; then
+        if [ "$bl_logging_command_output_target" = file ]; then
+            exec \
+                1>>"$bl_logging_file_path" \
+                2>&1 \
+                3>(tee --append "$bl_logging_file_path") \
+                4>&3
+        elif [ "$bl_logging_command_output_target" = std ]; then
+            exec \
+                1>(tee --append "$bl_logging_file_path") \
+                2>&1 \
+                3>&5 \
+                4>&6
+        elif [ "$bl_logging_command_output_target" = tee ]; then
+            exec \
+                1>(tee --append "$bl_logging_file_path") \
+                2>&1 \
+                3>&1 \
+                4>&1
+        elif [ "$bl_logging_command_output_target" = off ]; then
+            exec \
+                1>/dev/null \
+                2>&1 \
+                3>(tee --append "$bl_logging_file_path") \
+                4>&3
+        fi
+    elif [ "$bl_logging_output_target" = off ]; then
+        if [ "$bl_logging_command_output_target" = file ]; then
+            exec \
+                1>>"$bl_logging_file_path" \
+                2>&1 \
+                3>/dev/null \
+                4>&3
+        elif [ "$bl_logging_command_output_target" = std ]; then
+            exec \
+                1>&5 \
+                2>&6 \
+                3>/dev/null \
+                4>&3
+        elif [ "$bl_logging_command_output_target" = tee ]; then
+            exec \
+                1>(tee --append "$bl_logging_file_path") \
+                2>&1 \
+                3>&5 \
+                4>&6
+        elif [ "$bl_logging_command_output_target" = off ]; then
+            exec \
+                1>/dev/null \
+                2>&1 \
+                3>&1 \
+                4>&1
+        fi
     fi
 }
 # NOTE: Depends on "bl.logging.set_file_descriptors"
@@ -464,11 +500,11 @@ bl_logging_set_command_output_off() {
         >>> bl.logging.set_command_output_off
         >>> echo test
     '
-    bl_logging_commands_output_saved="$bl_logging_options_command"
+    bl_logging_commands_output_saved="$bl_logging_command_output"
     bl.logging.set_file_descriptors \
-        "$bl_logging_log_file_path" \
-        --logging="$bl_logging_options_log" \
-        --commands=off
+        "$bl_logging_file_path" \
+        --logging-output-target="$bl_logging_output_target" \
+        --commands-output-target=off
 }
 # NOTE: Depends on "bl.logging.set_file_descriptors"
 alias bl.logging.set_command_output_on=bl_logging_set_command_output_on
@@ -481,9 +517,9 @@ bl_logging_set_command_output_on() {
         test
     '
     bl.logging.set_file_descriptors \
-        "$bl_logging_log_file_path" \
-        --logging="$bl_logging_options_log" \
-        --commands=std
+        "$bl_logging_file_path" \
+        --logging-output-target="$bl_logging_output_target" \
+        --commands-output-target=std
 }
 # NOTE: Depends on "bl.logging.set_command_output_on", bl.logging.set_command_output_off"
 alias bl.logging.set_commands_level=bl_logging_set_commands_level
@@ -531,41 +567,25 @@ bl_logging_set_level() {
         bl.logging.set_command_output_off
     fi
 }
-alias bl.logging.set_log_file=bl_logging_set_log_file
-bl_logging_set_log_file() {
+alias bl.logging.set_file=bl_logging_set_file
+bl_logging_set_file() {
     local __documentation__='
         >>> local test_file_path="$(mktemp)"
-        >>> bl.logging.set_log_file "$test_file_path"
+        >>> bl.logging.set_file "$test_file_path"
         >>> bl.logging.plain logging
         >>> echo echo
-        >>> bl.logging.set_log_file ""
+        >>> bl.logging.set_file_descriptors
         >>> bl.logging.cat "$test_file_path"
         >>> rm "$test_file_path"
         logging
         echo
         logging
         echo
-
-        >>> bl.logging.set_commands_level debug
-        >>> bl.logging.set_level debug
-        >>> local test_file_path="$(mktemp)"
-        >>> bl.logging.set_log_file "$test_file_path"
-        >>> bl.logging.plain 1
-        >>> bl.logging.set_log_file ""
-        >>> bl.logging.set_log_file "$test_file_path"
-        >>> bl.logging.plain 2
-        >>> bl.logging.set_log_file ""
-        >>> bl.logging.cat "$test_file_path"
-        >>> rm "$test_file_path"
-        1
-        2
-        1
-        2
     '
-    [ "$bl_logging_log_file_path" = "$1" ] && return 0
-    bl.logging.set_file_descriptors ''
-    [ "$1" = '' ] && return 0
-    bl.logging.set_file_descriptors "$1" --commands=tee --logging=tee
+    bl.logging.set_file_descriptors \
+        "$1" \
+        --commands-output-target=tee \
+        --logging-output-target=tee
 }
 # endregion
 # region vim modline
