@@ -10,11 +10,6 @@
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
-# region import
-# shellcheck source=./module.sh
-source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
-bl.module.import bashlink.logging
-# endregion
 # region variables
 bl_number__documentation__='
     The number module implements utility functions concerning numbers.
@@ -29,7 +24,7 @@ bl_number_calculate_percent() {
         >>> bl_number_calculate_percent 100 50
         50.00
     '
-    bl.logging.plain "$(((($2 * 10000) / $1) / 100)).$(
+    echo "$(((($2 * 10000) / $1) / 100)).$(
         command sed \
             --regexp-extended \
             's/^(.)$/0\1/g' \

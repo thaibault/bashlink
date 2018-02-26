@@ -98,7 +98,7 @@ bl_string_images_to_css_classes() {
         local exclude_path
         for exclude_path in "$@"; do
             exclude_path="$(
-                bl.logging.plain "$exclude_path" | \
+                echo "$exclude_path" | \
                     command sed 's/\/$//g')"
             if [[ "$exclude_path" == "$(dirname "$image_file_path")" ]] || \
                [[ "$exclude_path" == "$image_file_path" ]]
@@ -109,10 +109,12 @@ bl_string_images_to_css_classes() {
         done
         if $valid_path; then
             local image_class_name="$(
-                bl.logging.plain "$image_file_path" | \
-                tr '@#&%+./_{; ' '-' | \
-                command grep --only-matching --extended-regexp '[^-].+$')"
-            bl.logging.plain ".image-data-${image_class_name}{background-image: url(\"data:$(file --brief --mime-type "$image_file_path");base64,$(base64 --wrap 0 "$image_file_path")\")}"
+                echo "$image_file_path" | \
+                    tr '@#&%+./_{; ' '-' | \
+                        command grep \
+                            --extended-regexp '[^-].+$' \
+                            --only-matching)"
+            echo ".image-data-${image_class_name}{background-image: url(\"data:$(file --brief --mime-type "$image_file_path");base64,$(base64 --wrap 0 "$image_file_path")\")}"
         fi
     done
     return $?
@@ -224,10 +226,10 @@ bl_string_merge_text_files() {
     done
     # shellcheck disable=SC2059
     printf "$prepend" "$(
-        bl.logging.plain "$file_paths" | \
+        echo "$file_paths" | \
             command grep \
-                --only-matching \
-                --extended-regexp '^[^ ]+')"
+                --extended-regexp '^[^ ]+' \
+                --only-matching)"
     local index=0
     local file_path
     for file_path in ${file_paths[*]}; do
@@ -235,7 +237,7 @@ bl_string_merge_text_files() {
             # shellcheck disable=SC2059
             printf "$between" "$file_path"
         fi
-        bl.logging.cat "$file_path"
+        cat "$file_path"
         (( index += 1 ))
     done
     # shellcheck disable=SC2059
@@ -387,11 +389,11 @@ bl_string_validate_argument() {
         h"a"ns
     '
     if ! command grep "'" <<< "$1" &>/dev/null; then
-        bl.logging.plain "'$1'"
+        echo "'$1'"
     elif ! command grep '"' <<< "$1" &>/dev/null; then
-        bl.logging.plain "\"$1\""
+        echo "\"$1\""
     else
-        bl.logging.plain "'$(command sed "s/'/\\'/g" <<< "$1")'"
+        echo "'$(command sed "s/'/\\'/g" <<< "$1")'"
     fi
     return $?
 }
@@ -405,7 +407,7 @@ bl_string_validate_regular_expression_replacement() {
             sed "s/myInputString/$(bl.string.validate_regular_expression_replacement "\hans/peter&klaus")/g"
         ```
     '
-    bl.logging.plain "$1" | \
+    echo "$1" | \
         command sed \
             --expression 's/\\/\\\\/g' \
             --expression 's/\//\\\//g' \

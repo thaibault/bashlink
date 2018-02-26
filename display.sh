@@ -139,7 +139,7 @@ EOF
             return $?
             ;;
         -*)
-            bl.logging.plain "Error: Invalid argument: $1"
+            bl.logging.error "Invalid argument: $1"
             sh  --help
             return 1
             ;;

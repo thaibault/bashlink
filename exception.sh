@@ -295,9 +295,9 @@ bl_exception_error_handler() {
         (( index++ ))
     done
     if (( bl_exception_try_catch_level == 0 )); then
-        bl.logging.plain "$traceback" 1>&2
+        bl.logging.error "$traceback"
     else
-        bl.logging.plain "$traceback" >"$bl_exception_last_traceback_file_path"
+        echo "$traceback" >"$bl_exception_last_traceback_file_path"
     fi
     exit $error_code
 }
@@ -318,7 +318,7 @@ bl_exception_exit_try() {
     if (( bl_exception_try_catch_level == 0 )); then
         $bl_exception_active_before_try && bl.exception.activate
         bl_exception_last_traceback="$(
-            bl.logging.cat "$bl_exception_last_traceback_file_path")"
+            cat "$bl_exception_last_traceback_file_path")"
         rm "$bl_exception_last_traceback_file_path"
     else
         bl.exception.activate
