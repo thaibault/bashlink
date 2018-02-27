@@ -23,12 +23,12 @@ bl_time_get_elapsed() {
         Prints elapsed time in milliseconds since last `bl.time.start` call.
 
         >>> local time=$(bl.time.get_elapsed)
-        >>> (( time > 0 )) && echo $?
+        >>> (( time > 0 )); echo $?
         0
 
         >>> bl.time.start
         >>> local time=$(bl.time.get_elapsed)
-        >>> (( time > 0 )) && echo $?
+        >>> (( time > 0 )); echo $?
         0
     '
     local end_time="$(date +%s%N)"
@@ -43,7 +43,7 @@ bl_time_start() {
         >>> bl.time.start
         >>> bl.time.start
         >>> local time=$(bl.time.get_elapsed)
-        >>> (( time > 0 )) && echo $?
+        >>> (( time > 0 )); echo $?
         0
     '
     bl_time_start=$(date +%s%N)

@@ -80,16 +80,13 @@ bl_module_check_name() {
     local __documentation__='
         Checks if given name is belongs to given scope.
 
-        >>> bl.module.check_name "bl_module_check_name" "bl_module"
-        >>> echo $?
+        >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
         0
 
-        >>> bl.module.check_name "bl_module_check_name" "bl_other_module"
-        >>> echo $?
+        >>> bl.module.check_name "bl_module_check_name" "bl_other_module"; echo $?
         1
 
-        >>> bl.module.check_name "bl_other_module_not_existing" "bl_module"
-        >>> echo $?
+        >>> bl.module.check_name "bl_other_module_not_existing" "bl_module"; echo $?
         1
     '
     local name="$1"
@@ -156,43 +153,34 @@ bl_module_is_defined() {
         Tests if variable is defined (can also be empty)
 
         >>> local foo=bar
-        >>> bl.module.is_defined foo
-        >>> echo $?
-        >>> [[ -v foo ]]
-        >>> echo $?
+        >>> bl.module.is_defined foo; echo $?
+        >>> [[ -v foo ]]; echo $?
         0
         0
         >>> local defined_but_empty=""
-        >>> bl.module.is_defined defined_but_empty
-        >>> echo $?
+        >>> bl.module.is_defined defined_but_empty; echo $?
         0
-        >>> bl.module.is_defined undefined_variable
-        >>> echo $?
+        >>> bl.module.is_defined undefined_variable; echo $?
         1
         >>> set -o nounset
-        >>> bl.module.is_defined undefined_variable
-        >>> echo $?
+        >>> bl.module.is_defined undefined_variable; echo $?
         1
 
         # Same Tests for bash < 4.3
         >>> bl_module_bash_version_test=true
         >>> local foo="bar"
-        >>> bl.module.is_defined foo
-        >>> echo $?
+        >>> bl.module.is_defined foo; echo $?
         0
         >>> bl_module_bash_version_test=true
         >>> local defined_but_empty=""
-        >>> bl.module.is_defined defined_but_empty
-        >>> echo $?
+        >>> bl.module.is_defined defined_but_empty; echo $?
         0
         >>> bl_module_bash_version_test=true
-        >>> bl.module.is_defined undefined_variable
-        >>> echo $?
+        >>> bl.module.is_defined undefined_variable; echo $?
         1
         >>> bl_module_bash_version_test=true
         >>> set -o nounset
-        >>> bl.module.is_defined undefined_variable
-        >>> echo $?
+        >>> bl.module.is_defined undefined_variable; echo $?
         1
     '
     (
@@ -216,12 +204,10 @@ bl_module_is_imported() {
     local __documentation__='
         Checks if giveb module is already imported.
 
-        >>> bl.module.is_imported bashlink.module
-        >>> echo $?
+        >>> bl.module.is_imported bashlink.module; echo $?
         0
 
-        >>> bl.module.is_imported bashlink.not_existing
-        >>> echo $?
+        >>> bl.module.is_imported bashlink.not_existing; echo $?
         1
     '
     local caller_file_path="${BASH_SOURCE[1]}"
@@ -280,8 +266,7 @@ bl_module_import_raw() {
     local __documentation__='
         Imports given module into current scope.
 
-        >>> bl.module.import_raw bashlink.not_existing
-        >>> echo $?
+        >>> bl.module.import_raw bashlink.not_existing; echo $?
         +bl.doctest.ellipsis
         ...
         critical: Failed to source module "bashlink.not_existing".
@@ -308,8 +293,7 @@ bl_module_import_with_namespace_check() {
         Sources a script and checks variable definitions before and after
         sourcing.
 
-        >>> bl.module.import_with_namespace_check test bl_module bashlink.module
-        >>> echo $?
+        >>> bl.module.import_with_namespace_check test bl_module bashlink.module; echo $?
         +bl.doctest.multiline_contains
         warning: Namespace "bl_module" in "bashlink.module" is not clean: Name "
     '
@@ -523,8 +507,7 @@ bl_module_import_without_namespace_check() {
         Imports given module without any namespace checks. Needed for internal
         usage.
 
-        >>> bl.module.import_without_namespace_check bashlink.module
-        >>> echo $?
+        >>> bl.module.import_without_namespace_check bashlink.module; echo $?
         0
     '
     local caller_file_path="${BASH_SOURCE[1]}"
