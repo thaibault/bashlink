@@ -36,8 +36,8 @@ bl.module.import bashlink.tools
 # endregion
 # region variables
 bl_doctest__documentation__='
-    The doctest module implements function and module level testing via
-    documentation strings. Tests can be run by invoking:
+    This module implements function and module level testing via documentation
+    strings. Tests can be run by invoking:
 
     ```bash
         doctest.sh file1 folder1 file2 ...
@@ -54,17 +54,17 @@ bl_doctest__documentation__='
         --verbose|-v            Be more verbose
     ```
 
-    Example output for `./doctest.sh -v arguments.sh`
+    Example output for `./doctest.sh --verbose arguments.sh`
 
     ```bash
-        [verbose:doctest.sh:330] bl.arguments:[PASS]
-        [verbose:doctest.sh:330] bl.arguments.get_flag:[PASS]
-        [verbose:doctest.sh:330] bl.arguments.get_keyword:[PASS]
-        [verbose:doctest.sh:330] bl.arguments.get_parameter:[PASS]
-        [verbose:doctest.sh:330] bl.arguments.get_positional:[PASS]
-        [verbose:doctest.sh:330] bl.arguments.set:[PASS]
-        [info:doctest.sh:590] bl.arguments - passed 6/6 tests in 918 ms
-        [info:doctest.sh:643] Total: passed 1/1 items in 941 ms
+        [info:doctest:xxx] bl.arguments:[PASS]
+        [info:doctest:xxx] bl.arguments.get_flag:[PASS]
+        [info:doctest:xxx] bl.arguments.get_keyword:[PASS]
+        [info.doctedt:xxx] bl.arguments.get_parameter:[PASS]
+        [info:doctest:xxx] bl.arguments.get_positional:[PASS]
+        [info:doctest:xxx] bl.arguments.set:[PASS]
+        [info:doctest:xxx] bl.arguments - passed 6/6 tests in 918 ms
+        [info:doctest:xxx] Total: passed 1/1 items in 941 ms
     ```
 
     A docstring can be defined for a function by defining a variable named
@@ -161,6 +161,7 @@ bl_doctest_debug=false
 bl_doctest_module_reference_under_test=''
 bl_doctest_name_indicator=__documentation__
 bl_doctest_nounset=false
+bl_doctest_synchronized=false
 bl_doctest_supress_undocumented=false
 bl_doctest_regular_expression="/${bl_doctest_name_indicator}='/,/';$/p"
 bl_doctest_regular_expression_one_line="${bl_doctest_name_indicator}='.*';$"
@@ -394,6 +395,7 @@ bl_doctest_eval() {
     local output_buffer="$2"
     local text_buffer="${3-}"
     local module_name="${4-}"
+    local doctest_module_file_path="$(bl.module.resolve bashlink.doctest)"
     local module_module_file_path="$(bl.module.resolve bashlink.module)"
     local function_name="${5-}"
     local result=0
@@ -419,7 +421,13 @@ source '$module_module_file_path'
 # Suppress the warnings here because they have already been printed when
 # analyzing the module initially.
 bl_module_prevent_namespace_check=true
-bl.module.import '$bl_doctest_module_reference_under_test' '${BASH_SOURCE[1]}'
+$(
+    if [ "$bl_doctest_module_reference_under_test" = doctest ]; then
+        echo bl.module.import "$doctest_module_file_path"
+    else
+        echo bl.module.import "$bl_doctest_module_reference_under_test" "$doctest_module_file_path"
+    fi
+)
 bl_module_prevent_namespace_check=false
 $setup_string
 bl.module.determine_declared_names >'$declared_names_before_run_file_path'
@@ -485,6 +493,9 @@ EOF
     if ! reason="$(
         bl.doctest.compare_result "$output_buffer" "$output" 2>&1
     )"; then
+        # NOTE: We have to replace last pending test information line first.
+        bl.logging.is_enabled info && \
+            bl.logging.plain -n $'\r'
         bl.logging.plain "${bl_cli_color_light_red}error:${bl_cli_color_default} ${reason}"
         bl.logging.plain "${bl_cli_color_light_red}test:${bl_cli_color_default}"
         bl.logging.plain "$test_buffer"
@@ -732,7 +743,7 @@ bl_doctest_run_test() {
         >>> a" bashlink.doctest bl_doctest_get_function_docstring
 
         >>> bl_doctest_module_reference_under_test=bashlink.doctest
-        >>> bl.doctest.run_test ">>> echo a" bashlink.doctest bl_doctest_get_function_docstring &>/dev/null; echo $?
+        >>> bl.doctest.run_test ">>> echo a" bashlink.doctest bl_doctest_get_function_docstring &>/dev/null 3>&1 4>&1; echo $?
         1
     '
     local docstring="$1"
@@ -741,12 +752,17 @@ bl_doctest_run_test() {
     local test_name="$module_name"
     [[ -z "$function_name" ]] || \
         test_name="$function_name"
+    bl.logging.info --no-new-line $test_name ${bl_cli_color_light_yellow}${bl_cli_powerline_cog}${bl_cli_color_default}
     if bl.doctest.parse_docstring "$docstring" bl_doctest_eval '>>>' \
         "$module_name" "$function_name"
     then
-        bl.logging.verbose "$test_name ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
+        bl.logging.is_enabled info && \
+            bl.logging.plain -n $'\r'
+        bl.logging.info $test_name ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}
     else
-        bl.logging.warn "$test_name ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
+        # NOTE: `bl.doctest.eval` has replaced last line if info logging level
+        # is enabled.
+        bl.logging.warn $test_name ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}
         return 1
     fi
 }
@@ -755,7 +771,14 @@ bl_doctest_test() {
     __documentation__='
         Runs test if give package, module or module function.
 
-        >>> bl.doctest.test bashlink.doctest bl.doctest:run_test
+        >>> bl.doctest.test bashlink.doctest bl_doctest_run_test
+
+        >>> bl.doctest.test bashlink.doctest run_test
+
+        >>> bl.doctest.test bashlink.doctest not_existing; echo $?
+        +bl.doctest.contains
+        Given function "bl_doctest_not_existing" is not documented.
+        1
     '
     bl_doctest_module_reference_under_test="$1"
     local given_function_names_to_test="$2"
@@ -785,7 +808,6 @@ bl_doctest_test() {
             function_names_to_test+="$name"
         fi
     done
-    local own_pid=0
     local success=0
     local total=0
     if [[ -d "$file_path" ]]; then
@@ -810,27 +832,37 @@ bl_doctest_test() {
                 done
             fi
             if ! $excluded; then
-                # shellcheck disable=SC1117
-                bl.doctest.test "$(bl.module.remove_known_file_extension "$(
-                    echo "$sub_file_path" | \
-                        command sed \
-                            --regexp-extended \
-                            "s:${scope_name}/([^/]+):${scope_name}.\1:"
-                )")" &
-                if [ "$sub_file_path" = "$(bl.path.convert_to_absolute "${BASH_SOURCE[0]}")" ]; then
-                    own_pid="$!"
+                if $bl_doctest_synchronized; then
+                    (( total++ ))
+                    # shellcheck disable=SC1117
+                    bl.doctest.test "$(
+                        bl.module.remove_known_file_extension "$(
+                            echo "$sub_file_path" | \
+                                command sed \
+                                    --regexp-extended \
+                                    "s:${scope_name}/([^/]+):${scope_name}.\1:"
+                        )")" && \
+                            (( success++ ))
+                else
+                    # shellcheck disable=SC1117
+                    bl.doctest.test "$(
+                        bl.module.remove_known_file_extension "$(
+                            echo "$sub_file_path" | \
+                                command sed \
+                                    --regexp-extended \
+                                    "s:${scope_name}/([^/]+):${scope_name}.\1:"
+                        )")" &
                 fi
             fi
         done
-        local subprocess_id
-        for subprocess_id in $(jobs -p); do
-            # NOTE: We have to avoid waiting for its own.
-            (( subprocess_id == own_pid )) && \
-                continue
-            (( total++ ))
-            wait "$subprocess_id" && \
-                (( success++ ))
-        done
+        if ! $bl_doctest_synchronized; then
+            local subprocess_id
+            for subprocess_id in $(jobs -p); do
+                (( total++ ))
+                wait "$subprocess_id" && \
+                    (( success++ ))
+            done
+        fi
         bl.logging.info "Total: passed $success/$total items in" \
             "$(bl.time.get_elapsed) ms from \"$module_name\"."
         (( success != total )) && \
@@ -889,44 +921,56 @@ bl_doctest_test() {
 alias bl.doctest.main=bl_doctest_main
 bl_doctest_main() {
     local __documentation__='
-        +bl.documentation.exclude
-        >>> bl.doctest.main non_existing_module; echo $?
-        +bl.doctest.contains
-        +bl.doctest.ellipsis
-        critical: Module file path for "non_existing_module" could not be
-        ...
-        1
+        Main entry point for this module.
 
-        -bl.documentation.exclude
+        >>> bl.doctest.main --help; echo $?
+        +bl.doctest.multiline_ellipsis
+        ...
+        This module implements functions module level testing via documentation
+        ...
+
+        >>> bl.doctest.main --synchronized non_existing_module; echo $?
+        +bl.doctest.contains
+        critical: Module file path for "non_existing_module" could not be
+        1
     '
     bl.arguments.set "$@"
     local help
     bl.arguments.get_flag --help -h help
-    $help && \
-        bl.documentation.print_docstring "$bl_doctest__documentation__" && \
+    if $help; then
+        bl.documentation.get_formatted_docstring "$bl_doctest__documentation__"
         return 0
+    fi
     local no_side_by_side
     bl.arguments.get_flag --prevent-side-by-side no_side_by_side
     if $no_side_by_side; then
         bl_doctest_use_side_by_side_output=false
     fi
-    # do not warn about undocumented functions
+    # Indicates if we should ran tests in parallel.
+    bl.arguments.get_flag --synchronized bl_doctest_synchronized
+    # Configures if is should warn about undocumented functions.
     bl.arguments.get_flag --no-check-undocumented bl_doctest_supress_undocumented
-    # use set -o nounset inside tests
+    # Indicated if `set -o nounset` should be set inside test contexts.
     bl.arguments.get_flag --use-nounset bl_doctest_nounset
     local verbose
     bl.arguments.get_flag --verbose -v verbose
     bl.arguments.apply_new
     if $verbose; then
-        bl.logging.set_level verbose
-    else
         bl.logging.set_level info
     fi
     bl.time.start
     local item_names=''
+    local success=0
+    local total=0
     if [ "$#" = 0 ]; then
         item_names=bashlink
-        bl.doctest.test bashlink &
+        if $bl_doctest_synchronized; then
+            (( total++ ))
+            bl.doctest.test bashlink && \
+                (( success++ ))
+        else
+            bl.doctest.test bashlink &
+        fi
     else
         local name
         for name in "$@"; do
@@ -939,17 +983,23 @@ bl_doctest_main() {
             if [ "$function_name" = "$name" ]; then
                 function_name=''
             fi
-            bl.doctest.test "$module_name" "$function_name" &
+            if $bl_doctest_synchronized; then
+                (( total++ ))
+                bl.doctest.test "$module_name" "$function_name" && \
+                    (( success++ ))
+            else
+                bl.doctest.test "$module_name" "$function_name" &
+            fi
         done
     fi
-    local success=0
-    local total=0
-    local subprocess_id
-    for subprocess_id in $(jobs -p); do
-        (( total++ ))
-        wait "$subprocess_id" && \
-            (( success++ ))
-    done
+    if ! $bl_doctest_synchronized; then
+        local subprocess_id
+        for subprocess_id in $(jobs -p); do
+            (( total++ ))
+            wait "$subprocess_id" && \
+                (( success++ ))
+        done
+    fi
     bl.logging.info "Total: passed $success/$total items in" \
         "$(bl.time.get_elapsed) ms from \"$item_names\""
     (( success != total )) && \

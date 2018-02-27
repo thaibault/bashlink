@@ -73,12 +73,12 @@ bl_tools_is_main() {
         Returns true if current script is being executed.
 
         NOTE: This test passes because `bl.tools.is_main` is called by
-        "doctest.sh" which is being executed.
+        "doctest.sh" which is being executed as entry script.
 
         >>> bl.tools.is_main && echo yes
         yes
     '
-    [[ "${BASH_SOURCE[1]}" = "$0" ]]
+    [ "${BASH_SOURCE[1]}" = "$0" ]
 }
 alias bl.tools.make_openssl_pem_file=bl_tools_make_openssl_pem_file
 bl_tools_make_openssl_pem_file() {
