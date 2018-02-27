@@ -647,9 +647,10 @@ bl_module_resolve() {
     fi
     if [ "$2" = true ]; then
         local scope_name="$(basename "$1")"
-        if [[ "$file_path" == "$current_path"* ]] && [[
-            "$(basename "$1")" != bashlink.*
-        ]]; then
+        if [[ "$file_path" == "$current_path"* ]] && \
+            [[ "$(basename "$1")" != bashlink.* ]] && \
+            [[ "$(basename "$1")" != bashlink ]]
+        then
             scope_name="bashlink.$scope_name"
         fi
         bl.module.log_plain "$(bl.path.convert_to_absolute "$file_path")/$(
