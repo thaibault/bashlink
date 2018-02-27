@@ -785,8 +785,9 @@ bl_doctest_test() {
             function_names_to_test+="$name"
         fi
     done
-    local total=0
+    local own_pid=0
     local success=0
+    local total=0
     if [[ -d "$file_path" ]]; then
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
@@ -816,32 +817,37 @@ bl_doctest_test() {
                             --regexp-extended \
                             "s:${scope_name}/([^/]+):${scope_name}.\1:"
                 )")" &
+                if [ "$sub_file_path" = "$(bl.path.convert_to_absolute "${BASH_SOURCE[0]}")" ]; then
+                    own_pid="$!"
+                fi
             fi
         done
-        local job
-        for job in $(jobs -p); do
+        local subprocess_id
+        for subprocess_id in $(jobs -p); do
+            # NOTE: We have to avoid waiting for its own.
+            (( subprocess_id == own_pid )) && \
+                continue
             (( total++ ))
-            wait "$job" && (( success++ ))
+            wait "$subprocess_id" && \
+                (( success++ ))
         done
         bl.logging.info "Total: passed $success/$total items in" \
             "$(bl.time.get_elapsed) ms from \"$module_name\"."
-        (( success != total )) && return 1
+        (( success != total )) && \
+            return 1
         return 0
     fi
     (
         bl.module.import_without_namespace_check \
             "$bl_doctest_module_reference_under_test"
         if [ "$function_names_to_test" = '' ]; then
-            # NOTE: Get all external module prefix and unprefixed function
-            # names.
+            # Get all external module prefix and un-prefixed function names.
             # shellcheck disable=SC2154
             local function_names_to_test="$module_declared_function_names_after_source"
-            # NOTE: Adds internal already loaded but correctly prefixed
-            # functions.
+            # Adds internal already loaded but correctly prefixed functions.
             function_names_to_test+=" $(
                 ! declare -F | cut -d' ' -f3 | command grep -e "^$scope_name")"
         fi
-        # NOTE: Removes duplicates.
         function_names_to_test="$(bl.string.get_unique_lines <(
             echo "$function_names_to_test"))"
         bl.time.start
@@ -918,7 +924,7 @@ bl_doctest_main() {
     fi
     bl.time.start
     local item_names=''
-    if [[ $# == 0 ]]; then
+    if [ "$#" = 0 ]; then
         item_names=bashink
         bl.doctest.test bashlink &
     else
@@ -938,14 +944,16 @@ bl_doctest_main() {
     fi
     local success=0
     local total=0
-    local job
-    for job in $(jobs -p); do
+    local subprocess_id
+    for subprocess_id in $(jobs -p); do
         (( total++ ))
-        wait "$job" && (( success++ ))
+        wait "$subprocess_id" && \
+            (( success++ ))
     done
     bl.logging.info "Total: passed $success/$total items in" \
         "$(bl.time.get_elapsed) ms from \"$item_names\""
-    (( success != total )) && return 1
+    (( success != total )) && \
+        return 1
     return 0
 }
 # endregion
