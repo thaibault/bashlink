@@ -440,7 +440,7 @@ ${alternate_scope_name}_doctest_environment() {
         echo "\$result"
     }
     $test_buffer
-    sync --file-system
+    sync
     local bl_doctest_temporary_file_path
     while read bl_doctest_temporary_file_path; do
         rm --force --recursive "\$bl_doctest_temporary_file_path"
