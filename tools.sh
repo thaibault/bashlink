@@ -52,19 +52,15 @@ bl_tools_is_empty() {
         Tests if variable is empty (undefined variables are not empty)
 
         >>> local foo="bar"
-        >>> bl.tools.is_empty foo
-        >>> echo $?
+        >>> bl.tools.is_empty foo; echo $?
         1
         >>> local defined_and_empty=""
-        >>> bl.tools.is_empty defined_and_empty
-        >>> echo $?
+        >>> bl.tools.is_empty defined_and_empty; echo $?
         0
-        >>> bl.tools.is_empty undefined_variable
-        >>> echo $?
+        >>> bl.tools.is_empty undefined_variable; echo $?
         1
         >>> set -u
-        >>> bl.tools.is_empty undefined_variable
-        >>> echo $?
+        >>> bl.tools.is_empty undefined_variable; echo $?
         1
     '
     local variable_name="$1"

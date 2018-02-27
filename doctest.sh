@@ -399,6 +399,7 @@ bl_doctest_eval() {
     local result=0
     local scope_name="$(bl.module.rewrite_scope_name "$(
         bl.module.remove_known_file_extension "$module_name")")"
+    local alternate_scope_name="${scope_name//./_}"
     local setup_identifier="${scope_name//[^[:alnum:]_]/_}"__doctest_setup__
     local setup_string="${!setup_identifier:-}"
     local declared_names_before_run_file_path="$(
@@ -421,16 +422,32 @@ bl_module_prevent_namespace_check=true
 bl.module.import '$bl_doctest_module_reference_under_test' '${BASH_SOURCE[1]}'
 bl_module_prevent_namespace_check=false
 $setup_string
-# _ can be used as anonymous variable (without warning)
-_=''
 bl.module.determine_declared_names >'$declared_names_before_run_file_path'
 $($bl_doctest_nounset && echo 'set -o nounset')
-# NOTE: We havt to wrap the test context a function to ensure the "local"
+# NOTE: We have to wrap the test context a function to ensure the "local"
 # keyword has an effect inside.
-_() {
+${alternate_scope_name}_doctest_environment() {
+    ${alternate_scope_name}_bl_doctest_temporary_file_paths_file_path="\$(
+        mktemp --suffix -bashlink-doctest-${alternate_scope_name}-${function_name}-paths)"
+    ${alternate_scope_name}_bl_doctest_mktemp() {
+        local result
+        if [ "\$#" = 0 ]; then
+            result="\$(mktemp --suffix -bashlink-doctest-${alternate_scope_name}-${function_name})"
+        else
+            result="\$(mktemp "\$@")"
+        fi
+        echo "\$result" >"\$${alternate_scope_name}_bl_doctest_temporary_file_paths_file_path"
+        echo "\$result"
+    }
     $test_buffer
+    sync --file-system
+    local bl_doctest_temporary_file_path
+    while read bl_doctest_temporary_file_path; do
+        rm --force --recursive "\$bl_doctest_temporary_file_path"
+    done <"\$${alternate_scope_name}_bl_doctest_temporary_file_paths_file_path"
+    rm --force --recursive "\$${alternate_scope_name}_bl_doctest_temporary_file_paths_file_path"
 }
-_
+${alternate_scope_name}_doctest_environment
 bl.module.determine_declared_names >'$declared_names_after_run_file_path'
 EOF
     )"
@@ -867,8 +884,7 @@ alias bl.doctest.main=bl_doctest_main
 bl_doctest_main() {
     local __documentation__='
         +bl.documentation.exclude
-        >>> bl.doctest.main non_existing_module
-        >>> echo $?
+        >>> bl.doctest.main non_existing_module; echo $?
         +bl.doctest.contains
         +bl.doctest.ellipsis
         critical: Module file path for "non_existing_module" could not be
