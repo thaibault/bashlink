@@ -58,6 +58,9 @@ bl_logging__documentation__='
     critical
     critical
 
+    >>> bl.logging.is_enabled error; echo $?
+    0
+
     >>> bl.logging.error error-message
     >>> bl.logging.critical critical-message
     >>> bl.logging.warn warn-message
@@ -98,7 +101,6 @@ bl_logging_levels=(
     critical
     warning
     info
-    verbose
     debug
 )
 # matches the order of logging levels
@@ -106,7 +108,6 @@ bl_logging_levels_color=(
     "$bl_cli_color_red"
     "$bl_cli_color_magenta"
     "$bl_cli_color_yellow"
-    "$bl_cli_color_cyan"
     "$bl_cli_color_green"
     "$bl_cli_color_blue"
 )
@@ -164,12 +165,18 @@ bl_logging_get_prefix() {
     local __documentation__='
         Determines logging prefix string.
 
-        >>> bl.logging.get_prefix critical 1
+        >>> bl.logging.get_prefix critical
         +bl.doctest.contains
         critical
     '
     local level=$1
-    local level_index=$2
+    local level_index=$(bl.array.get_index "$level" "${bl_logging_levels[@]}")
+    if (( level_index <= -1 )); then
+        bl.logging.critical \
+            "Given logging level \"$level\" is not available, use one of:" \
+            "${bl_logging_levels[*]} or warn."
+        return 1
+    fi
     local color=${bl_logging_levels_color[$level_index]}
     # shellcheck disable=SC2154
     local loglevel=${color}${level}${bl_cli_color_default}
@@ -177,6 +184,30 @@ bl_logging_get_prefix() {
     path="${path%.sh}"
     # shellcheck disable=SC2154
     echo "${loglevel}:${bl_cli_color_light_gray}$(basename "$path")${bl_cli_color_default}:${bl_cli_color_light_cyan}${BASH_LINENO[1]}${bl_cli_color_default}:"
+}
+alias bl.logging.is_enabled=bl_logging_is_enabled
+bl_logging_is_enabled() {
+    local __documentation__='
+        Checks if given logging level is enabled.
+
+        >>> bl.logging.set_level critical
+        >>> bl.logging.is_enabled critical; echo $?
+        >>> bl.logging.is_enabled info; echo $?
+        0
+        1
+    '
+    local level="$1"
+    local level_index=$(bl.array.get_index "$level" "${bl_logging_levels[@]}")
+    if (( level_index <= -1 )); then
+        # NOTE: `bl.logging.error` is not defined yet.
+        bl_logging_log \
+            error \
+            "Given logging level \"$level\" is not available, use one of:" \
+            "${bl_logging_levels[*]} or warn."
+        return 1
+    fi
+    (( level_index <= bl_logging_level ))
+    return $?
 }
 alias bl.logging.plain_raw=bl_logging_plain_raw
 bl_logging_plain_raw() {
@@ -242,21 +273,20 @@ bl_logging_log() {
         level=warning
     fi
     shift
-    local level_index=$(bl.array.get_index "$level" "${bl_logging_levels[@]}")
-    if [ "$level_index" -eq -1 ]; then
-        bl.logging.log \
-            critical \
-            "Given logging level \"$level\" is not available, use one of:" \
-            "${bl_logging_levels[*]} or warn"
-        return 1
-    fi
-    if [ "$bl_logging_level" -ge "$level_index" ]; then
-        if [ "$level" = error ]; then
-            bl.logging.plain \
-                "$(bl_logging_get_prefix "$level" "$level_index")" "$@" 3>&4
+    if bl.logging.is_enabled "$level"; then
+        bl.arguments.set "$@"
+        local no_new_line
+        bl.arguments.get_flag -n --no-new-line no_new_line
+        if $no_new_line; then
+            no_new_line='-n'
         else
-            bl.logging.plain \
-                "$(bl_logging_get_prefix "$level" "$level_index")" "$@"
+            no_new_line=''
+        fi
+        bl.arguments.apply_new
+        if [ "$level" = error ]; then
+            bl.logging.plain $no_new_line "$(bl_logging_get_prefix "$level")" "$@" 3>&4
+        else
+            bl.logging.plain $no_new_line "$(bl_logging_get_prefix "$level")" "$@"
         fi
     fi
 }
@@ -264,7 +294,6 @@ alias bl.logging.critical='bl_logging_log critical'
 alias bl.logging.debug='bl_logging_log debug'
 alias bl.logging.error='bl_logging_log error'
 alias bl.logging.info='bl_logging_log info'
-alias bl.logging.verbose='bl_logging_log verbose'
 alias bl.logging.warn='bl_logging_log warn'
 alias bl.logging.warning=bl.logging.warn
 alias bl.logging.set_file_descriptors=bl_logging_set_file_descriptors

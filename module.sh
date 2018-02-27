@@ -92,7 +92,7 @@ bl_module_check_name() {
     local name="$1"
     local resolved_scope_name="$2"
     local alternate_resolved_scope_name="$(
-        bl.module.log_plain "$resolved_scope_name" | \
+        echo "$resolved_scope_name" | \
             command sed --regexp-extended 's/\./_/g')"
     if ! [[ \
         "$name" =~ ^${resolved_scope_name}([_A-Z]+|$) || \
@@ -352,7 +352,7 @@ bl_module_import_with_namespace_check() {
     for name in $new_declared_names; do
         if ! bl.module.check_name "$name" "$resolved_scope_name"; then
             local alternate_resolved_scope_name="$(
-                bl.module.log_plain "$resolved_scope_name" | \
+                echo "$resolved_scope_name" | \
                     command sed --regexp-extended 's/\./_/g'
             )"
             bl.module.log \
@@ -450,10 +450,10 @@ bl_module_import() {
     local result
     if result="$(bl.module.resolve "$1" true "$caller_file_path")"; then
         local file_path="$(
-            bl.module.log_plain "$result" | \
+            echo "$result" | \
                 command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
         local scope_name="$(
-            bl.module.log_plain "$result" | \
+            echo "$result" | \
                 command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
         if [[ -d "$file_path" ]]; then
             local sub_file_path
@@ -477,7 +477,7 @@ bl_module_import() {
                 if ! $excluded; then
                     # shellcheck disable=SC1117
                     local name="$(
-                        bl.module.log_plain "$sub_file_path" | \
+                        echo "$sub_file_path" | \
                             command sed \
                                 --regexp-extended \
                                 "s:${scope_name}/([^/]+):${scope_name}.\1:")"
@@ -497,7 +497,7 @@ bl_module_import() {
             fi
         fi
     else
-        bl.module.log_plain "$result" 1>&2
+        echo "$result" 1>&2
         return 1
     fi
 }
@@ -622,7 +622,7 @@ bl_module_resolve() {
             extension_pattern+=')'
             # shellcheck disable=SC1117
             local new_name="$(
-                bl.module.log_plain "$name" | \
+                echo "$name" | \
                     command sed \
                         --regexp-extended \
                         "s:\.([^.]+?)(\.$extension_pattern)?$:/\1\2:")"
@@ -635,7 +635,6 @@ bl_module_resolve() {
             break
         fi
     done
-    file_path="$(bl.path.convert_to_absolute "$file_path")"
     if [ "$file_path" = '' ]; then
         bl.module.log \
             critical \
@@ -645,6 +644,7 @@ bl_module_resolve() {
             "${extension_description}."
         return 1
     fi
+    file_path="$(bl.path.convert_to_absolute "$file_path")"
     if [ "$2" = true ]; then
         local scope_name="$(basename "$1")"
         if [[ "$file_path" == "$current_path"* ]] && \
@@ -653,7 +653,7 @@ bl_module_resolve() {
         then
             scope_name="bashlink.$scope_name"
         fi
-        bl.module.log_plain "$(bl.path.convert_to_absolute "$file_path")/$(
+        echo "$(bl.path.convert_to_absolute "$file_path")/$(
             bl_module_remove_known_file_extension "$scope_name")"
     else
         bl.path.convert_to_absolute "$file_path"
@@ -672,11 +672,11 @@ bl_module_remove_known_file_extension() {
     for extension in "${bl_module_known_extensions[@]}"; do
         local result="${name%$extension}"
         if [[ "$name" != "$result" ]]; then
-            bl.module.log_plain "$result"
+            echo "$result"
             return 0
         fi
     done
-    bl.module.log_plain "$1"
+    echo "$1"
 }
 alias bl.module.rewrite_scope_name=bl_module_rewrite_scope_name
 bl_module_rewrite_scope_name() {
@@ -690,10 +690,10 @@ bl_module_rewrite_scope_name() {
     local rewrite
     for rewrite in "${bl_module_scope_rewrites[@]}"; do
         resolved_scope_name="$(
-            bl.module.log_plain "$resolved_scope_name" | \
+            echo "$resolved_scope_name" | \
                 command sed --regexp-extended "s/$rewrite")"
     done
-    bl.module.log_plain "$resolved_scope_name"
+    echo "$resolved_scope_name"
 }
 # endregion
 # region vim modline
