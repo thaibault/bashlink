@@ -161,7 +161,7 @@ bl_documentation_generate() {
                 "No top level documentation for module \"$module_name\" referenced by \"$module_reference\"." \
                 1>&2
         else
-            echo "$(bl.documentation.format_docstring "$docstring")"
+            bl.documentation.format_docstring "$docstring"
         fi
         # Function level documentation
         local name
@@ -172,7 +172,7 @@ bl_documentation_generate() {
                 bl.logging.warn "No documentation for function \"$name\"." 1>&2
             else
                 echo "### Function $name"
-                echo "$(bl.documentation.format_docstring "$docstring")"
+                bl.documentation.format_docstring "$docstring"
             fi
         done
     )
