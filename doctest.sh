@@ -925,7 +925,7 @@ bl_doctest_main() {
     bl.time.start
     local item_names=''
     if [ "$#" = 0 ]; then
-        item_names=bashink
+        item_names=bashlink
         bl.doctest.test bashlink &
     else
         local name
