@@ -133,7 +133,7 @@ bl_logging_cat() {
         >>> echo foo | bl.logging.cat
         foo
     '
-    sync --file-system
+    sync
     # NOTE: Hack to free call stack and flush pending tee buffer.
     cat "$@" 1>&3 2>&4
 }
@@ -514,7 +514,7 @@ bl_logging_set_file_descriptors() {
                 4>&1
         fi
     fi
-    sync --file-system
+    sync
 }
 # NOTE: Depends on "bl.logging.set_file_descriptors"
 alias bl.logging.set_command_output_off=bl_logging_set_command_output_off
