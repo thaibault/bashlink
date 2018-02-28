@@ -458,7 +458,7 @@ ${alternate_scope_name}_doctest_environment() {
         echo "\$result"
     }
     # We run in a subshell to ensure that out cleanup routine runs even after
-    # `exit` calls in tests.
+    # "exit" calls in tests.
     ( $test_buffer )
     sync
     local bl_doctest_temporary_file_path
@@ -790,18 +790,18 @@ bl_doctest_run_test() {
     [[ -z "$function_name" ]] || \
         test_name="$function_name"
     if $bl_doctest_is_synchronized; then
-        bl.logging.info --no-new-line $test_name ${bl_cli_color_light_yellow}${bl_cli_powerline_cog}${bl_cli_color_default}
+        bl.logging.info --no-new-line "$test_name ${bl_cli_color_light_yellow}${bl_cli_powerline_cog}${bl_cli_color_default}"
     fi
     if bl.doctest.parse_docstring "$docstring" bl_doctest_eval '>>>' \
         "$module_name" "$function_name"
     then
         $bl_doctest_is_synchronized && bl.logging.is_enabled info && \
             bl.logging.plain -n $'\r'
-        bl.logging.info $test_name ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}
+        bl.logging.info "$test_name ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
     else
         # NOTE: `bl.doctest.eval` has replaced last line if info logging level
         # is enabled.
-        bl.logging.warn $test_name ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}
+        bl.logging.warn "$test_name ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
         return 1
     fi
 }
@@ -851,9 +851,8 @@ bl_doctest_test() {
     local total=0
     if [[ -d "$file_path" ]]; then
         shopt -s nullglob
-        local numfiles=(*)
-        local numfiles=${#numfiles[@]}
-        if [[ ${#numfiles[@]} -gt 1 ]]; then
+        local file_paths=(*)
+        if [[ ${#file_paths[@]} -gt 1 ]]; then
             bl_doctest_is_synchronized=false
         fi
         local sub_file_path
