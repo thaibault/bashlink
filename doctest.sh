@@ -162,6 +162,7 @@ bl_doctest_module_reference_under_test=''
 bl_doctest_name_indicator=__documentation__
 bl_doctest_nounset=false
 bl_doctest_synchronized=false
+bl_doctest_is_synchronized=true
 bl_doctest_supress_undocumented=false
 bl_doctest_regular_expression="/${bl_doctest_name_indicator}='/,/';$/p"
 bl_doctest_regular_expression_one_line="${bl_doctest_name_indicator}='.*';$"
@@ -404,16 +405,25 @@ bl_doctest_eval() {
     local alternate_scope_name="${scope_name//./_}"
     local setup_identifier="${scope_name//[^[:alnum:]_]/_}"__doctest_setup__
     local setup_string="${!setup_identifier:-}"
+    local function_name_description=''
+    if [[ "$function_name" != '' ]]; then
+        function_name_description="-${function_name}"
+    fi
     local declared_names_before_run_file_path="$(
         mktemp \
-            --suffix -bashlink-doctest-declared-names-before-"$module_name"-"$function_name"-test
+            --suffix "-bashlink-doctest-declared-names-before-${module_name}${function_name_description}.test"
     )"
     # shellcheck disable=SC2064
     trap "rm --force $declared_names_before_run_file_path; exit" EXIT
     local declared_names_after_run_file_path="$(
-        mktemp --suffix -bashlink-doctest-declared-names-before-"$module_name"-"$function_name"-test)"
+        mktemp \
+            --suffix "-bashlink-doctest-declared-names-before-${module_name}${function_name_description}.test")"
     # shellcheck disable=SC2064
     trap "rm --force $declared_names_after_run_file_path; exit" EXIT
+    local function_name_description=''
+    if [[ "$function_name" != '' ]]; then
+        function_name_description="-${function_name}"
+    fi
     local test_script="$(
         cat <<EOF
 [ -z "\$BASH_REMATCH" ] && BASH_REMATCH=''
@@ -436,18 +446,20 @@ $($bl_doctest_nounset && echo 'set -o nounset')
 # keyword has an effect inside.
 ${alternate_scope_name}_doctest_environment() {
     ${alternate_scope_name}_bl_doctest_temporary_file_paths_file_path="\$(
-        mktemp --suffix -bashlink-doctest-${alternate_scope_name}-${function_name}-paths)"
+        mktemp --suffix "-bashlink-doctest-${scope_name}${function_name_description}.paths")"
     ${alternate_scope_name}_bl_doctest_mktemp() {
         local result
         if [ "\$#" = 0 ]; then
-            result="\$(mktemp --suffix -bashlink-doctest-${alternate_scope_name}-${function_name})"
+            result="\$(mktemp --suffix -bashlink-doctest-${scope_name}${function_name_description})"
         else
             result="\$(mktemp "\$@")"
         fi
         echo "\$result" >"\$${alternate_scope_name}_bl_doctest_temporary_file_paths_file_path"
         echo "\$result"
     }
-    $test_buffer
+    # We run in a subshell to ensure that out cleanup routine runs even after
+    # `exit` calls in tests.
+    ( $test_buffer )
     sync
     local bl_doctest_temporary_file_path
     while read bl_doctest_temporary_file_path; do
@@ -507,10 +519,35 @@ EOF
             bl.logging.plain "${bl_cli_color_light_red}difference:${bl_cli_color_default}"
             local diff=diff
             bl.dependency.check colordiff && diff=colordiff
-            $diff --side-by-side <(echo -e "$output_buffer") <(echo -e "$output")
+            $diff --side-by-side <(echo -e "$(
+                bl.doctest.get_formatted_docstring_output "$output_buffer"
+            )") <(echo -e "$output")
         fi
         return 1
     fi
+}
+alias bl.doctest.get_formatted_docstring_output=bl_doctest_get_formatted_docstring_output
+bl_doctest_get_formatted_docstring_output() {
+    local __documentation__='
+        Slices doctest modifier from given doctest output.
+
+        >>> bl.doctest.get_formatted_docstring_output ""
+
+        >>> bl.doctest.get_formatted_docstring_output "+bl.doctest.ellipsis
+        >>> +bl.doctest.multiline_ellipsis
+        >>> +bl.doctest.contains
+        >>> test"
+        test
+
+        >>> bl.doctest.get_formatted_docstring_output "+bl.doctest.ellipsis
+        >>> +bl.doctest.multiline_ellipsis
+        >>> +bl.doctest.contains
+        >>> test
+        >>> +bl.doctest.contains"
+        test
+    '
+    echo "$1" | \
+        command sed --regexp-extended '/\+bl\.doc(umentation|test)\..+/d'
 }
 alias bl.doctest.get_function_docstring=bl_doctest_get_function_docstring
 bl_doctest_get_function_docstring() {
@@ -752,11 +789,13 @@ bl_doctest_run_test() {
     local test_name="$module_name"
     [[ -z "$function_name" ]] || \
         test_name="$function_name"
-    bl.logging.info --no-new-line $test_name ${bl_cli_color_light_yellow}${bl_cli_powerline_cog}${bl_cli_color_default}
+    if $bl_doctest_is_synchronized; then
+        bl.logging.info --no-new-line $test_name ${bl_cli_color_light_yellow}${bl_cli_powerline_cog}${bl_cli_color_default}
+    fi
     if bl.doctest.parse_docstring "$docstring" bl_doctest_eval '>>>' \
         "$module_name" "$function_name"
     then
-        bl.logging.is_enabled info && \
+        $bl_doctest_is_synchronized && bl.logging.is_enabled info && \
             bl.logging.plain -n $'\r'
         bl.logging.info $test_name ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}
     else
@@ -811,6 +850,12 @@ bl_doctest_test() {
     local success=0
     local total=0
     if [[ -d "$file_path" ]]; then
+        shopt -s nullglob
+        local numfiles=(*)
+        local numfiles=${#numfiles[@]}
+        if [[ ${#numfiles[@]} -gt 1 ]]; then
+            bl_doctest_is_synchronized=false
+        fi
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
             local excluded=false
@@ -913,7 +958,8 @@ bl_doctest_test() {
         done
         bl.logging.info "$module_name - passed $success/$total tests in" \
             "$(bl.time.get_elapsed) ms from \"$module_name\"."
-        (( success != total )) && exit 1
+        (( success != total )) && \
+            exit 1
         exit 0
     )
 }
@@ -958,6 +1004,7 @@ bl_doctest_main() {
     if $verbose; then
         bl.logging.set_level info
     fi
+    bl_doctest_is_synchronized=true
     bl.time.start
     local item_names=''
     local success=0
@@ -972,12 +1019,14 @@ bl_doctest_main() {
             bl.doctest.test bashlink &
         fi
     else
+        if ! $bl_doctest_synchronized && [[ "$#" -gt 1 ]]; then
+            bl_doctest_is_synchronized=false
+        fi
         local name
         for name in "$@"; do
             if [[ "$item_names" != '' ]]; then
                 item_names+="\", \""
             fi
-            item_names+="$name"
             local module_name="${name/:*/}"
             local function_name="${name/*:/}"
             if [ "$function_name" = "$name" ]; then
@@ -990,6 +1039,7 @@ bl_doctest_main() {
             else
                 bl.doctest.test "$module_name" "$function_name" &
             fi
+            item_names+="$name"
         done
     fi
     if ! $bl_doctest_synchronized; then
@@ -1000,8 +1050,9 @@ bl_doctest_main() {
                 (( success++ ))
         done
     fi
-    bl.logging.info "Total: passed $success/$total items in" \
-        "$(bl.time.get_elapsed) ms from \"$item_names\""
+    bl.logging.info \
+        "Total: passed $success/$total items in $(bl.time.get_elapsed) ms" \
+        "from \"$item_names\""
     (( success != total )) && \
         return 1
     return 0
