@@ -51,7 +51,6 @@ Integrate bashlink into your standalone bash script:
     module_name_bashlink_path="$(
         mktemp --directory --suffix -bashlink
     )/bashlink/"
-    mkdir "$module_name_bashlink_file_path"
     wget \
         https://goo.gl/UKF5JG \
         --output-document "${module_name_bashlink_path}module.sh" \
