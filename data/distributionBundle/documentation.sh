@@ -53,14 +53,15 @@ bl_documentation_format_buffers() {
     local buffer="$1"
     local output_buffer="$2"
     local text_buffer="$3"
-    [[ "$text_buffer" != '' ]] && bl.logging.plain "$text_buffer"
+    [[ "$text_buffer" != '' ]] && \
+        echo "$text_buffer"
     if [[ "$buffer" != '' ]]; then
-        bl.logging.plain '```bash'
-        bl.logging.plain "$buffer"
+        echo '```bash'
+        echo "$buffer"
         if [[ "$output_buffer" != '' ]]; then
-            bl.logging.plain "$output_buffer"
+            echo "$output_buffer"
         fi
-        bl.logging.plain '```'
+        echo '```'
     fi
 }
 alias bl.documentation.format_docstring=bl_documentation_format_docstring
@@ -76,7 +77,7 @@ bl_documentation_format_docstring() {
     '
     local docstring="$1"
     docstring="$(
-        bl.logging.plain "$docstring" | \
+        echo "$docstring" | \
             command sed '/+bl.documentation.exclude_print/d' | \
                 command sed '/-bl.documentation.exclude_print/d' | \
                     command sed \
@@ -99,16 +100,16 @@ bl_documentation_generate() {
     local module_reference="$1"
     local result="$(bl.module.resolve "$module_reference" true)"
     local file_path="$(
-        bl.logging.plain "$result" | \
+        echo "$result" | \
             command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
     local module_name="$(
-        bl.logging.plain "$result" | \
+        echo "$result" | \
             command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
     local scope_name="$(
         bl.module.rewrite_scope_name "$module_name" | \
             command sed --regexp-extended 's:\.:_:g')"
     if [[ -d "$file_path" ]]; then
-        bl.logging.plain "# Package $module_reference"
+        echo "# Package $module_reference"
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
             local excluded=false
@@ -131,7 +132,7 @@ bl_documentation_generate() {
                 # shellcheck disable=SC1117
                 local name="$(
                     bl.module.remove_known_file_extension "$(
-                        bl.logging.plain "$sub_file_path" | \
+                        echo "$sub_file_path" | \
                             command sed \
                                 --regexp-extended \
                                 "s:${scope_name}/([^/]+):${scope_name}.\1:")")"
@@ -149,18 +150,18 @@ bl_documentation_generate() {
         declared_function_names+=" $(! declare -F | cut -d' ' -f3 | command grep -e "^$scope_name" )"
         # NOTE: Removes duplicates.
         declared_function_names="$(bl.string.get_unique_lines <(
-            bl.logging.plain "$declared_function_names"))"
+            echo "$declared_function_names"))"
         # Module level documentation
         # shellcheck disable=SC2154
         local module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
         local docstring="${!module_documentation_variable_name}"
-        bl.logging.plain "## Module $module_name"
+        echo "## Module $module_name"
         if [[ -z "$docstring" ]]; then
             bl.logging.warn \
                 "No top level documentation for module \"$module_name\" referenced by \"$module_reference\"." \
                 1>&2
         else
-            bl.logging.plain "$(bl.documentation.format_docstring "$docstring")"
+            bl.documentation.format_docstring "$docstring"
         fi
         # Function level documentation
         local name
@@ -170,8 +171,8 @@ bl_documentation_generate() {
             if [[ -z "$docstring" ]]; then
                 bl.logging.warn "No documentation for function \"$name\"." 1>&2
             else
-                bl.logging.plain "### Function $name"
-                bl.logging.plain "$(bl.documentation.format_docstring "$docstring")"
+                echo "### Function $name"
+                bl.documentation.format_docstring "$docstring"
             fi
         done
     )
@@ -197,17 +198,17 @@ bl_documentation_main() {
     fi
     return 0
 }
-alias bl.documentation.print_docstring=bl_documentation_print_docstring
-bl_documentation_print_docstring() {
+alias bl.documentation.get_formatted_docstring=bl_documentation_get_formatted_docstring
+bl_documentation_get_formatted_docstring() {
     local __documentation__='
         Prints given docstring without sliced elements specified by their
         modifier.
 
-        >>> bl.documentation.print_docstring test
+        >>> bl.documentation.get_formatted_docstring test
         test
     '
     local docstring="$1"
-    bl.logging.plain "$docstring" | \
+    echo "$docstring" | \
         command sed '/+bl.documentation.exclude_print/,/-bl.documentation.exclude_print/d' | \
             command sed '/+bl.documentation.exclude/,/-bl.documentation.exclude/d' | \
                 command sed '/```/d'

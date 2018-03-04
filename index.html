@@ -86,8 +86,9 @@ API <span>Documentation</span>
     <span class="c1"># Your code comes here.</span>
 </pre></div>
 <p>Integrate bashlink into your standalone bash script:</p>
-<div class="codehilite"><pre><span></span>    <span class="nv">module_name_bashlink_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>mktemp --directory --suffix bashlink<span class="k">)</span><span class="s2">/bashlink/"</span>
-    mkdir <span class="s2">"</span><span class="nv">$module_name_bashlink_file_path</span><span class="s2">"</span>
+<div class="codehilite"><pre><span></span>    <span class="nv">module_name_bashlink_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>
+        mktemp --directory --suffix -bashlink
+    <span class="k">)</span><span class="s2">/bashlink/"</span>
     wget <span class="se">\</span>
         https://goo.gl/UKF5JG <span class="se">\</span>
         --output-document <span class="s2">"</span><span class="si">${</span><span class="nv">module_name_bashlink_path</span><span class="si">}</span><span class="s2">module.sh"</span> <span class="se">\</span>
@@ -108,7 +109,9 @@ API <span>Documentation</span>
         <span class="c1"># shellcheck disable=SC1091</span>
         <span class="nb">source</span> <span class="s2">"/usr/lib/bashlink/module.sh"</span>
     <span class="k">else</span>
-        <span class="nv">archInstall_bashlink_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>mktemp --directory<span class="k">)</span><span class="s2">/bashlink/"</span>
+        <span class="nv">archInstall_bashlink_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>
+            mktemp --directory --suffix -arch-install-bashlink
+        <span class="k">)</span><span class="s2">/bashlink/"</span>
         mkdir <span class="s2">"</span><span class="nv">$archInstall_bashlink_path</span><span class="s2">"</span>
         <span class="k">if</span> wget <span class="se">\</span>
             https://goo.gl/UKF5JG <span class="se">\</span>
@@ -246,6 +249,6 @@ about this website
 </p>
 </div></footer>
 <a href="#top">top<!--deDE:nach oben--><!--frFR:ascendant--></a>
-<script src="index.js?md5=afb1f415c8e9263753a8"></script>
+<script src="index.js?md5=62adfa64026702de2790"></script>
 
 </body></html>
