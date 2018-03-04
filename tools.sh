@@ -186,11 +186,11 @@ bl_tools_run_with_appended_shebang() {
                 ;;
             *)
                 if ! $shebang_arguments_ended; then
-                    shebang_arguments+=" '$1'"
+                    shebang_arguments+=" $(bl.string.validate_regular_expression_replacement "$1")"
                 elif [ "$application_file_path" = '' ]; then
                     application_file_path="$1"
                 else
-                    arguments+=" '$1'"
+                    arguments+=" $(bl.string.validate_regular_expression_replacement "$1")"
                 fi
                 shift
                 ;;
@@ -200,9 +200,8 @@ bl_tools_run_with_appended_shebang() {
         head --lines 1 "$application_file_path" | \
             command sed \
                 --regexp-extended \
-                's/^#!(.+)$/\1/'
-    )$shebang_arguments '$application_file_path' $arguments"
-    echo "$command"
+                's/^#!(.+)$/\1/g'
+    )$shebang_arguments $application_file_path $arguments"
     eval "$command"
     return $?
 }

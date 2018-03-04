@@ -13,6 +13,7 @@
 # region imports
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
+bl.module.import bashlink.exception
 bl.module.import bashlink.logging
 # endregion
 # region variables
@@ -136,14 +137,15 @@ bl_changeroot_with_kernel_api() {
             fi
         fi
     done
-    bl_changeroot_with_fake_fallback "$@"
-    local return_code=$?
-    # Reverse mountpoint list to unmount them in reverse order.
-    local reverse_kernel_api_locations
-    for mountpoint_path in ${reverse_kernel_api_locations[*]}; do
-        reverse_kernel_api_locations="$mountpoint_path ${reverse_kernel_api_locations[*]}"
-    done
-    for mountpoint_path in ${reverse_kernel_api_locations[*]}; do
+    bl.logging.plain AA "$@"
+    local return_code=0
+    bl.changeroot.with_fake_fallback "$@" || \
+        return_code=$?
+    bl.logging.plain BB "$@"
+    for mountpoint_path in $(
+        bl.array.reverse "${bl_changeroot_kernel_api_locations[*]}"
+    ); do
+        bl.logging.plain CC "$mountpoint_path"
         mountpoint_path="${mountpoint_path:1}" && \
         if mountpoint -q "${new_root_location}${mountpoint_path}" || \
             [ -f "/${mountpoint_path}" ]
