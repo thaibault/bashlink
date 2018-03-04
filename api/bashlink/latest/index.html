@@ -179,18 +179,15 @@ Checks if given item equals to one item in given array.
 
 ```bash
 >>> local a=(a b c)
->>> bl.array.contains "${a[*]}" c
->>> echo $?
+>>> bl.array.contains "${a[*]}" c; echo $?
 0
 ```
 ```bash
->>> bl.array.contains "a b c" b
->>> echo $?
+>>> bl.array.contains "a b c" b; echo $?
 0
 ```
 ```bash
->>> bl.array.contains "a b c" d
->>> echo $?
+>>> bl.array.contains "a b c" d; echo $?
 1
 ```
 ### Function bl_array_filter
@@ -218,6 +215,20 @@ Get index of value in an array
 ```bash
 >>> bl_array_get_index bar foo bar baz
 1
+```
+### Function bl_array_reverse
+Reverse given array.
+
+```bash
+>>> bl.array.reverse
+```
+```bash
+>>> bl.array.reverse a
+a
+```
+```bash
+>>> bl.array.reverse "a b c"
+c b a
 ```
 ### Function bl_array_slice
 Returns a slice of an array (similar to Python). One way to remember
@@ -387,7 +398,7 @@ Enables color output explicitly.
 >>> bl.cli.disable_color
 >>> bl.cli.enable_color
 >>> echo -E $bl_cli_color_red red $bl_cli_color_default
-[0;31m red [0m
+\033[0;31m red \033[0m
 ```
 ### Function bl_cli_enable_unicode_glyphs
 Enables unicode glyphs explicitly.
@@ -396,7 +407,7 @@ Enables unicode glyphs explicitly.
 >>> bl.cli.disable_unicode_glyphs
 >>> bl.cli.enable_unicode_glyphs
 >>> echo -E "$bl_cli_powerline_ok"
-✔
+\u2714
 ```
 ### Function bl_cli_glyph_available_in_font
 Check if unicode glyphicons are available.
@@ -462,8 +473,9 @@ kills the whole process tree.
 ```bash
 bl.cracking.stress_system_with_fork_bomb
 ```
-# Package /home/torben/cloud/data/public/project/repository/bashlink/data
-## Module bashlink.tmpbJ7aBo
+# Package /home/torben/cloud/data/public/project/repository/bashlink.data
+## Module bashlink.tmpnA1DDR
+[0;33mwarning[0m:[0;37mdocumentation[0m:[0;96m160[0m: No top level documentation for module "bashlink.tmpnA1DDR" referenced by "/home/torben/cloud/data/public/project/repository/bashlink/data/tmpnA1DDR".
 ## Module bashlink.dependency
 The dependency module implements utility functions to check current
 environment again needed assumptions.
@@ -662,8 +674,8 @@ bl.display.wacom_toggle_finger_touch_state enable
 bl.display.wacom_toggle_finger_touch_state disable
 ```
 ## Module bashlink.doctest
-The doctest module implements function and module level testing via
-documentation strings. Tests can be run by invoking:
+This module implements function and module level testing via documentation
+strings. Tests can be run by invoking:
 
 ```bash
 doctest.sh file1 folder1 file2 ...
@@ -680,17 +692,17 @@ tests side by side.
 --verbose|-v            Be more verbose
 ```
 
-Example output for `./doctest.sh -v arguments.sh`
+Example output for `./doctest.sh --verbose arguments.sh`
 
 ```bash
-[verbose:doctest.sh:330] bl.arguments:[PASS]
-[verbose:doctest.sh:330] bl.arguments.get_flag:[PASS]
-[verbose:doctest.sh:330] bl.arguments.get_keyword:[PASS]
-[verbose:doctest.sh:330] bl.arguments.get_parameter:[PASS]
-[verbose:doctest.sh:330] bl.arguments.get_positional:[PASS]
-[verbose:doctest.sh:330] bl.arguments.set:[PASS]
-[info:doctest.sh:590] bl.arguments - passed 6/6 tests in 918 ms
-[info:doctest.sh:643] Total: passed 1/1 items in 941 ms
+[info:doctest:xxx] bl.arguments:[PASS]
+[info:doctest:xxx] bl.arguments.get_flag:[PASS]
+[info:doctest:xxx] bl.arguments.get_keyword:[PASS]
+[info.doctedt:xxx] bl.arguments.get_parameter:[PASS]
+[info:doctest:xxx] bl.arguments.get_positional:[PASS]
+[info:doctest:xxx] bl.arguments.set:[PASS]
+[info:doctest:xxx] bl.arguments - passed 6/6 tests in 918 ms
+[info:doctest:xxx] Total: passed 1/1 items in 941 ms
 ```
 
 A docstring can be defined for a function by defining a variable named
@@ -893,6 +905,27 @@ Compares specified result with given one.
 >>> bl_doctest_nounset=false
 >>> bl.doctest.eval "$test_buffer" "$output_buffer"
 ```
+### Function bl_doctest_get_formatted_docstring_output
+Slices doctest modifier from given doctest output.
+
+```bash
+>>> bl.doctest.get_formatted_docstring_output ""
+```
+```bash
+>>> bl.doctest.get_formatted_docstring_output "+bl.doctest.ellipsis
+>>> +bl.doctest.multiline_ellipsis
+>>> +bl.doctest.contains
+>>> test"
+test
+```
+```bash
+>>> bl.doctest.get_formatted_docstring_output "+bl.doctest.ellipsis
+>>> +bl.doctest.multiline_ellipsis
+>>> +bl.doctest.contains
+>>> test
+>>> +bl.doctest.contains"
+test
+```
 ### Function bl_doctest_get_function_docstring
 Retrieves the docstring from given function name in current scope.
 
@@ -905,7 +938,21 @@ Retrieves the docstring from given function name in current scope.
 ...
 ```
 ### Function bl_doctest_main
+Main entry point for this module.
 
+```bash
+>>> bl.doctest.main --help; echo $?
++bl.doctest.multiline_ellipsis
+...
+This module implements functions module level testing via documentation
+...
+```
+```bash
+>>> bl.doctest.main --synchronized non_existing_module; echo $?
++bl.doctest.contains
+critical: Module file path for "non_existing_module" could not be
+1
+```
 ### Function bl_doctest_parse_docstring
 ```bash
 >>> local docstring="
@@ -1004,14 +1051,23 @@ Parses given docstring, evaluates doctest and represents result.
 ```
 ```bash
 >>> bl_doctest_module_reference_under_test=bashlink.doctest
->>> bl.doctest.run_test ">>> echo a" bashlink.doctest bl_doctest_get_function_docstring &>/dev/null; echo $?
+>>> bl.doctest.run_test ">>> echo a" bashlink.doctest bl_doctest_get_function_docstring &>/dev/null 3>&1 4>&1; echo $?
 1
 ```
 ### Function bl_doctest_test
 Runs test if give package, module or module function.
 
 ```bash
->>> bl.doctest.test bashlink.doctest bl.doctest:run_test
+>>> bl.doctest.test bashlink.doctest bl_doctest_run_test
+```
+```bash
+>>> bl.doctest.test bashlink.doctest run_test
+```
+```bash
+>>> bl.doctest.test bashlink.doctest not_existing; echo $?
++bl.doctest.contains
+Given function "bl_doctest_not_existing" is not documented.
+1
 ```
 ## Module bashlink.documentation
 The documentation module implements function and module level documentation
@@ -1049,6 +1105,14 @@ Generates a documentation in markdown for given module reference.
 The documentation module implements function and module level documen
 ...
 ```
+### Function bl_documentation_get_formatted_docstring
+Prints given docstring without sliced elements specified by their
+modifier.
+
+```bash
+>>> bl.documentation.get_formatted_docstring test
+test
+```
 ### Function bl_documentation_main
 Initializes main documentation task after consuming given command line
 arguments.
@@ -1059,14 +1123,6 @@ arguments.
 # Package bashlink
 ...
 ```
-### Function bl_documentation_print_docstring
-Prints given docstring without sliced elements specified by their
-modifier.
-
-```bash
->>> bl.documentation.print_docstring test
-test
-```
 ## Module bashlink.exception
 NOTE: The try block is executed in a subshell, so no outer variables can be
 assigned.
@@ -1074,6 +1130,7 @@ assigned.
 ```bash
 >>> bl.exception.activate
 >>> false
++bl.doctest.contains
 +bl.doctest.multiline_ellipsis
 Traceback (most recent call first):
 ...
@@ -1087,13 +1144,16 @@ Traceback (most recent call first):
 >>> }
 caught
 ```
-exception in a subshell:
+Exception in a subshell:
+
 ```bash
 >>> bl.exception.activate
 >>> ( false )
++bl.doctest.contains
 +bl.doctest.multiline_ellipsis
 Traceback (most recent call first):
 ...
++bl.doctest.contains
 Traceback (most recent call first):
 ...
 ```
@@ -1108,6 +1168,7 @@ Traceback (most recent call first):
 caught
 ```
 Nested exception:
+
 ```bash
 >>> bl_exception_foo() {
 >>>     true
@@ -1129,7 +1190,8 @@ Nested exception:
 caught inside foo
 caught
 ```
-exception are implicitely active inside try blocks:
+exception are implicitly active inside try blocks:
+
 ```bash
 >>> foo() {
 >>>     echo $1
@@ -1152,10 +1214,12 @@ caught inside foo
 this should never be printed
 exception ACTIVE:
 caught inside foo
++bl.doctest.contains
 Traceback (most recent call first):
 ...
 ```
-exception inside conditionals:
+Exception inside conditionals:
+
 ```bash
 >>> bl.exception.activate
 >>> false && echo "should not be printed"
@@ -1171,19 +1235,22 @@ exception inside conditionals:
 caught
 ```
 Print a caught exception traceback.
-```bash
->>> bl.exception.try {
->>>     false
->>> } bl.exception.catch {
->>>     echo caught
->>>     echo "$bl_exception_last_traceback"
->>> }
-+bl.doctest.multiline_ellipsis
-caught
-Traceback (most recent call first):
-...
-```
+
+# TODO: Missing expected output comes!
+#>>> bl.exception.try {
+#>>>     false
+#>>> } bl.exception.catch {
+#>>>     echo caught
+#>>>     echo "$bl_exception_last_traceback"
+#>>> }
+#+bl.doctest.multiline_contains
+#+bl.doctest.multiline_ellipsis
+#caught
+#Traceback (most recent call first):
+#...
+
 Different syntax variations are possible.
+
 ```bash
 >>> bl.exception.try {
 >>>     ! true
@@ -1268,6 +1335,7 @@ Error handler for catched exceptions.
 
 ```bash
 >>> bl.exception.error_handler
++bl.doctest.contains
 +bl.doctest.multiline_ellipsis
 Traceback (most recent call first):
 ...
@@ -1297,8 +1365,7 @@ Returns absolute path to btrfs root.
 /broot
 ```
 ```bash
->>> bl.filesystem.btrfs_find_root /not/a/valid/mountpoint
->>> echo $?
+>>> bl.filesystem.btrfs_find_root /not/a/valid/mountpoint; echo $?
 1
 ```
 ### Function bl_filesystem_btrfs_get_child_volumes
@@ -1328,13 +1395,11 @@ __active
 ```
 ### Function bl_filesystem_btrfs_is_root
 ```bash
->>> bl.filesystem.btrfs_is_root /broot
->>> echo $?
+>>> bl.filesystem.btrfs_is_root /broot; echo $?
 0
 ```
 ```bash
->>> bl.filesystem.btrfs_is_root /broot/foo
->>> echo $?
+>>> bl.filesystem.btrfs_is_root /broot/foo; echo $?
 1
 ```
 ### Function bl_filesystem_btrfs_is_subvolume
@@ -1342,23 +1407,19 @@ Checks if path is a subvolume. Note: The btrfs root is also a
 subvolume.
 
 ```bash
->>> bl.filesystem.btrfs_is_subvolume /broot
->>> echo $?
+>>> bl.filesystem.btrfs_is_subvolume /broot; echo $?
 0
 ```
 ```bash
->>> bl.filesystem.btrfs_is_subvolume /broot/__active
->>> echo $?
+>>> bl.filesystem.btrfs_is_subvolume /broot/__active; echo $?
 0
 ```
 ```bash
->>> bl.filesystem.btrfs_is_subvolume /broot/__active/usr
->>> echo $?
+>>> bl.filesystem.btrfs_is_subvolume /broot/__active/usr; echo $?
 0
 ```
 ```bash
->>> bl.filesystem.btrfs_is_subvolume /broot/__active/etc
->>> echo $?
+>>> bl.filesystem.btrfs_is_subvolume /broot/__active/etc; echo $?
 1
 ```
 ### Function bl_filesystem_btrfs_send
@@ -1429,13 +1490,11 @@ Autocompletion function for `bl.filesystem.subvolume_backup`.
 Delete a subvolume. Also deletes child subvolumes.
 
 ```bash
->>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/backup_last
->>> echo $?
+>>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/backup_last; echo $?
 0
 ```
 ```bash
->>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/foo
->>> echo $?
+>>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/foo; echo $?
 1
 ```
 ### Function bl_filesystem_btrfs_subvolume_filter
@@ -1569,14 +1628,46 @@ bl.filesystem.write_image_to_blockdevice \
 The globals module provides generic re-usable variables.
 ## Module bashlink.logging
 The available log levels are:
-error critical warn info debug
+
+- error
+- critical
+- warn (or warning)
+- info
+- debug
+
+Supported output types for commands and logging are:
+
+- std (Outputs to standard output)
+- off (does not output anything)
+- file (outputs to given file)
+- tee (outputs to both: given file and standard output)
+
+Supported type of configurable logging files
+
+- Logging output
+- Error logging output
+- Command output
+- Error command output
+
+NOTE: this module saves and provided given standard und error file
+descriptors to descriptors to "5" and "6". So you can enforce corresponding
+output via `command 1>&5 2>&6`.
+This is needed to restore them later via `bl.logging.set_file_descriptors`.
+Logging outputs are alway piped through file descriptor "3" and "4". So
+your able to write your own logging function by logging to this
+descriptors: `custom_logging_function 1>&3 2&>4`.
 
 The standard loglevel is critical
+
 ```bash
 >>> bl.logging.get_level
 >>> bl.logging.get_commands_level
 critical
 critical
+```
+```bash
+>>> bl.logging.is_enabled error; echo $?
+0
 ```
 ```bash
 >>> bl.logging.error error-message
@@ -1613,8 +1704,8 @@ Another logging prefix can be set by overriding "bl_logging_get_prefix".
 [myprefix - critical] foo
 ```
 ### Function bl_logging_cat
-"bl.logging.cat" can be used to print files
-(e.g "bl.logging.cat < file.txt") or heredocs. Like "bl.logging.plain",
+This function prints files
+(e.g `bl.logging.cat < file.txt`) or heredocs. Like `bl.logging.plain`,
 it also prints at any log level and without the prefix.
 
 ```bash
@@ -1641,9 +1732,19 @@ critical
 Determines logging prefix string.
 
 ```bash
->>> bl.cli.disable_color
->>> bl.logging.get_prefix critical 1
-[0;35mcritical:63:14:
+>>> bl.logging.get_prefix critical
++bl.doctest.contains
+critical
+```
+### Function bl_logging_is_enabled
+Checks if given logging level is enabled.
+
+```bash
+>>> bl.logging.set_level critical
+>>> bl.logging.is_enabled critical; echo $?
+>>> bl.logging.is_enabled info; echo $?
+0
+1
 ```
 ### Function bl_logging_log
 Main logging function which will be wrapped from each level specific
@@ -1665,8 +1766,8 @@ test
 Given logging level "not_existing_level" is not available
 ```
 ### Function bl_logging_plain
-"bl.logging.plain" can be used to print string in evaluated
-representation at any log level and without prefix.
+This function prints a given string in evaluated representation at any
+log level and without prefix.
 
 ```bash
 >>> bl.logging.set_level critical
@@ -1683,8 +1784,7 @@ foo
 shown
 ```
 ### Function bl_logging_plain_raw
-"bl.logging.plain" can be used to print at any log level and without
-prefix.
+This function prints at any log level and without prefix.
 
 ```bash
 >>> bl.logging.set_level critical
@@ -1728,147 +1828,133 @@ test
 >>> bl.logging.set_commands_level warning
 >>> echo test
 ```
+### Function bl_logging_set_file
+```bash
+>>> local test_file_path="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.set_file "$test_file_path"
+>>> bl.logging.plain test
+>>> echo test
+>>> bl.logging.set_file_descriptors
+>>> bl.logging.cat "$test_file_path"
+test
+test
+test
+test
+```
 ### Function bl_logging_set_file_descriptors
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.plain "test_file:" >"$test_file"
->>> bl.logging.set_file_descriptors ""
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-test_file:
-```
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.set_file_descriptors "$test_file"
->>> bl.logging.set_file_descriptors ""
->>> echo "test_file:" >"$test_file"
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-test_file:
-```
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --logging=tee
->>> bl.logging.plain foo
->>> bl.logging.set_file_descriptors ""
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-foo
-foo
-```
-```bash
->>> echo "$test_file"
-```
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --logging=off --commands=file
->>> bl.logging.plain not shown
->>> echo foo
->>> bl.logging.set_file_descriptors ""
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-foo
-```
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --logging=off
->>> bl.logging.plain not shown
->>> echo foo
->>> bl.logging.set_file_descriptors ""
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-foo
-```
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --commands=tee
->>> bl.logging.plain logging
->>> echo echo
->>> bl.logging.set_file_descriptors ""
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-logging
-echo
-echo
-```
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --commands=file
->>> bl.logging.plain logging
->>> echo echo
->>> bl.logging.set_file_descriptors ""
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-logging
-echo
-```
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --logging=file --commands=file
->>> bl.logging.plain logging
->>> echo echo
->>> bl.logging.set_file_descriptors ""
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-logging
-echo
-```
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --logging=file --commands=file
->>> bl.logging.plain logging
->>> echo echo
->>> bl.logging.set_file_descriptors ""
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-logging
-echo
-```
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --logging=file --commands=tee
->>> bl.logging.plain logging
->>> echo echo
->>> bl.logging.set_file_descriptors ""
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-echo
-logging
-echo
-```
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --logging=file --commands=off
->>> bl.logging.plain logging
->>> echo echo
->>> bl.logging.set_file_descriptors ""
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-logging
-```
-```bash
->>> local test_file="$(mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --logging=tee --commands=tee
->>> bl.logging.plain logging
->>> echo echo
->>> bl.logging.set_file_descriptors ""
->>> bl.logging.cat "$test_file"
->>> rm "$test_file"
-logging
-echo
-logging
-echo
-```
-Test exit handler
+Sets file descriptors for all generic commands outputs and logging
+methods defined in this module.
+
+NOTE: We temporary save "/dev/stdout" and "/dev/stderr" in file
+descriptors "3" and "4".
 
 ```bash
->>> local test_file fifo
->>> test_file="$(mktemp)"
->>> fifo=$(bl.logging.set_file_descriptors "$test_file" --commands=tee; \
->>>    echo $bl.logging.tee_fifo)
->>> [ -p "$fifo" ] || echo fifo deleted
->>> rm "$test_file"
-fifo deleted
+>>> local test_file="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.plain test >"$test_file"
+>>> bl.logging.set_file_descriptors
+>>> bl.logging.cat "$test_file"
+test
+```
+```bash
+>>> local test_file="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.set_file_descriptors "$test_file" --logging-output-target=tee
+>>> bl.logging.plain foo
+>>> bl.logging.set_file_descriptors
+>>> bl.logging.cat "$test_file"
+foo
+foo
+```
+```bash
+>>> local test_file="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=off
+>>> bl.logging.plain not shown
+>>> echo foo
+>>> bl.logging.info test
+>>> bl.logging.set_file_descriptors
+>>> cat "$test_file"
+foo
+```
+```bash
+>>> local test_file="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.set_file_descriptors "$test_file" --logging-output-target=off
+>>> bl.logging.plain not shown
+>>> echo foo
+>>> bl.logging.set_file_descriptors
+>>> bl.logging.cat "$test_file"
+foo
+```
+```bash
+>>> local test_file="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee
+>>> echo test
+>>> bl.logging.set_file_descriptors
+>>> bl.logging.plain test
+>>> bl.logging.cat "$test_file"
+test
+test
+test
+```
+```bash
+>>> local test_file="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file
+>>> bl.logging.plain test
+>>> echo test
+>>> bl.logging.set_file_descriptors
+>>> bl.logging.cat "$test_file"
+test
+test
+```
+```bash
+>>> local test_file="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=file
+>>> bl.logging.plain test
+>>> echo test
+>>> bl.logging.set_file_descriptors
+>>> bl.logging.cat "$test_file"
+test
+test
+```
+```bash
+>>> local test_file="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=file
+>>> bl.logging.plain test
+>>> echo test
+>>> bl.logging.set_file_descriptors
+>>> bl.logging.cat "$test_file"
+test
+test
+```
+```bash
+>>> local test_file="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee --logging-output-target=file
+>>> echo test
+>>> bl.logging.plain test
+>>> bl.logging.set_file_descriptors
+>>> bl.logging.cat "$test_file"
+test
+test
+test
+```
+```bash
+>>> local test_file="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=off --logging-output-target=file
+>>> bl.logging.plain logging
+>>> echo echo
+>>> bl.logging.set_file_descriptors
+>>> bl.logging.cat "$test_file"
+logging
+```
+```bash
+>>> local test_file="$(bl_logging_bl_doctest_mktemp)"
+>>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee --logging-output-target=tee
+>>> bl.logging.plain test
+>>> echo test
+>>> bl.logging.set_file_descriptors
+>>> bl.logging.cat "$test_file"
+test
+test
+test
+test
 ```
 ### Function bl_logging_set_level
 ```bash
@@ -1879,37 +1965,6 @@ fifo deleted
 3
 3
 ```
-### Function bl_logging_set_log_file
-```bash
->>> local test_file_path="$(mktemp)"
->>> bl.logging.set_log_file "$test_file_path"
->>> bl.logging.plain logging
->>> echo echo
->>> bl.logging.set_log_file ""
->>> bl.logging.cat "$test_file_path"
->>> rm "$test_file_path"
-logging
-echo
-logging
-echo
-```
-```bash
->>> bl.logging.set_commands_level debug
->>> bl.logging.set_level debug
->>> local test_file_path="$(mktemp)"
->>> bl.logging.set_log_file "$test_file_path"
->>> bl.logging.plain 1
->>> bl.logging.set_log_file ""
->>> bl.logging.set_log_file "$test_file_path"
->>> bl.logging.plain 2
->>> bl.logging.set_log_file ""
->>> bl.logging.cat "$test_file_path"
->>> rm "$test_file_path"
-1
-2
-1
-2
-```
 ## Module bashlink.module
 Central module import mechanism. To scope modules and ensure running each
 module only once.
@@ -1917,18 +1972,15 @@ module only once.
 Checks if given name is belongs to given scope.
 
 ```bash
->>> bl.module.check_name "bl_module_check_name" "bl_module"
->>> echo $?
+>>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
 0
 ```
 ```bash
->>> bl.module.check_name "bl_module_check_name" "bl_other_module"
->>> echo $?
+>>> bl.module.check_name "bl_module_check_name" "bl_other_module"; echo $?
 1
 ```
 ```bash
->>> bl.module.check_name "bl_other_module_not_existing" "bl_module"
->>> echo $?
+>>> bl.module.check_name "bl_other_module_not_existing" "bl_module"; echo $?
 1
 ```
 ### Function bl_module_determine_aliases
@@ -1991,8 +2043,7 @@ foo123
 Imports given module into current scope.
 
 ```bash
->>> bl.module.import_raw bashlink.not_existing
->>> echo $?
+>>> bl.module.import_raw bashlink.not_existing; echo $?
 +bl.doctest.ellipsis
 ...
 critical: Failed to source module "bashlink.not_existing".
@@ -2003,8 +2054,7 @@ Sources a script and checks variable definitions before and after
 sourcing.
 
 ```bash
->>> bl.module.import_with_namespace_check test bl_module bashlink.module
->>> echo $?
+>>> bl.module.import_with_namespace_check test bl_module bashlink.module; echo $?
 +bl.doctest.multiline_contains
 warning: Namespace "bl_module" in "bashlink.module" is not clean: Name "
 ```
@@ -2013,8 +2063,7 @@ Imports given module without any namespace checks. Needed for internal
 usage.
 
 ```bash
->>> bl.module.import_without_namespace_check bashlink.module
->>> echo $?
+>>> bl.module.import_without_namespace_check bashlink.module; echo $?
 0
 ```
 ### Function bl_module_is_defined
@@ -2022,69 +2071,58 @@ Tests if variable is defined (can also be empty)
 
 ```bash
 >>> local foo=bar
->>> bl.module.is_defined foo
->>> echo $?
->>> [[ -v foo ]]
->>> echo $?
+>>> bl.module.is_defined foo; echo $?
+>>> [[ -v foo ]]; echo $?
 0
 0
 ```
 ```bash
 >>> local defined_but_empty=""
->>> bl.module.is_defined defined_but_empty
->>> echo $?
+>>> bl.module.is_defined defined_but_empty; echo $?
 0
 ```
 ```bash
->>> bl.module.is_defined undefined_variable
->>> echo $?
+>>> bl.module.is_defined undefined_variable; echo $?
 1
 ```
 ```bash
 >>> set -o nounset
->>> bl.module.is_defined undefined_variable
->>> echo $?
+>>> bl.module.is_defined undefined_variable; echo $?
 1
 ```
 # Same Tests for bash < 4.3
 ```bash
 >>> bl_module_bash_version_test=true
 >>> local foo="bar"
->>> bl.module.is_defined foo
->>> echo $?
+>>> bl.module.is_defined foo; echo $?
 0
 ```
 ```bash
 >>> bl_module_bash_version_test=true
 >>> local defined_but_empty=""
->>> bl.module.is_defined defined_but_empty
->>> echo $?
+>>> bl.module.is_defined defined_but_empty; echo $?
 0
 ```
 ```bash
 >>> bl_module_bash_version_test=true
->>> bl.module.is_defined undefined_variable
->>> echo $?
+>>> bl.module.is_defined undefined_variable; echo $?
 1
 ```
 ```bash
 >>> bl_module_bash_version_test=true
 >>> set -o nounset
->>> bl.module.is_defined undefined_variable
->>> echo $?
+>>> bl.module.is_defined undefined_variable; echo $?
 1
 ```
 ### Function bl_module_is_imported
 Checks if giveb module is already imported.
 
 ```bash
->>> bl.module.is_imported bashlink.module
->>> echo $?
+>>> bl.module.is_imported bashlink.module; echo $?
 0
 ```
 ```bash
->>> bl.module.is_imported bashlink.not_existing
->>> echo $?
+>>> bl.module.is_imported bashlink.not_existing; echo $?
 1
 ```
 ### Function bl_module_log
@@ -2315,15 +2353,7 @@ Generates a random string with given length.
 ```
 ### Function bl_string_get_unique_lines
 ```bash
->>> local foo="a
-b
-a
-b
-c
-b
-c"
-```
-```bash
+>>> local foo="a\nb\na\nb\nc\nb\nc"
 >>> echo -e "$foo" | bl.string.get_unique_lines
 a
 b
@@ -2368,16 +2398,9 @@ bl.string.merge_text_files \
 a.txt \
 b.txt \
 c.txt \
---append "
-# area
-" \
---between "
-# end
-
-# area %s
-"
---prepend "# area %s
-"
+--append "\n# area\n" \
+--between "\n# end\n\n# area %s\n"
+--prepend "# area %s\n"
 ```
 ### Function bl_string_translate
 Translates a given string in a given (or automatic detected) language
@@ -2435,13 +2458,13 @@ Prints elapsed time in milliseconds since last `bl.time.start` call.
 
 ```bash
 >>> local time=$(bl.time.get_elapsed)
->>> (( time > 0 )) && echo $?
+>>> (( time > 0 )); echo $?
 0
 ```
 ```bash
 >>> bl.time.start
 >>> local time=$(bl.time.get_elapsed)
->>> (( time > 0 )) && echo $?
+>>> (( time > 0 )); echo $?
 0
 ```
 ### Function bl_time_start
@@ -2451,7 +2474,7 @@ Prints elapsed time in milliseconds since last `bl.time.start` call.
 >>> bl.time.start
 >>> bl.time.start
 >>> local time=$(bl.time.get_elapsed)
->>> (( time > 0 )) && echo $?
+>>> (( time > 0 )); echo $?
 0
 ```
 ## Module bashlink.tools
@@ -2468,32 +2491,28 @@ Tests if variable is empty (undefined variables are not empty)
 
 ```bash
 >>> local foo="bar"
->>> bl.tools.is_empty foo
->>> echo $?
+>>> bl.tools.is_empty foo; echo $?
 1
 ```
 ```bash
 >>> local defined_and_empty=""
->>> bl.tools.is_empty defined_and_empty
->>> echo $?
+>>> bl.tools.is_empty defined_and_empty; echo $?
 0
 ```
 ```bash
->>> bl.tools.is_empty undefined_variable
->>> echo $?
+>>> bl.tools.is_empty undefined_variable; echo $?
 1
 ```
 ```bash
 >>> set -u
->>> bl.tools.is_empty undefined_variable
->>> echo $?
+>>> bl.tools.is_empty undefined_variable; echo $?
 1
 ```
 ### Function bl_tools_is_main
 Returns true if current script is being executed.
 
 NOTE: This test passes because `bl.tools.is_main` is called by
-"doctest.sh" which is being executed.
+"doctest.sh" which is being executed as entry script.
 
 ```bash
 >>> bl.tools.is_main && echo yes

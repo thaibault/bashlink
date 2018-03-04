@@ -52,19 +52,15 @@ bl_tools_is_empty() {
         Tests if variable is empty (undefined variables are not empty)
 
         >>> local foo="bar"
-        >>> bl.tools.is_empty foo
-        >>> echo $?
+        >>> bl.tools.is_empty foo; echo $?
         1
         >>> local defined_and_empty=""
-        >>> bl.tools.is_empty defined_and_empty
-        >>> echo $?
+        >>> bl.tools.is_empty defined_and_empty; echo $?
         0
-        >>> bl.tools.is_empty undefined_variable
-        >>> echo $?
+        >>> bl.tools.is_empty undefined_variable; echo $?
         1
         >>> set -u
-        >>> bl.tools.is_empty undefined_variable
-        >>> echo $?
+        >>> bl.tools.is_empty undefined_variable; echo $?
         1
     '
     local variable_name="$1"
@@ -77,12 +73,12 @@ bl_tools_is_main() {
         Returns true if current script is being executed.
 
         NOTE: This test passes because `bl.tools.is_main` is called by
-        "doctest.sh" which is being executed.
+        "doctest.sh" which is being executed as entry script.
 
         >>> bl.tools.is_main && echo yes
         yes
     '
-    [[ "${BASH_SOURCE[1]}" = "$0" ]]
+    [ "${BASH_SOURCE[1]}" = "$0" ]
 }
 alias bl.tools.make_openssl_pem_file=bl_tools_make_openssl_pem_file
 bl_tools_make_openssl_pem_file() {
@@ -105,7 +101,7 @@ bl_tools_make_openssl_pem_file() {
     openssl x509 -req -days 365 -in "${host}.csr" -signkey "${host}.key" -out \
         "${host}.crt"
     bl.logging.info Creating a pem file.
-    bl.logging.cat "${host}.key" "${host}.crt" 1>"${host}.pem"
+    cat "${host}.key" "${host}.crt" 1>"${host}.pem"
     return $?
 }
 alias bl.tools.make_single_executbale=bl_tools_make_single_executable
@@ -133,7 +129,7 @@ bl_tools_make_single_executable() {
     fi
     local directory_name="$(basename "$(readlink --canonicalize "$1")")"
     # NOTE: short option is necessary for mac compatibility.
-    bl.logging.cat << EOF 1>"$file_name"
+    cat << EOF 1>"$file_name"
 #!/usr/bin/env bash
 executable_directory_path="\$(mktemp -d 2>/dev/null || mktemp -d -t '' 2>/dev/null)" && \\
 data_offset="\$(("\$(command grep --text --line-number '^exit \\\$?$' "\$0" | \\
@@ -141,12 +137,15 @@ data_offset="\$(("\$(command grep --text --line-number '^exit \\\$?$' "\$0" | \\
 tail -n +\$dataOffset "\$0" | tar -xzf - -C "\$executableDirectory" \\
     1>/dev/null && \\
 "\${executable_directory_path}/${directory_name}/${relative_start_file_path}" "\$@"
+rm --recursive "\$executable_directory_path"
 exit \$?
 EOF
-    local temporary_archiv_file_path="$(mktemp).tar.gz"
+    local temporary_archiv_file_path="$(
+        mktemp --suffix -bashlink-tools-single-executable-archiv.tar.gz)"
     tar --create --verbose --gzip --posix --file \
         "$temporary_archiv_file_path" "$1"
-    bl.logging.cat "$temporary_archiv_file_path" 1>>"$file_name"
+    cat "$temporary_archiv_file_path" 1>>"$file_name"
+    rm "$temporary_archiv_file_path"
     chmod +x "$file_name"
     return $?
 }

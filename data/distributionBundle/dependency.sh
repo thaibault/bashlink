@@ -41,7 +41,8 @@ bl_dependency_check() {
         2
     '
     if ! hash &>/dev/null; then
-        bl.logging.critical 'Missing dependency "hash" to check for available executables.'
+        bl.logging.error \
+            'Missing dependency "hash" to check for available executables.'
         return 1
     fi
     local return_code=0
@@ -49,7 +50,7 @@ bl_dependency_check() {
     for dependency in "$@"; do
         if ! hash "$dependency" &>/dev/null; then
             return_code=2
-            bl.logging.plain "$dependency"
+            echo "$dependency"
         fi
     done
     return $return_code
@@ -67,7 +68,8 @@ bl_dependency_check_pkgconfig() {
         2
     '
     if ! bl.dependency.check pkg-config &>/dev/null; then
-        bl.logging.critical 'Missing dependency "pkg-config" to check for packages.'
+        bl.logging.error \
+            'Missing dependency "pkg-config" to check for packages.'
         return 1
     fi
     local return_code=0
@@ -75,7 +77,7 @@ bl_dependency_check_pkgconfig() {
     for library in "$@"; do
         if ! pkg-config "$library" &>/dev/null; then
             return_code=2
-            bl.logging.plain "$library"
+            echo "$library"
         fi
     done
     return $return_code
@@ -93,7 +95,8 @@ bl_dependency_check_shared_library() {
         2
     '
     if ! bl.dependency.check ldconfig &>/dev/null; then
-        bl.logging.critical 'Missing dependency "ldconfig" to check for shared libraries.'
+        bl.logging.error \
+            'Missing dependency "ldconfig" to check for shared libraries.'
         return 1
     fi
     local return_code=0
@@ -103,7 +106,7 @@ bl_dependency_check_shared_library() {
             command grep "$pattern" &>/dev/null
         then
             return_code=2
-            bl.logging.plain "$pattern"
+            echo "$pattern"
         fi
     done
     return $return_code

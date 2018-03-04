@@ -80,7 +80,7 @@ bl_ssh_print() {
             if [[ "$user_row" != '' ]]; then
                 # shellcheck disable=SC2001
                 local user="$(
-                    bl.logging.plain "$user_row" | \
+                    echo "$user_row" | \
                         command sed s/user\\s//ig)"
                 local login="${user}@${host}"
             else
@@ -105,7 +105,7 @@ bl_ssh_print() {
             return $?
         fi
     else
-        bl.logging.critical "Given file \"$1\" doesn't exist."
+        bl.logging.error "Given file \"$1\" doesn't exist."
         return 1
     fi
 }
