@@ -137,15 +137,12 @@ bl_changeroot_with_kernel_api() {
             fi
         fi
     done
-    bl.logging.plain AA "$@"
     local return_code=0
     bl.changeroot.with_fake_fallback "$@" || \
         return_code=$?
-    bl.logging.plain BB "$@"
     for mountpoint_path in $(
         bl.array.reverse "${bl_changeroot_kernel_api_locations[*]}"
     ); do
-        bl.logging.plain CC "$mountpoint_path"
         mountpoint_path="${mountpoint_path:1}" && \
         if mountpoint -q "${new_root_location}${mountpoint_path}" || \
             [ -f "/${mountpoint_path}" ]
