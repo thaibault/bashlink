@@ -56,8 +56,9 @@ bl_array_filter() {
     shift
     local element
     for element in "$@"; do
-        bl.module.log_plain "$element"
-    done | command grep --extended-regexp "$pattern"
+        echo "$element"
+    done | \
+        command grep --extended-regexp "$pattern"
 }
 alias bl.array.get_index=bl_array_get_index
 bl_array_get_index() {
@@ -83,10 +84,34 @@ bl_array_get_index() {
             local index="${i}"
         fi
     done
-    bl.module.log_plain "$index"
+    echo "$index"
     if (( index == -1 )); then
         return 1
     fi
+}
+alias bl.array.reverse=bl_array_reverse
+bl_array_reverse() {
+    local __documentation__='
+        Reverse given array.
+
+        >>> bl.array.reverse
+
+        >>> bl.array.reverse a
+        a
+
+        >>> bl.array.reverse "a b c"
+        c b a
+    '
+    local result=''
+    local item
+    for item in $1; do
+        if [ "$result" = '' ]; then
+            result="$item"
+        else
+            result="$item $result"
+        fi
+    done
+    echo "$result"
 }
 alias bl.array.slice=bl_array_slice
 bl_array_slice() {
@@ -181,24 +206,31 @@ bl_array_slice() {
         # defaults
         [ -z "$end" ] && end=$array_length
         [ -z "$start" ] && start=0
-        (( start < 0 )) && (( start = (( array_length + start )) ))
-        (( end < 0 )) && (( end = (( array_length + end )) ))
+        (( start < 0 )) && \
+            (( start = (( array_length + start )) ))
+        (( end < 0 )) && \
+            (( end = (( array_length + end )) ))
     else
         start="$1"
         shift
         array_length="$#"
-        (( start < 0 )) && (( start = (( array_length + start )) ))
+        (( start < 0 )) && \
+            (( start = (( array_length + start )) ))
         (( end = (( start + 1 )) ))
     fi
     (( length = (( end - start )) ))
-    (( start < 0 )) && return 1
+    (( start < 0 )) && \
+        return 1
     # check bounds
-    (( length < 0 )) && return 1
-    (( start < 0 )) && return 1
-    (( start >= array_length )) && return 1
+    (( length < 0 )) && \
+        return 1
+    (( start < 0 )) && \
+        return 1
+    (( start >= array_length )) && \
+        return 1
     # parameters start with $1, so add 1 to $start
     (( start = (( start + 1 )) ))
-    bl.module.log_plain "${@: $start:$length}"
+    echo "${@: $start:$length}"
 }
 # endregion
 # region vim modline
