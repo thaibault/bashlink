@@ -74,20 +74,21 @@ Or combine both to implement a very agnostic script.
         # shellcheck disable=SC1091
         source "/usr/lib/bashlink/module.sh"
     else
-        archInstall_bashlink_path="$(
-            mktemp --directory --suffix -arch-install-bashlink
+        moduleName_bashlink_path="$(
+            mktemp --directory --suffix -module-name-bashlink
         )/bashlink/"
-        mkdir "$archInstall_bashlink_path"
+        mkdir "$moduleName_bashlink_path"
         if wget \
             https://goo.gl/UKF5JG \
-            --output-document "${archInstall_bashlink_path}module.sh" \
+            --output-document "${moduleName_bashlink_path}module.sh" \
             --quiet
         then
             bl_module_retrieve_remote_modules=true
             # shellcheck disable=SC1090
-            source "${archInstall_bashlink_path}/module.sh"
+            source "${moduleName_bashlink_path}/module.sh"
         else
             echo Needed bashlink library not found 1>&2
+            rm --force --recursive "$moduleName_bashlink_path"
             exit 1
         fi
     fi
