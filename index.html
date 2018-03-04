@@ -86,20 +86,24 @@ API <span>Documentation</span>
     <span class="c1"># Your code comes here.</span>
 </pre></div>
 <p>Integrate bashlink into your standalone bash script:</p>
-<div class="codehilite"><pre><span></span>    <span class="nv">module_name_bashlink_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>
-        mktemp --directory --suffix -bashlink
+<div class="codehilite"><pre><span></span>    <span class="nv">moduleName_bashlink_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>
+        mktemp --directory --suffix -module-name-bashlink
     <span class="k">)</span><span class="s2">/bashlink/"</span>
-    wget <span class="se">\</span>
+    mkdir <span class="s2">"</span><span class="nv">$moduleName_bashlink_path</span><span class="s2">"</span>
+    <span class="k">if</span> wget <span class="se">\</span>
         https://goo.gl/UKF5JG <span class="se">\</span>
-        --output-document <span class="s2">"</span><span class="si">${</span><span class="nv">module_name_bashlink_path</span><span class="si">}</span><span class="s2">module.sh"</span> <span class="se">\</span>
+        --output-document <span class="s2">"</span><span class="si">${</span><span class="nv">moduleName_bashlink_path</span><span class="si">}</span><span class="s2">module.sh"</span> <span class="se">\</span>
         --quiet
-    <span class="c1"># shellcheck disable=SC1091</span>
-    <span class="nb">source</span> <span class="s2">"</span><span class="si">${</span><span class="nv">module_name_bashlink_path</span><span class="si">}</span><span class="s2">module.sh"</span>
-    <span class="nv">bl_module_retrieve_remote_modules</span><span class="o">=</span><span class="nb">true</span>
-    bl.module.import bashlink.logging
-    <span class="c1"># Your standalone code comes here.</span>
-    rm --recursive <span class="s2">"</span><span class="k">$(</span>dirname <span class="s2">"</span><span class="nv">$module_name_bashlink_path</span><span class="s2">"</span><span class="k">)</span><span class="s2">"</span>
-    rm --recursive <span class="s2">"</span><span class="nv">$bl_module_remote_module_cache_path</span><span class="s2">"</span>
+    <span class="k">then</span>
+        <span class="nv">bl_module_retrieve_remote_modules</span><span class="o">=</span><span class="nb">true</span>
+        <span class="c1"># shellcheck disable=SC1091</span>
+        <span class="nb">source</span> <span class="s2">"</span><span class="si">${</span><span class="nv">moduleName_bashlink_path</span><span class="si">}</span><span class="s2">module.sh"</span>
+    <span class="k">else</span>
+        <span class="nb">echo</span> Needed bashlink library not found <span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+        rm --force --recursive <span class="s2">"</span><span class="nv">$moduleName_bashlink_path</span><span class="s2">"</span>
+        <span class="nb">exit</span> <span class="m">1</span>
+    <span class="k">fi</span>
+    <span class="c1"># Your standalone code comes here</span>
 </pre></div>
 <p>Or combine both to implement a very agnostic script.</p>
 <div class="codehilite"><pre><span></span>    <span class="k">if</span> <span class="o">[</span> -f <span class="s2">"</span><span class="k">$(</span>dirname <span class="s2">"</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="si">}</span><span class="s2">"</span><span class="k">)</span><span class="s2">/node_modules/bashlink/module.sh"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
@@ -109,25 +113,74 @@ API <span>Documentation</span>
         <span class="c1"># shellcheck disable=SC1091</span>
         <span class="nb">source</span> <span class="s2">"/usr/lib/bashlink/module.sh"</span>
     <span class="k">else</span>
-        <span class="nv">archInstall_bashlink_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>
-            mktemp --directory --suffix -arch-install-bashlink
+        <span class="nv">moduleName_bashlink_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>
+            mktemp --directory --suffix -module-name-bashlink
         <span class="k">)</span><span class="s2">/bashlink/"</span>
-        mkdir <span class="s2">"</span><span class="nv">$archInstall_bashlink_path</span><span class="s2">"</span>
+        mkdir <span class="s2">"</span><span class="nv">$moduleName_bashlink_path</span><span class="s2">"</span>
         <span class="k">if</span> wget <span class="se">\</span>
             https://goo.gl/UKF5JG <span class="se">\</span>
-            --output-document <span class="s2">"</span><span class="si">${</span><span class="nv">archInstall_bashlink_path</span><span class="si">}</span><span class="s2">module.sh"</span> <span class="se">\</span>
+            --output-document <span class="s2">"</span><span class="si">${</span><span class="nv">moduleName_bashlink_path</span><span class="si">}</span><span class="s2">module.sh"</span> <span class="se">\</span>
             --quiet
         <span class="k">then</span>
             <span class="nv">bl_module_retrieve_remote_modules</span><span class="o">=</span><span class="nb">true</span>
             <span class="c1"># shellcheck disable=SC1090</span>
-            <span class="nb">source</span> <span class="s2">"</span><span class="si">${</span><span class="nv">archInstall_bashlink_path</span><span class="si">}</span><span class="s2">/module.sh"</span>
+            <span class="nb">source</span> <span class="s2">"</span><span class="si">${</span><span class="nv">moduleName_bashlink_path</span><span class="si">}</span><span class="s2">/module.sh"</span>
         <span class="k">else</span>
             <span class="nb">echo</span> Needed bashlink library not found <span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+            rm --force --recursive <span class="s2">"</span><span class="nv">$moduleName_bashlink_path</span><span class="s2">"</span>
             <span class="nb">exit</span> <span class="m">1</span>
         <span class="k">fi</span>
     <span class="k">fi</span>
-    bl.module.import bashlink.logging
     <span class="c1"># Your portable code comes here.</span>
+</pre></div>
+<p>Best practise (entry) module pattern:</p>
+<div class="codehilite"><pre><span></span>    <span class="k">if</span> <span class="o">[</span> -f <span class="s2">"</span><span class="k">$(</span>dirname <span class="s2">"</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="si">}</span><span class="s2">"</span><span class="k">)</span><span class="s2">/node_modules/bashlink/module.sh"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+        <span class="c1"># shellcheck disable=SC1090</span>
+        <span class="nb">source</span> <span class="s2">"</span><span class="k">$(</span>dirname <span class="s2">"</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="si">}</span><span class="s2">"</span><span class="k">)</span><span class="s2">/node_modules/bashlink/module.sh"</span>
+    <span class="k">elif</span> <span class="o">[</span> -f <span class="s2">"/usr/lib/bashlink/module.sh"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+        <span class="c1"># shellcheck disable=SC1091</span>
+        <span class="nb">source</span> <span class="s2">"/usr/lib/bashlink/module.sh"</span>
+    <span class="k">else</span>
+        <span class="nv">moduleName_bashlink_path</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>
+            mktemp --directory --suffix -module-name-bashlink
+        <span class="k">)</span><span class="s2">/bashlink/"</span>
+        mkdir <span class="s2">"</span><span class="nv">$moduleName_bashlink_path</span><span class="s2">"</span>
+        <span class="k">if</span> wget <span class="se">\</span>
+            https://goo.gl/UKF5JG <span class="se">\</span>
+            --output-document <span class="s2">"</span><span class="si">${</span><span class="nv">moduleName_bashlink_path</span><span class="si">}</span><span class="s2">module.sh"</span> <span class="se">\</span>
+            --quiet
+        <span class="k">then</span>
+            <span class="nv">bl_module_retrieve_remote_modules</span><span class="o">=</span><span class="nb">true</span>
+            <span class="c1"># shellcheck disable=SC1090</span>
+            <span class="nb">source</span> <span class="s2">"</span><span class="si">${</span><span class="nv">moduleName_bashlink_path</span><span class="si">}</span><span class="s2">/module.sh"</span>
+        <span class="k">else</span>
+            <span class="nb">echo</span> Needed bashlink library not found <span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+            rm --force --recursive <span class="s2">"</span><span class="nv">$moduleName_bashlink_path</span><span class="s2">"</span>
+            <span class="nb">exit</span> <span class="m">1</span>
+        <span class="k">fi</span>
+    <span class="k">fi</span>
+    bl.module.import bashlink.exception
+    bl.module.import bashlink.logging
+    bl.module.import bashlink.tools
+    <span class="c1"># Your module functions comes here.</span>
+    <span class="k">if</span> bl.tools.is_main<span class="p">;</span> <span class="k">then</span>
+        bl.exception.activate
+        bl.exception.try <span class="o">{</span>
+            moduleName.main <span class="s2">"</span><span class="nv">$@</span><span class="s2">"</span>
+        <span class="o">}</span> bl.exception.catch <span class="o">{</span>
+            <span class="o">[</span> -d <span class="s2">"</span><span class="nv">$moduleName_bashlink_path</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+                rm --recursive <span class="s2">"</span><span class="nv">$moduleName_bashlink_path</span><span class="s2">"</span>
+            <span class="c1"># shellcheck disable=SC2154</span>
+            <span class="o">[</span> -d <span class="s2">"</span><span class="nv">$bl_module_remote_module_cache_path</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+                rm --recursive <span class="s2">"</span><span class="nv">$bl_module_remote_module_cache_path</span><span class="s2">"</span>
+            bl.logging.error <span class="s2">"</span><span class="nv">$bl_exception_last_traceback</span><span class="s2">"</span>
+        <span class="o">}</span>
+        <span class="o">[</span> -d <span class="s2">"</span><span class="nv">$moduleName_bashlink_path</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+            rm --recursive <span class="s2">"</span><span class="nv">$moduleName_bashlink_path</span><span class="s2">"</span>
+        <span class="c1"># shellcheck disable=SC2154</span>
+        <span class="o">[</span> -d <span class="s2">"</span><span class="nv">$bl_module_remote_module_cache_path</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+            rm --recursive <span class="s2">"</span><span class="nv">$bl_module_remote_module_cache_path</span><span class="s2">"</span>
+    <span class="k">fi</span>
 </pre></div>
 </div>
 <div class="inner about-this-website">
@@ -249,6 +302,6 @@ about this website
 </p>
 </div></footer>
 <a href="#top">top<!--deDE:nach oben--><!--frFR:ascendant--></a>
-<script src="index.js?md5=62adfa64026702de2790"></script>
+<script src="index.js?md5=170af8eadcc691070e6f"></script>
 
 </body></html>
