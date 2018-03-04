@@ -133,9 +133,10 @@ Best practise (entry) module pattern:
     # Your module functions comes here.
     if bl.tools.is_main; then
         bl.exception.activate
-        bl.exception.try {
+        bl.exception.try
             moduleName.main "$@"
-        } bl.exception.catch {
+        bl.exception.catch_single
+        {
             [ -d "$moduleName_bashlink_path" ] && \
                 rm --recursive "$moduleName_bashlink_path"
             # shellcheck disable=SC2154
