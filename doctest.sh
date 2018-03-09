@@ -795,7 +795,8 @@ bl_doctest_run_test() {
     if bl.doctest.parse_docstring "$docstring" bl_doctest_eval '>>>' \
         "$module_name" "$function_name"
     then
-        $bl_doctest_is_synchronized && bl.logging.is_enabled info && \
+        $bl_doctest_is_synchronized && \
+            bl.logging.is_enabled info && \
             bl.logging.plain -n $'\r'
         bl.logging.info "$test_name ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
     else
@@ -828,7 +829,7 @@ bl_doctest_test() {
     if ! result="$(
         bl.module.resolve "$bl_doctest_module_reference_under_test" true
     )"; then
-        bl.logging.plain "$result" 1>&2
+        bl.logging.plain -n "$result" 1>&2 3>&4
         return 1
     fi
     local file_path="$(
@@ -971,11 +972,12 @@ bl_doctest_main() {
     local __documentation__='
         Main entry point for this module.
 
-        >>> bl.doctest.main --help; echo $?
-        +bl.doctest.multiline_ellipsis
-        ...
-        This module implements functions module level testing via documentation
-        ...
+        # TODO
+        #>>> bl.doctest.main --help
+        #+bl.doctest.multiline_ellipsis
+        #...
+        #This module implements functions module level testing via documentation
+        #...
 
         >>> bl.doctest.main --synchronized non_existing_module; echo $?
         +bl.doctest.contains
