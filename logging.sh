@@ -302,6 +302,7 @@ bl_logging_log() {
     fi
     $exception && \
         return 1
+    return 0
 }
 alias bl.logging.critical='bl_logging_log critical'
 alias bl.logging.debug='bl_logging_log debug'
