@@ -250,7 +250,8 @@ bl_module_log() {
         info: test
     '
     if hash bl.logging.log &>/dev/null; then
-        bl.logging.log "$@"
+        bl.logging.log "$@" ||
+            return $?
     elif [[ "$2" != '' ]]; then
         local level=$1
         shift
@@ -295,7 +296,8 @@ bl_module_import_raw() {
         rm "$1"
     fi
     if (( return_code != 0 )); then
-        bl.module.log error_exception "Failed to source module \"$1\"."
+        bl.module.log error_exception "Failed to source module \"$1\"." ||
+            return $?
     fi
     bl_module_import_level=$((bl_module_import_level - 1))
 }
@@ -654,7 +656,8 @@ bl_module_resolve() {
             "Module file path for \"$1\" could not be resolved for" \
             "\"${BASH_SOURCE[1]}\" in \"$caller_path\", \"$execution_path\"" \
             "or \"$current_path\" for one of the file extension:" \
-            "${extension_description}."
+            "${extension_description}." || \
+                return $?
     fi
     file_path="$(bl.path.convert_to_absolute "$file_path")"
     if [ "$2" = true ]; then
