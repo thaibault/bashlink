@@ -252,10 +252,22 @@ bl_module_log() {
     elif [[ "$2" != '' ]]; then
         local level=$1
         shift
+        local exception=false
         if [ "$level" = warn ]; then
             level=warning
+        elif [ "$level" = error_exception ]; then
+            exception=true
+            level=error
         fi
-        bl.module.log_plain "${level}: $*"
+        if [ "$level" = error ]; then
+            bl.module.log_plain "${level}:" "$@" \
+                1>&2
+                3>&4
+        else
+            bl.module.log_plain "${level}: $*"
+        fi
+        $exception && \
+            return 1
     else
         bl.module.log_plain "info: $*"
     fi
@@ -269,7 +281,7 @@ bl_module_import_raw() {
         >>> bl.module.import_raw bashlink.not_existing; echo $?
         +bl.doctest.ellipsis
         ...
-        critical: Failed to source module "bashlink.not_existing".
+        error: Failed to source module "bashlink.not_existing".
         1
     '
     bl_module_import_level=$((bl_module_import_level + 1))
@@ -281,8 +293,7 @@ bl_module_import_raw() {
         rm "$1"
     fi
     if (( return_code == 1 )); then
-        bl.module.log critical "Failed to source module \"$1\"."
-        return 1
+        bl.module.log error_exception "Failed to source module \"$1\"."
     fi
     bl_module_import_level=$((bl_module_import_level - 1))
 }
@@ -637,12 +648,11 @@ bl_module_resolve() {
     done
     if [ "$file_path" = '' ]; then
         bl.module.log \
-            critical \
+            error_exception \
             "Module file path for \"$1\" could not be resolved for" \
             "\"${BASH_SOURCE[1]}\" in \"$caller_path\", \"$execution_path\"" \
             "or \"$current_path\" for one of the file extension:" \
             "${extension_description}."
-        return 1
     fi
     file_path="$(bl.path.convert_to_absolute "$file_path")"
     if [ "$2" = true ]; then

@@ -288,9 +288,16 @@ bl_logging_log() {
         fi
         bl.arguments.apply_new
         if [ "$level" = error ]; then
-            bl.logging.plain $no_new_line "$(bl_logging_get_prefix "$level")" "$@" 3>&4
+            bl.logging.plain \
+                $no_new_line \
+                "$(bl_logging_get_prefix "$level")" \
+                "$@" \
+                    3>&4
         else
-            bl.logging.plain $no_new_line "$(bl_logging_get_prefix "$level")" "$@"
+            bl.logging.plain \
+                $no_new_line \
+                "$(bl_logging_get_prefix "$level")" \
+                "$@"
         fi
     fi
     $exception && \
