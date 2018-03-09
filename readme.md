@@ -130,20 +130,15 @@ Best practise (entry) module pattern:
     bl.module.import bashlink.exception
     bl.module.import bashlink.logging
     bl.module.import bashlink.tools
+    alias moduleName.main=moduleName_main
+    moduleName_main() {
+        bl.exception.activate
+        # Your entry code.
+        bl.exception.deactivate
+    }
     # Your module functions comes here.
     if bl.tools.is_main; then
-        bl.exception.activate
-        bl.exception.try
-            moduleName.main "$@"
-        bl.exception.catch_single
-        {
-            [ -d "$moduleName_bashlink_path" ] && \
-                rm --recursive "$moduleName_bashlink_path"
-            # shellcheck disable=SC2154
-            [ -d "$bl_module_remote_module_cache_path" ] && \
-                rm --recursive "$bl_module_remote_module_cache_path"
-            bl.logging.error "$bl_exception_last_traceback"
-        }
+        moduleName.main "$@"
         [ -d "$moduleName_bashlink_path" ] && \
             rm --recursive "$moduleName_bashlink_path"
         # shellcheck disable=SC2154
