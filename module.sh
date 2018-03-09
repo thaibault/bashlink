@@ -208,6 +208,8 @@ bl_module_is_imported() {
         0
 
         >>> bl.module.is_imported bashlink.not_existing; echo $?
+        +bl.doctest.contains
+        error: Module file path for "bashlink.not_existing" could not be
         1
     '
     local caller_file_path="${BASH_SOURCE[1]}"
@@ -218,7 +220,7 @@ bl_module_is_imported() {
     # Check if module already loaded.
     local loaded_module
     for loaded_module in "${bl_module_imported[@]}"; do
-        if [[ "$loaded_module" == "$file_path" ]]; then
+        if [[ "$loaded_module" = "$file_path" ]]; then
             return 0
         fi
     done
