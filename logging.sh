@@ -293,6 +293,7 @@ bl_logging_log() {
 alias bl.logging.critical='bl_logging_log critical'
 alias bl.logging.debug='bl_logging_log debug'
 alias bl.logging.error='bl_logging_log error'
+alias bl.logging.error_exception='bl_logging_log error; false'
 alias bl.logging.info='bl_logging_log info'
 alias bl.logging.warn='bl_logging_log warn'
 alias bl.logging.warning=bl.logging.warn
