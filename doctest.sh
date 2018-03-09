@@ -801,9 +801,12 @@ bl_doctest_run_test() {
     else
         # NOTE: `bl.doctest.eval` has replaced last line if info logging level
         # is enabled.
-        bl.logging.warn "$test_name ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
+        bl.logging.warn \
+            $test_name \
+            "${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
         return 1
     fi
+    return 0
 }
 alias bl.doctest.test=bl_doctest_test
 bl_doctest_test() {
@@ -976,7 +979,7 @@ bl_doctest_main() {
 
         >>> bl.doctest.main --synchronized non_existing_module; echo $?
         +bl.doctest.contains
-        critical: Module file path for "non_existing_module" could not be
+        error: Module file path for "non_existing_module" could not be
         1
     '
     bl.arguments.set "$@"
