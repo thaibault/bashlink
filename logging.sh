@@ -268,9 +268,13 @@ bl_logging_log() {
         +bl.doctest.contains
         Given logging level "not_existing_level" is not available
     '
+    local exception=false
     local level="$1"
     if [ "$level" = warn ]; then
         level=warning
+    elif [ "$level" = error_exception ]; then
+        exception=true
+        level=error
     fi
     shift
     if bl.logging.is_enabled "$level"; then
@@ -289,11 +293,13 @@ bl_logging_log() {
             bl.logging.plain $no_new_line "$(bl_logging_get_prefix "$level")" "$@"
         fi
     fi
+    $exception && \
+        return 1
 }
 alias bl.logging.critical='bl_logging_log critical'
 alias bl.logging.debug='bl_logging_log debug'
 alias bl.logging.error='bl_logging_log error'
-alias bl.logging.error_exception='bl_logging_log error; false'
+alias bl.logging.error_exception='bl_logging_log error_exception'
 alias bl.logging.info='bl_logging_log info'
 alias bl.logging.warn='bl_logging_log warn'
 alias bl.logging.warning=bl.logging.warn
