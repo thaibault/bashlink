@@ -285,7 +285,7 @@ bl_module_import_raw() {
         +bl.doctest.ellipsis
         ...
         error: Failed to source module "bashlink.not_existing".
-        0
+        1
     '
     bl_module_import_level=$((bl_module_import_level + 1))
     local return_code
