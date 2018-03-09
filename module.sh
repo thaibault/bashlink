@@ -282,7 +282,7 @@ bl_module_import_raw() {
         +bl.doctest.ellipsis
         ...
         error: Failed to source module "bashlink.not_existing".
-        1
+        0
     '
     bl_module_import_level=$((bl_module_import_level + 1))
     local return_code
@@ -292,7 +292,7 @@ bl_module_import_raw() {
     if $bl_module_tidy_up && [[ "$1" == "$bl_module_remote_module_cache_path"* ]]; then
         rm "$1"
     fi
-    if (( return_code == 1 )); then
+    if (( return_code != 0 )); then
         bl.module.log error_exception "Failed to source module \"$1\"."
     fi
     bl_module_import_level=$((bl_module_import_level - 1))
