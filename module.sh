@@ -264,7 +264,7 @@ bl_module_log() {
         fi
         if [ "$level" = error ]; then
             bl.module.log_plain "${level}:" "$@" \
-                1>&2
+                1>&2 \
                 3>&4
         else
             bl.module.log_plain "${level}: $*"
