@@ -232,6 +232,30 @@ bl_array_slice() {
     (( start = (( start + 1 )) ))
     echo "${@: $start:$length}"
 }
+alias bl.array.uniq=bl_array_uniq
+bl_array_uniq() {
+    local __documentation__='
+        Removes duplicates in given array.
+
+        >>> bl.array.uniq ""
+
+        >>> bl.array.uniq 1
+        1
+
+        >>> bl.array.uniq "1 2 3"
+        1 2 3
+
+        >>> bl.array.uniq "1 1 2 3"
+        1 2 3
+
+        >>> bl.array.uniq "1 11 2 3"
+        1 11 2 3
+    '
+    echo "$1" | \
+        tr ' ' '\n' | \
+            uniq | \
+                tr '\n' ' '
+}
 # endregion
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
