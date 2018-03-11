@@ -232,28 +232,31 @@ bl_array_slice() {
     (( start = (( start + 1 )) ))
     echo "${@: $start:$length}"
 }
-alias bl.array.uniq=bl_array_uniq
-bl_array_uniq() {
+alias bl.array.unique=bl_array_unique
+bl_array_unique() {
     local __documentation__='
         Removes duplicates in given array.
 
-        >>> bl.array.uniq ""
+        >>> bl.array.unique ""
 
-        >>> bl.array.uniq 1
+        >>> bl.array.unique 1
         1
 
-        >>> bl.array.uniq "1 2 3"
+        >>> bl.array.unique "1 2 3"
         1 2 3
 
-        >>> bl.array.uniq "1 1 2 3"
+        >>> bl.array.unique "1 1 2 3"
         1 2 3
 
-        >>> bl.array.uniq "1 11 2 3"
+        >>> bl.array.unique "1 1 2 1 3"
+        1 2 3
+
+        >>> bl.array.unique "1 11 2 3"
         1 11 2 3
     '
     echo "$1" | \
         tr ' ' '\n' | \
-            uniq | \
+            sort --unique | \
                 tr '\n' ' '
 }
 # endregion
