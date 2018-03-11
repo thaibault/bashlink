@@ -798,12 +798,14 @@ bl_doctest_run_test() {
         $bl_doctest_is_synchronized && \
             bl.logging.is_enabled info && \
             bl.logging.plain -n $'\r'
-        bl.logging.info "$test_name ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
+        bl.logging.info \
+            "$test_name" \
+            "${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
     else
         # NOTE: `bl.doctest.eval` has replaced last line if info logging level
         # is enabled.
         bl.logging.warn \
-            $test_name \
+            "$test_name" \
             "${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
         return 1
     fi
