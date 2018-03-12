@@ -64,16 +64,14 @@ bl_exception__documentation__='
     >>>     } bl.exception.catch {
     >>>         echo caught inside foo
     >>>     }
-    >>>     false # this is cought at top level
+    >>>     false # this is caught at top level
     >>>     echo this should never be printed
     >>> }
-    >>>
     >>> bl.exception.try {
     >>>     bl_exception_foo
     >>> } bl.exception.catch {
     >>>     echo caught
     >>> }
-    >>>
     caught inside foo
     caught
 
