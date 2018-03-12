@@ -75,6 +75,18 @@ bl_exception__documentation__='
     caught inside foo
     caught
 
+    >>> bl.exception.activate
+    >>> bl_exception_foo() {
+    >>>     bl.exception.try {
+    >>>         false
+    >>>     } bl.exception.catch {
+    >>>         echo caught
+    >>>     }
+    >>>     echo should not be printed
+    >>> }
+    >>> bl_exception_foo || echo info
+    caught
+
     exception are implicitly active inside try blocks:
 
     >>> foo() {
@@ -88,7 +100,6 @@ bl_exception__documentation__='
     >>>     false # this is not caught
     >>>     echo this should never be printed
     >>> }
-    >>>
     >>> foo "exception NOT ACTIVE:"
     >>> bl.exception.activate
     >>> foo "exception ACTIVE:"
@@ -109,8 +120,8 @@ bl_exception__documentation__='
     >>> (false) && echo "should not be printed"
     >>> bl.exception.try {
     >>>     (
-    >>>     false
-    >>>     echo "should not be printed"
+    >>>         false
+    >>>         echo "should not be printed"
     >>>     )
     >>> } bl.exception.catch {
     >>>     echo caught
@@ -119,18 +130,15 @@ bl_exception__documentation__='
 
     Print a caught exception traceback.
 
-    # TODO: Missing expected output comes!
-    #>>> bl.exception.try {
-    #>>>     false
-    #>>> } bl.exception.catch {
-    #>>>     echo caught
-    #>>>     echo "$bl_exception_last_traceback"
-    #>>> }
-    #+bl.doctest.multiline_contains
-    #+bl.doctest.multiline_ellipsis
-    #caught
-    #Traceback (most recent call first):
-    #...
+    >>> bl.exception.try {
+    >>>     false
+    >>> } bl.exception.catch {
+    >>>     echo caught
+    >>>     echo "$bl_exception_last_traceback"
+    >>> }
+    +bl.doctest.multiline_contains
+    caught
+    Traceback (most recent call first):
 
     Different syntax variations are possible.
 
@@ -286,7 +294,7 @@ alias bl.exception.error_handler=bl_exception_error_handler
 bl_exception_error_handler() {
     local error_code=$?
     local __documentation__='
-        Error handler for catched exceptions.
+        Error handler for captured exceptions.
 
         >>> bl.exception.error_handler
         +bl.doctest.contains
