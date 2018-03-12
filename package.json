@@ -1,27 +1,4 @@
 {
-  "_from": "bashlink@^1.0.39",
-  "_id": "bashlink@1.0.39",
-  "_inBundle": false,
-  "_integrity": "sha512-U6BnYnP1gVNDS3hzOj4ZxA3nK/N/KH3KF2ZRFWmBYvXFFlogBPUFi2kan32z4LAFxTYDZ0g0R25xtFx/1OZtKQ==",
-  "_location": "/bashlink",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "range",
-    "registry": true,
-    "raw": "bashlink@^1.0.39",
-    "name": "bashlink",
-    "escapedName": "bashlink",
-    "rawSpec": "^1.0.39",
-    "saveSpec": null,
-    "fetchSpec": "^1.0.39"
-  },
-  "_requiredBy": [
-    "/"
-  ],
-  "_resolved": "https://registry.npmjs.org/bashlink/-/bashlink-1.0.39.tgz",
-  "_shasum": "6dcc621e705cde945373f7b0d49a8bb42dd369b3",
-  "_spec": "bashlink@^1.0.39",
-  "_where": "/home/torben/cloud/data/public/project/repository/archInstall",
   "bin": {
     "bashlink-doctest": "doctest.sh",
     "bashlink-document": "documentation.sh"
