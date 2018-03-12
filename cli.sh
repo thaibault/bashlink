@@ -113,7 +113,7 @@ bl_cli_glyph_available_in_font() {
     else
         return 1
     fi
-    return $?
+    return 0
 }
 alias bl.cli.disable_color=bl_cli_disable_color
 bl_cli_disable_color() {
