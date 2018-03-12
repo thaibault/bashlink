@@ -93,17 +93,17 @@ bl_cli_glyph_available_in_font() {
     )"; then
         return 1
     fi
-    hash fc-match || \
+    hash fc-match &>/dev/null || \
         return 1
     local font_file_name="$(fc-match "$current_font" | cut -d: -f1)"
     local font_file_extension="${font_file_name##*.}"
     if [ "$font_file_extension" = otf ]; then
-        hash otfinfo || \
+        hash otfinfo &>/dev/null || \
             return 1
         otfinfo /usr/share/fonts/OTF/Hack-Regular.otf -u | \
             command grep -i uni27a1
     elif [ "$font_file_extension" = ttf ]; then
-        hash ttfdump || \
+        hash ttfdump &>/dev/null || \
             return 1
         ttfdump -t cmap /usr/share/fonts/TTF/Hack-Regular.ttf 2>/dev/null | \
             command grep 'Char 0x27a1'
