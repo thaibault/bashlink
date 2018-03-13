@@ -88,44 +88,38 @@ bl_changeroot_with_kernel_api() {
     if [[ ! "$new_root_location" =~ .*/$ ]]; then
         new_root_location+='/'
     fi
+    local created_locations=()
+    local mounted_locations=()
     local mountpoint_path
     for mountpoint_path in "${bl_changeroot_kernel_api_locations[@]}"; do
-        mountpoint_path="${mountpoint_path:1}"
-        # TODO fix
-        #./build-initramfs.sh -d -p ../../initramfs -s -t /mnt/old
-        #mkdir: cannot create directory ‘/mnt/old/sys/firmware/efi’: No such file or directory
-        #Traceback (most recent call first):
-        #[0] /srv/openslx-ng/systemd-init/builder/dnbd3-rootfs/scripts/rebash/changeroot.sh:67: bl_changeroot_with_kernel_api
-        #[1] /srv/openslx-ng/systemd-init/builder/dnbd3-rootfs/scripts/rebash/changeroot.sh:28: bl_changeroot
-        #[2] ./build-initramfs.sh:532: main
-        #[3] ./build-initramfs.sh:625: main
+        mountpoint_path="${mountpoint_path#/}"
         if [ ! -e "${new_root_location}${mountpoint_path}" ]; then
             mkdir --parents "${new_root_location}${mountpoint_path}"
-            # TODO remember created dirs.
+            created_locations+=("${new_root_location}${mountpoint_path}")
         fi
         if ! mountpoint -q "${new_root_location}${mountpoint_path}"; then
-            if [ "$mountpoint_path" == 'proc' ]; then
+            if [ "$mountpoint_path" = proc ]; then
                 mount "/${mountpoint_path}" \
                     "${new_root_location}${mountpoint_path}" --types \
                     "$mountpoint_path" --options nosuid,noexec,nodev
-            elif [ "$mountpoint_path" == 'sys' ]; then
+            elif [ "$mountpoint_path" = sys ]; then
                 mount "/${mountpoint_path}" \
                     "${new_root_location}${mountpoint_path}" --types sysfs \
                     --options nosuid,noexec,nodev
-            elif [ "$mountpoint_path" == 'dev' ]; then
+            elif [ "$mountpoint_path" = dev ]; then
                 mount udev "${new_root_location}${mountpoint_path}" --types \
                     devtmpfs --options mode=0755,nosuid
-            elif [ "$mountpoint_path" == 'dev/pts' ]; then
+            elif [ "$mountpoint_path" = 'dev/pts' ]; then
                 mount devpts "${new_root_location}${mountpoint_path}" \
                     --types devpts --options mode=0620,gid=5,nosuid,noexec
-            elif [ "$mountpoint_path" == 'dev/shm' ]; then
+            elif [ "$mountpoint_path" = 'dev/shm' ]; then
                 mount shm "${new_root_location}${mountpoint_path}" --types \
                     tmpfs --options mode=1777,nosuid,nodev
-            elif [ "$mountpoint_path" == 'run' ]; then
+            elif [ "$mountpoint_path" = run ]; then
                 mount "/${mountpoint_path}" \
                     "${new_root_location}${mountpoint_path}" --types tmpfs \
                     --options nosuid,nodev,mode=0755
-            elif [ "$mountpoint_path" == 'tmp' ]; then
+            elif [ "$mountpoint_path" = tmp ]; then
                 mount run "${new_root_location}${mountpoint_path}" --types \
                     tmpfs --options mode=1777,strictatime,nodev,nosuid
             elif [ -f "/${mountpoint_path}" ]; then
@@ -134,16 +128,15 @@ bl_changeroot_with_kernel_api() {
             else
                 bl.logging.warn \
                     "Mountpoint \"/${mountpoint_path}\" couldn't be handled."
+                continue
             fi
+            mounted_locations+=("$mountpoint_path")
         fi
     done
     local return_code=0
     bl.changeroot.with_fake_fallback "$@" || \
         return_code=$?
-    for mountpoint_path in $(
-        bl.array.reverse "${bl_changeroot_kernel_api_locations[*]}"
-    ); do
-        mountpoint_path="${mountpoint_path:1}" && \
+    for mountpoint_path in $(bl.array.reverse "${mounted_locations[*]}"); do
         if mountpoint -q "${new_root_location}${mountpoint_path}" || \
             [ -f "/${mountpoint_path}" ]
         then
@@ -159,11 +152,16 @@ bl_changeroot_with_kernel_api() {
             # NOTE: "return_code" remains with an error code if there was
             # given one in all iterations.
             # shellcheck disable=SC2181
-            [[ $? != 0 ]] && return_code=$?
+            [[ $? != 0 ]] && \
+                return_code=$?
         else
             bl.logging.warn \
                 "Location \"${new_root_location}${mountpoint_path}\" should be a mountpoint but isn't."
         fi
+    done
+    local created_location
+    for created_location in $(bl.array.reverse "${created_locations[*]}"); do
+        rm --force --recursive "$created_location"
     done
     return $return_code
 }
