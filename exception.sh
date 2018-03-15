@@ -82,10 +82,12 @@ bl_exception__documentation__='
     >>>     } bl.exception.catch {
     >>>         echo caught
     >>>     }
-    >>>     echo should not be printed
+    >>>     echo this should be printed
     >>> }
     >>> bl_exception_foo || echo info
-    caught
+    +bl.doctest.contains
+    Error: Context does not allow error traps.
+    this should be printed
 
     exception are implicitly active inside try blocks:
 
@@ -185,6 +187,44 @@ bl_exception_last_traceback_file_path=''
 declare -ig bl_exception_try_catch_level=0
 # endregion
 # region functions
+alias bl.exception.check_context=bl_exception_check_context
+bl_exception_check_context() {
+    local __documentation__='
+        Tests if context allows error traps.
+
+        `set -e` and `ERR traps` are prevented from working in a subprocess
+        if it is disabled by the surrounding context due to a chained
+        conditional like `( ...  ) || echo Warning ...`.
+
+        >>> bl.exception.activate
+        >>> _() {
+        >>>     bl.exception.try {
+        >>>         false
+        >>>     } bl.exception.catch {
+        >>>         # NOTE: This is not caught because of the `||` in the
+        >>>         # surrounding context.
+        >>>         echo caught
+        >>>     }
+        >>>     false
+        >>>     echo this should not be executed
+        >>> }
+        >>> _ || echo "error in exceptions_foo"
+        +bl.doctest.contains
+        Error: Context does not allow error traps.
+        this should not be executed
+    '
+    (
+        test_context_pass=false
+        set -o errtrace
+        trap 'test_context_pass=true' ERR
+        false
+        $test_context_pass && \
+            exit 0
+        exit 1
+    )
+    return $?
+}
+# Depends on "bl.exception.check_context"
 alias bl.exception.activate=bl_exception_activate
 bl_exception_activate() {
     local __documentation__='
@@ -199,8 +239,14 @@ bl_exception_activate() {
         bl_exception_error_handler
         echo $activate
     '
-    $bl_exception_active && return 0
-
+    if [[ "$1" != true ]]; then
+        bl.exception.check_context
+        [ $? = 1 ] && \
+            bl.logging.error_exception \
+                "Error: Context does not allow error traps."
+    fi
+    $bl_exception_active && \
+        return 0
     bl_exception_errtrace_saved=$(set -o | awk '/errtrace/ {print $2}')
     bl_exception_pipefail_saved=$(set -o | awk '/pipefail/ {print $2}')
     bl_exception_functrace_saved=$(set -o | awk '/functrace/ {print $2}')
@@ -335,12 +381,13 @@ bl_exception_exit_try() {
     local bl_exception_result=$1
     (( bl_exception_try_catch_level-- ))
     if (( bl_exception_try_catch_level == 0 )); then
-        $bl_exception_active_before_try && bl.exception.activate
+        $bl_exception_active_before_try && \
+            bl.exception.activate true
         bl_exception_last_traceback="$(
             cat "$bl_exception_last_traceback_file_path")"
         rm "$bl_exception_last_traceback_file_path"
     else
-        bl.exception.activate
+        bl.exception.activate true
     fi
     # shellcheck disable=SC2086
     return $bl_exception_result
