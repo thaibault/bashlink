@@ -59,6 +59,9 @@ bl_number_normalize_version() {
 
         >>> bl.number.normalize_version 0 10
         0
+
+        >>> bl.number.normalize_version abc-0.1.1.0.1 6
+        11010
     '
     local items
     IFS='.' read -ra items <<< "$(
