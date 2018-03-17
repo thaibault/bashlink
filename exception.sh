@@ -17,6 +17,15 @@ bl.module.import bashlink.logging
 # endregion
 # region variables
 bl_exception__documentation__='
+    >>> _() {
+    >>>    bl.exception.try {
+    >>>        echo $1
+    >>>    } bl.exception.catch
+    >>>        true
+    >>> }
+    >>> _ 2
+    2
+
     >>> local a=2
     >>> bl.exception.try {
     >>>     a=3
@@ -379,7 +388,7 @@ bl_exception_exit_try() {
 
         >>> bl.exception.try {
         >>>     false
-        >>> }; return 0; }; bl_exception_try_wrapper; bl.exception.exit_try $? || {
+        >>> }; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || {
         >>>     echo caught
         >>> }
         caught
@@ -402,8 +411,8 @@ bl_exception_exit_try() {
     return $bl_exception_result
 }
 alias bl.exception.try='bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; '
-alias bl.exception.catch='; return 0; }; bl_exception_try_wrapper; bl.exception.exit_try $? || '
-alias bl.exception.catch_single='return 0; }; bl_exception_try_wrapper; bl.exception.exit_try $? || '
+alias bl.exception.catch='; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || '
+alias bl.exception.catch_single='return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || '
 # endregion
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
