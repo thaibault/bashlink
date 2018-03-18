@@ -74,5 +74,5 @@
     "update": "npm version patch && npm publish",
     "update:documentation": "documentationWebsite --log-level info"
   },
-  "version": "1.0.83"
+  "version": "1.0.84"
 }
