@@ -411,7 +411,9 @@ bl_exception_exit_try() {
     return $bl_exception_result
 }
 alias bl.exception.try='bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; '
+# shellcheck disable=SC2142
 alias bl.exception.catch='; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || '
+# shellcheck disable=SC2142
 alias bl.exception.catch_single='return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || '
 # endregion
 # region vim modline
