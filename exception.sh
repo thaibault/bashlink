@@ -101,7 +101,10 @@ bl_exception__documentation__='
     >>> }
     >>> bl_exception_foo || echo info
     +bl.doctest.contains
+    +bl.doctest.multiline_ellipsis
     Error: Context does not allow error traps.
+    Traceback (most recent call first):
+    ...
     this should be printed
 
     exception are implicitly active inside try blocks:
@@ -225,11 +228,14 @@ bl_exception_check_context() {
         >>> }
         >>> _ || echo "error in exceptions_foo"
         +bl.doctest.contains
+        +bl.doctest.multiline_ellipsis
         Error: Context does not allow error traps.
+        Traceback (most recent call first):
+        ...
         this should not be executed
     '
     (
-        test_context_pass=false
+        local test_context_pass=false
         set -o errtrace
         trap 'test_context_pass=true' ERR
         false
@@ -256,9 +262,22 @@ bl_exception_activate() {
     '
     if [[ "$1" != true ]]; then
         bl.exception.check_context
-        [ $? = 1 ] && \
-            bl.logging.error_exception \
-                "Error: Context does not allow error traps."
+        if [ $? = 1 ]; then
+            # NOTE: We should call exception trap logic by hand in this case.
+            bl_exception_error_handler true
+            local message='Error: Context does not allow error traps.'
+            if [ -f "$bl_exception_last_traceback_file_path" ]; then
+                bl_exception_last_traceback="$(
+                    cat "$bl_exception_last_traceback_file_path")"
+                rm "$bl_exception_last_traceback_file_path"
+                bl.logging.error_exception \
+                    "$message" \
+                    $'\n' \
+                    "$bl_exception_last_traceback"
+            else
+                bl.logging.error_exception "$message"
+            fi
+        fi
     fi
     $bl_exception_active && \
         return 0
@@ -363,6 +382,7 @@ bl_exception_error_handler() {
         Traceback (most recent call first):
         ...
     '
+    local do_not_throw="$1"
     local traceback='Traceback (most recent call first):'
     local -i index=0
     while caller $index > /dev/null; do
@@ -374,7 +394,8 @@ bl_exception_error_handler() {
         traceback="${traceback}\n[$index] ${filename}:${line}: ${subroutine}"
         (( index++ ))
     done
-    if (( bl_exception_try_catch_level == 0 )); then
+    if (( bl_exception_try_catch_level == 0 )) && [ "$do_not_throw" != true ]
+    then
         bl.logging.error "$traceback"
     else
         echo "$traceback" >"$bl_exception_last_traceback_file_path"
@@ -401,9 +422,14 @@ bl_exception_exit_try() {
         else
             bl.exception.deactivate
         fi
-        bl_exception_last_traceback="$(
-            cat "$bl_exception_last_traceback_file_path")"
-        rm "$bl_exception_last_traceback_file_path"
+        if [ -f "$bl_exception_last_traceback_file_path" ]; then
+            bl_exception_last_traceback="$(
+                cat "$bl_exception_last_traceback_file_path")"
+            rm "$bl_exception_last_traceback_file_path"
+        else
+            bl.logging.warn \
+                "Tracback file under \"$bl_exception_last_traceback_file_path\" is missing."
+        fi
     else
         bl.exception.activate true
     fi
