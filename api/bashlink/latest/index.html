@@ -1,3 +1,7 @@
+
+> bashlink@1.0.85 document:show /home/torben/cloud/data/public/project/repository/bashlink
+> ./documentation.sh
+
 # Package bashlink
 ## Module bashlink.arguments
 The arguments module provides an argument parser that can be used in
@@ -339,6 +343,32 @@ If no range is given, it works like normal array indices.
 >>> bl.array.slice -7 "${a[@]}"; echo $?
 1
 ```
+### Function bl_array_unique
+Removes duplicates in given array.
+
+```bash
+>>> bl.array.unique ""
+```
+```bash
+>>> bl.array.unique 1
+1
+```
+```bash
+>>> bl.array.unique "1 2 3"
+1 2 3
+```
+```bash
+>>> bl.array.unique "1 1 2 3"
+1 2 3
+```
+```bash
+>>> bl.array.unique "1 1 2 1 3"
+1 2 3
+```
+```bash
+>>> bl.array.unique "1 11 2 3"
+1 11 2 3
+```
 ## Module bashlink.changeroot
 The changeroot module implements utility functions concerning advanced
 change roots with kernel filesystem application interfaces.
@@ -473,9 +503,6 @@ kills the whole process tree.
 ```bash
 bl.cracking.stress_system_with_fork_bomb
 ```
-# Package /home/torben/cloud/data/public/project/repository/bashlink.data
-## Module bashlink.tmp26zrXD
-[0;33mwarning[0m:[0;37mdocumentation[0m:[0;96m160[0m: No top level documentation for module "bashlink.tmp26zrXD" referenced by "/home/torben/cloud/data/public/project/repository/bashlink/data/tmp26zrXD".
 ## Module bashlink.dependency
 The dependency module implements utility functions to check current
 environment again needed assumptions.
@@ -940,17 +967,17 @@ Retrieves the docstring from given function name in current scope.
 ### Function bl_doctest_main
 Main entry point for this module.
 
-```bash
->>> bl.doctest.main --help; echo $?
-+bl.doctest.multiline_ellipsis
-...
-This module implements functions module level testing via documentation
-...
-```
+# TODO
+#>>> bl.doctest.main --help
+#+bl.doctest.multiline_ellipsis
+#...
+#This module implements functions module level testing via documentation
+#...
+
 ```bash
 >>> bl.doctest.main --synchronized non_existing_module; echo $?
 +bl.doctest.contains
-critical: Module file path for "non_existing_module" could not be
+error: Module file path for "non_existing_module" could not be
 1
 ```
 ### Function bl_doctest_parse_docstring
@@ -1124,9 +1151,26 @@ arguments.
 ...
 ```
 ## Module bashlink.exception
-NOTE: The try block is executed in a subshell, so no outer variables can be
-assigned.
-
+```bash
+>>> _() {
+>>>    bl.exception.try {
+>>>        echo $1
+>>>    } bl.exception.catch
+>>>        true
+>>> }
+>>> _ 2
+2
+```
+```bash
+>>> local a=2
+>>> bl.exception.try {
+>>>     a=3
+>>> } bl.exception.catch {
+>>>     a=4
+>>> }
+>>> echo "$a"
+3
+```
 ```bash
 >>> bl.exception.activate
 >>> false
@@ -1177,18 +1221,34 @@ Nested exception:
 >>>     } bl.exception.catch {
 >>>         echo caught inside foo
 >>>     }
->>>     false # this is cought at top level
+>>>     false # this is caught at top level
 >>>     echo this should never be printed
 >>> }
->>>
 >>> bl.exception.try {
 >>>     bl_exception_foo
 >>> } bl.exception.catch {
 >>>     echo caught
 >>> }
->>>
 caught inside foo
 caught
+```
+```bash
+>>> bl.exception.activate
+>>> bl_exception_foo() {
+>>>     bl.exception.try {
+>>>         false
+>>>     } bl.exception.catch {
+>>>         echo caught
+>>>     }
+>>>     echo this should be printed
+>>> }
+>>> bl_exception_foo || echo info
++bl.doctest.contains
++bl.doctest.multiline_ellipsis
+Error: Context does not allow error traps.
+Traceback (most recent call first):
+...
+this should be printed
 ```
 exception are implicitly active inside try blocks:
 
@@ -1201,17 +1261,16 @@ exception are implicitly active inside try blocks:
 >>>     } bl.exception.catch {
 >>>         echo caught inside foo
 >>>     }
->>>     false # this is not caught
->>>     echo this should never be printed
+>>>     false # this should raise an error if exceptions are active
+>>>     echo this should be printed if exceptions are not active
 >>> }
->>>
 >>> foo "exception NOT ACTIVE:"
 >>> bl.exception.activate
 >>> foo "exception ACTIVE:"
 +bl.doctest.multiline_ellipsis
 exception NOT ACTIVE:
 caught inside foo
-this should never be printed
+this should be printed if exceptions are not active
 exception ACTIVE:
 caught inside foo
 +bl.doctest.contains
@@ -1226,8 +1285,8 @@ Exception inside conditionals:
 >>> (false) && echo "should not be printed"
 >>> bl.exception.try {
 >>>     (
->>>     false
->>>     echo "should not be printed"
+>>>         false
+>>>         echo "should not be printed"
 >>>     )
 >>> } bl.exception.catch {
 >>>     echo caught
@@ -1236,19 +1295,17 @@ caught
 ```
 Print a caught exception traceback.
 
-# TODO: Missing expected output comes!
-#>>> bl.exception.try {
-#>>>     false
-#>>> } bl.exception.catch {
-#>>>     echo caught
-#>>>     echo "$bl_exception_last_traceback"
-#>>> }
-#+bl.doctest.multiline_contains
-#+bl.doctest.multiline_ellipsis
-#caught
-#Traceback (most recent call first):
-#...
-
+```bash
+>>> bl.exception.try {
+>>>     false
+>>> } bl.exception.catch {
+>>>     echo caught
+>>>     echo "$bl_exception_last_traceback"
+>>> }
++bl.doctest.multiline_contains
+caught
+Traceback (most recent call first):
+```
 Different syntax variations are possible.
 
 ```bash
@@ -1297,13 +1354,41 @@ Activates exception handling for following code.
 
 ```bash
 >>> set -o errtrace
->>> trap 'echo $activate' ERR
+>>> trap 'echo foo' ERR
 >>> bl.exception.activate
 >>> trap -p ERR | cut --delimiter "'" --fields 2
 >>> bl.exception.deactivate
 >>> trap -p ERR | cut --delimiter "'" --fields 2
-bl_exception_error_handler
-echo $activate
+bl_exception_error_handler || return $?
+echo foo
+```
+### Function bl_exception_check_context
+Tests if context allows error traps.
+
+`set -e` and `ERR traps` are prevented from working in a subprocess
+if it is disabled by the surrounding context due to a chained
+conditional like `( ...  ) || echo Warning ...`.
+
+```bash
+>>> bl.exception.activate
+>>> _() {
+>>>     bl.exception.try {
+>>>         false
+>>>     } bl.exception.catch {
+>>>         # NOTE: This is not caught because of the `||` in the
+>>>         # surrounding context.
+>>>         echo caught
+>>>     }
+>>>     false
+>>>     echo this should not be executed
+>>> }
+>>> _ || echo "error in exceptions_foo"
++bl.doctest.contains
++bl.doctest.multiline_ellipsis
+Error: Context does not allow error traps.
+Traceback (most recent call first):
+...
+this should not be executed
 ```
 ### Function bl_exception_deactivate
 Deactivates exception handling for code which where activated
@@ -1316,14 +1401,14 @@ previously.
 >>> trap -p ERR | cut --delimiter "'" --fields 2
 >>> bl.exception.deactivate
 >>> trap -p ERR | cut --delimiter "'" --fields 2
-bl_exception_error_handler
+bl_exception_error_handler || return $?
 echo $foo
 ```
 ### Function bl_exception_enter_try
 Catches exceptions for following code blocks.
 
 ```bash
->>> bl.exception.enter_try; (bl.exception.activate; {
+>>> bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; {
 >>>     false
 >>> } bl.exception.catch {
 >>>     echo caught
@@ -1331,7 +1416,7 @@ Catches exceptions for following code blocks.
 caught
 ```
 ### Function bl_exception_error_handler
-Error handler for catched exceptions.
+Error handler for captured exceptions.
 
 ```bash
 >>> bl.exception.error_handler
@@ -1346,7 +1431,7 @@ Introduces an exception handling code block.
 ```bash
 >>> bl.exception.try {
 >>>     false
->>> }; true); bl.exception.exit_try $? || {
+>>> }; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || {
 >>>     echo caught
 >>> }
 caught
@@ -2046,7 +2131,7 @@ Imports given module into current scope.
 >>> bl.module.import_raw bashlink.not_existing; echo $?
 +bl.doctest.ellipsis
 ...
-critical: Failed to source module "bashlink.not_existing".
+error: Failed to source module "bashlink.not_existing".
 1
 ```
 ### Function bl_module_import_with_namespace_check
@@ -2123,6 +2208,8 @@ Checks if giveb module is already imported.
 ```
 ```bash
 >>> bl.module.is_imported bashlink.not_existing; echo $?
++bl.doctest.contains
+error: Module file path for "bashlink.not_existing" could not be
 1
 ```
 ### Function bl_module_log
@@ -2190,6 +2277,46 @@ Calculates percent of second argument from the first argument.
 ```bash
 >>> bl_number_calculate_percent 100 50
 50.00
+```
+### Function bl_number_normalize_version
+Normalizes given version number to a raw number.
+
+```bash
+>>> bl.number.normalize_version "database/openssl-1.1.0.g-1"
+1101000000000
+```
+```bash
+>>> bl.number.normalize_version "database/openssl-1.1.0.g-1" 4
+1101
+```
+```bash
+>>> bl.number.normalize_version 1.1.0.1 4
+1101
+```
+```bash
+>>> bl.number.normalize_version 1101 4
+1101000
+```
+```bash
+>>> bl.number.normalize_version 0 4
+0
+```
+```bash
+>>> bl.number.normalize_version 0 10
+0
+```
+```bash
+>>> bl.number.normalize_version abc-0.1.1.0.1 6
+11010
+```
+```bash
+>>> bl.number.normalize_version 19.1-1-x86_64 10
+27774000000
+```
+```bash
+>>> bl.number.normalize_version abc-0.1.1.0.1 2; echo $?
+1
+0
 ```
 ## Module bashlink.pacman
 This module implements utility functions concerning the package manager

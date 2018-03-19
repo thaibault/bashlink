@@ -54,8 +54,20 @@ bl_module_declared_function_names_after_source=''
 bl_module_declared_function_names_before_source_file_path=''
 bl_module_declared_names_after_source=''
 bl_module_declared_names_before_source_file_path=''
-bl_module_directory_names_to_ignore=(apiDocumentation documentation mockup node_modules test)
-bl_module_file_names_to_ignore=(package.json package-lock.json PKGBUILD readme.md)
+bl_module_directory_names_to_ignore=(
+    apiDocumentation
+    data
+    documentation
+    mockup
+    node_modules
+    test
+)
+bl_module_file_names_to_ignore=(
+    package.json
+    package-lock.json
+    PKGBUILD
+    readme.md
+)
 bl_module_import_level=0
 bl_module_imported=(
     "$(bl.path.convert_to_absolute "${BASH_SOURCE[0]}")"
@@ -208,6 +220,8 @@ bl_module_is_imported() {
         0
 
         >>> bl.module.is_imported bashlink.not_existing; echo $?
+        +bl.doctest.contains
+        error: Module file path for "bashlink.not_existing" could not be
         1
     '
     local caller_file_path="${BASH_SOURCE[1]}"
@@ -218,7 +232,7 @@ bl_module_is_imported() {
     # Check if module already loaded.
     local loaded_module
     for loaded_module in "${bl_module_imported[@]}"; do
-        if [[ "$loaded_module" == "$file_path" ]]; then
+        if [[ "$loaded_module" = "$file_path" ]]; then
             return 0
         fi
     done
@@ -248,14 +262,27 @@ bl_module_log() {
         info: test
     '
     if hash bl.logging.log &>/dev/null; then
-        bl.logging.log "$@"
+        bl.logging.log "$@" ||
+            return $?
     elif [[ "$2" != '' ]]; then
         local level=$1
         shift
+        local exception=false
         if [ "$level" = warn ]; then
             level=warning
+        elif [ "$level" = error_exception ]; then
+            exception=true
+            level=error
         fi
-        bl.module.log_plain "${level}: $*"
+        if [ "$level" = error ]; then
+            bl.module.log_plain "${level}:" "$@" \
+                1>&2 \
+                3>&4
+        else
+            bl.module.log_plain "${level}: $*"
+        fi
+        $exception && \
+            return 1
     else
         bl.module.log_plain "info: $*"
     fi
@@ -269,7 +296,7 @@ bl_module_import_raw() {
         >>> bl.module.import_raw bashlink.not_existing; echo $?
         +bl.doctest.ellipsis
         ...
-        critical: Failed to source module "bashlink.not_existing".
+        error: Failed to source module "bashlink.not_existing".
         1
     '
     bl_module_import_level=$((bl_module_import_level + 1))
@@ -280,9 +307,9 @@ bl_module_import_raw() {
     if $bl_module_tidy_up && [[ "$1" == "$bl_module_remote_module_cache_path"* ]]; then
         rm "$1"
     fi
-    if (( return_code == 1 )); then
-        bl.module.log critical "Failed to source module \"$1\"."
-        return 1
+    if (( return_code != 0 )); then
+        bl.module.log error_exception "Failed to source module \"$1\"." ||
+            return $?
     fi
     bl_module_import_level=$((bl_module_import_level - 1))
 }
@@ -637,12 +664,12 @@ bl_module_resolve() {
     done
     if [ "$file_path" = '' ]; then
         bl.module.log \
-            critical \
+            error_exception \
             "Module file path for \"$1\" could not be resolved for" \
             "\"${BASH_SOURCE[1]}\" in \"$caller_path\", \"$execution_path\"" \
             "or \"$current_path\" for one of the file extension:" \
-            "${extension_description}."
-        return 1
+            "${extension_description}." || \
+                return $?
     fi
     file_path="$(bl.path.convert_to_absolute "$file_path")"
     if [ "$2" = true ]; then
