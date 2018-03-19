@@ -57,22 +57,25 @@ bl_cli_color_white=''
 bl_cli_color_yellow=''
 ## endregion
 ## region unicode glyphs
+# NOTE: Each fall-back symbol should only consist of one character. To allow
+# interactive shell integration (with fixed number of printed characters to
+# replace).
 bl_cli_powerline_arrow_down='_'
 bl_cli_powerline_arrow_left='<'
 bl_cli_powerline_arrow_right='>'
 bl_cli_powerline_arrow_right_down='>'
-bl_cli_powerline_branch='|}'
-bl_cli_powerline_cog='{*}'
+bl_cli_powerline_branch='}'
+bl_cli_powerline_cog='*'
 bl_cli_powerline_fail='x'
-bl_cli_powerline_heart='<3'
+bl_cli_powerline_heart='3'
 bl_cli_powerline_lightning='!'
 bl_cli_powerline_ok='+'
 bl_cli_powerline_pointingarrow='~'
-bl_cli_powerline_plusminus='+-'
+bl_cli_powerline_plusminus='x'
 bl_cli_powerline_refersto='*'
 bl_cli_powerline_star='*'
-bl_cli_powerline_saxophone='(yeah)'
-bl_cli_powerline_thumbsup='(ok)'
+bl_cli_powerline_saxophone='y'
+bl_cli_powerline_thumbsup='+'
 ## endregion
 # NOTE: Use 'xfd -fa <font-name>' to watch glyphs.
 bl_cli_unicode_enabled=false
@@ -93,21 +96,24 @@ bl_cli_glyph_available_in_font() {
     )"; then
         return 1
     fi
+    hash fc-match &>/dev/null || \
+        return 1
     local font_file_name="$(fc-match "$current_font" | cut -d: -f1)"
-    #font_path=$(fc-list "$current_font" | command grep "$font_file_name" | cut -d: -f1)
     local font_file_extension="${font_file_name##*.}"
-    # Alternative or to be sure
-    #font_path=$(lsof -p $(ps -o ppid= -p $$) | command grep fonts)
     if [ "$font_file_extension" = otf ]; then
+        hash otfinfo &>/dev/null || \
+            return 1
         otfinfo /usr/share/fonts/OTF/Hack-Regular.otf -u | \
             command grep -i uni27a1
     elif [ "$font_file_extension" = ttf ]; then
+        hash ttfdump &>/dev/null || \
+            return 1
         ttfdump -t cmap /usr/share/fonts/TTF/Hack-Regular.ttf 2>/dev/null | \
             command grep 'Char 0x27a1'
     else
         return 1
     fi
-    return $?
+    return 0
 }
 alias bl.cli.disable_color=bl_cli_disable_color
 bl_cli_disable_color() {
@@ -232,7 +238,10 @@ bl_cli_disable_unicode_glyphs() {
         saxophone \
         thumbsup
     do
-        eval "bl_cli_powerline_${name}=\"\$bl_cli_powerline_${name}_backup\""
+        if [[ "$(eval "echo \"\$bl_cli_powerline_${name}_backup\"")" != '' ]]; then
+            eval \
+                "bl_cli_powerline_${name}=\"\$bl_cli_powerline_${name}_backup\""
+        fi
     done
 }
 alias bl.cli.enable_unicode_glyphs=bl_cli_enable_unicode_glyphs
@@ -298,9 +307,9 @@ else
     bl_cli_disable_color
 fi
 # TODO this breaks dracut (segfault)
-#(bl.module.log_plain -e $'\u1F3B7' | command grep -v F3B7) &> /dev/null
+#(echo -e $'\u1F3B7' | command grep -v F3B7) &> /dev/null
 # NOTE: "bl.tools.is_defined" results in an dependency cycle.
-if bl.module.is_defined NO_UNICODE; then
+if bl.module.is_defined NO_UNICODE || ! bl.cli.glyph_available_in_font; then
     bl.cli.disable_unicode_glyphs
 else
     bl.cli.enable_unicode_glyphs

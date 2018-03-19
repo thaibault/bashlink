@@ -17,8 +17,23 @@ bl.module.import bashlink.logging
 # endregion
 # region variables
 bl_exception__documentation__='
-    NOTE: The try block is executed in a subshell, so no outer variables can be
-    assigned.
+    >>> _() {
+    >>>    bl.exception.try {
+    >>>        echo $1
+    >>>    } bl.exception.catch
+    >>>        true
+    >>> }
+    >>> _ 2
+    2
+
+    >>> local a=2
+    >>> bl.exception.try {
+    >>>     a=3
+    >>> } bl.exception.catch {
+    >>>     a=4
+    >>> }
+    >>> echo "$a"
+    3
 
     >>> bl.exception.activate
     >>> false
@@ -64,18 +79,33 @@ bl_exception__documentation__='
     >>>     } bl.exception.catch {
     >>>         echo caught inside foo
     >>>     }
-    >>>     false # this is cought at top level
+    >>>     false # this is caught at top level
     >>>     echo this should never be printed
     >>> }
-    >>>
     >>> bl.exception.try {
     >>>     bl_exception_foo
     >>> } bl.exception.catch {
     >>>     echo caught
     >>> }
-    >>>
     caught inside foo
     caught
+
+    >>> bl.exception.activate
+    >>> bl_exception_foo() {
+    >>>     bl.exception.try {
+    >>>         false
+    >>>     } bl.exception.catch {
+    >>>         echo caught
+    >>>     }
+    >>>     echo this should be printed
+    >>> }
+    >>> bl_exception_foo || echo info
+    +bl.doctest.contains
+    +bl.doctest.multiline_ellipsis
+    Error: Context does not allow error traps.
+    Traceback (most recent call first):
+    ...
+    this should be printed
 
     exception are implicitly active inside try blocks:
 
@@ -87,17 +117,16 @@ bl_exception__documentation__='
     >>>     } bl.exception.catch {
     >>>         echo caught inside foo
     >>>     }
-    >>>     false # this is not caught
-    >>>     echo this should never be printed
+    >>>     false # this should raise an error if exceptions are active
+    >>>     echo this should be printed if exceptions are not active
     >>> }
-    >>>
     >>> foo "exception NOT ACTIVE:"
     >>> bl.exception.activate
     >>> foo "exception ACTIVE:"
     +bl.doctest.multiline_ellipsis
     exception NOT ACTIVE:
     caught inside foo
-    this should never be printed
+    this should be printed if exceptions are not active
     exception ACTIVE:
     caught inside foo
     +bl.doctest.contains
@@ -111,8 +140,8 @@ bl_exception__documentation__='
     >>> (false) && echo "should not be printed"
     >>> bl.exception.try {
     >>>     (
-    >>>     false
-    >>>     echo "should not be printed"
+    >>>         false
+    >>>         echo "should not be printed"
     >>>     )
     >>> } bl.exception.catch {
     >>>     echo caught
@@ -121,18 +150,15 @@ bl_exception__documentation__='
 
     Print a caught exception traceback.
 
-    # TODO: Missing expected output comes!
-    #>>> bl.exception.try {
-    #>>>     false
-    #>>> } bl.exception.catch {
-    #>>>     echo caught
-    #>>>     echo "$bl_exception_last_traceback"
-    #>>> }
-    #+bl.doctest.multiline_contains
-    #+bl.doctest.multiline_ellipsis
-    #caught
-    #Traceback (most recent call first):
-    #...
+    >>> bl.exception.try {
+    >>>     false
+    >>> } bl.exception.catch {
+    >>>     echo caught
+    >>>     echo "$bl_exception_last_traceback"
+    >>> }
+    +bl.doctest.multiline_contains
+    caught
+    Traceback (most recent call first):
 
     Different syntax variations are possible.
 
@@ -179,22 +205,82 @@ bl_exception_last_traceback_file_path=''
 declare -ig bl_exception_try_catch_level=0
 # endregion
 # region functions
+alias bl.exception.check_context=bl_exception_check_context
+bl_exception_check_context() {
+    local __documentation__='
+        Tests if context allows error traps.
+
+        `set -e` and `ERR traps` are prevented from working in a subprocess
+        if it is disabled by the surrounding context due to a chained
+        conditional like `( ...  ) || echo Warning ...`.
+
+        >>> bl.exception.activate
+        >>> _() {
+        >>>     bl.exception.try {
+        >>>         false
+        >>>     } bl.exception.catch {
+        >>>         # NOTE: This is not caught because of the `||` in the
+        >>>         # surrounding context.
+        >>>         echo caught
+        >>>     }
+        >>>     false
+        >>>     echo this should not be executed
+        >>> }
+        >>> _ || echo "error in exceptions_foo"
+        +bl.doctest.contains
+        +bl.doctest.multiline_ellipsis
+        Error: Context does not allow error traps.
+        Traceback (most recent call first):
+        ...
+        this should not be executed
+    '
+    (
+        local test_context_pass=false
+        set -o errtrace
+        trap 'test_context_pass=true' ERR
+        false
+        $test_context_pass && \
+            exit 0
+        exit 1
+    )
+    return $?
+}
+# Depends on "bl.exception.check_context"
 alias bl.exception.activate=bl_exception_activate
 bl_exception_activate() {
     local __documentation__='
         Activates exception handling for following code.
 
         >>> set -o errtrace
-        >>> trap '\''echo $activate'\'' ERR
+        >>> trap '\''echo foo'\'' ERR
         >>> bl.exception.activate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
         >>> bl.exception.deactivate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-        bl_exception_error_handler
-        echo $activate
+        bl_exception_error_handler || return $?
+        echo foo
     '
-    $bl_exception_active && return 0
-
+    if [[ "$1" != true ]]; then
+        bl.exception.check_context
+        if [ $? = 1 ]; then
+            # NOTE: We should call exception trap logic by hand in this case.
+            bl_exception_error_handler true
+            local message='Error: Context does not allow error traps.'
+            if [ -f "$bl_exception_last_traceback_file_path" ]; then
+                bl_exception_last_traceback="$(
+                    cat "$bl_exception_last_traceback_file_path")"
+                rm "$bl_exception_last_traceback_file_path"
+                bl.logging.error_exception \
+                    "$message" \
+                    $'\n' \
+                    "$bl_exception_last_traceback"
+            else
+                bl.logging.error_exception "$message"
+            fi
+        fi
+    fi
+    $bl_exception_active && \
+        return 0
     bl_exception_errtrace_saved=$(set -o | awk '/errtrace/ {print $2}')
     bl_exception_pipefail_saved=$(set -o | awk '/pipefail/ {print $2}')
     bl_exception_functrace_saved=$(set -o | awk '/functrace/ {print $2}')
@@ -235,7 +321,7 @@ bl_exception_activate() {
     # >>> err || echo foo
     # >>> err && echo foo
 
-    trap bl_exception_error_handler ERR
+    trap 'bl_exception_error_handler || return $?' ERR
     #trap bl_exception_debug_handler DEBUG
     #trap bl_exception_exit_handler EXIT
     bl_exception_active=true
@@ -252,13 +338,13 @@ bl_exception_deactivate() {
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
         >>> bl.exception.deactivate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-        bl_exception_error_handler
+        bl_exception_error_handler || return $?
         echo $foo
     '
     $bl_exception_active || return 0
-    [ "$bl_exception_errtrace_saved" = "off" ] && set +o errtrace
-    [ "$bl_exception_pipefail_saved" = "off" ] && set +o pipefail
-    [ "$bl_exception_functrace_saved" = "off" ] && set +o functrace
+    [ "$bl_exception_errtrace_saved" = off ] && set +o errtrace
+    [ "$bl_exception_pipefail_saved" = off ] && set +o pipefail
+    [ "$bl_exception_functrace_saved" = off ] && set +o functrace
     export PS4="$bl_exception_ps4_saved"
     # shellcheck disable=SC2064
     trap "$bl_exception_err_traps" ERR
@@ -269,7 +355,7 @@ bl_exception_enter_try() {
     local __documentation__='
         Catches exceptions for following code blocks.
 
-        >>> bl.exception.enter_try; (bl.exception.activate; {
+        >>> bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; {
         >>>     false
         >>> } bl.exception.catch {
         >>>     echo caught
@@ -288,7 +374,7 @@ alias bl.exception.error_handler=bl_exception_error_handler
 bl_exception_error_handler() {
     local error_code=$?
     local __documentation__='
-        Error handler for catched exceptions.
+        Error handler for captured exceptions.
 
         >>> bl.exception.error_handler
         +bl.doctest.contains
@@ -296,6 +382,7 @@ bl_exception_error_handler() {
         Traceback (most recent call first):
         ...
     '
+    local do_not_throw="$1"
     local traceback='Traceback (most recent call first):'
     local -i index=0
     while caller $index > /dev/null; do
@@ -307,12 +394,13 @@ bl_exception_error_handler() {
         traceback="${traceback}\n[$index] ${filename}:${line}: ${subroutine}"
         (( index++ ))
     done
-    if (( bl_exception_try_catch_level == 0 )); then
+    if (( bl_exception_try_catch_level == 0 )) && [ "$do_not_throw" != true ]
+    then
         bl.logging.error "$traceback"
     else
         echo "$traceback" >"$bl_exception_last_traceback_file_path"
     fi
-    exit $error_code
+    return $error_code
 }
 alias bl.exception.exit_try=bl_exception_exit_try
 bl_exception_exit_try() {
@@ -321,7 +409,7 @@ bl_exception_exit_try() {
 
         >>> bl.exception.try {
         >>>     false
-        >>> }; true); bl.exception.exit_try $? || {
+        >>> }; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || {
         >>>     echo caught
         >>> }
         caught
@@ -329,19 +417,30 @@ bl_exception_exit_try() {
     local bl_exception_result=$1
     (( bl_exception_try_catch_level-- ))
     if (( bl_exception_try_catch_level == 0 )); then
-        $bl_exception_active_before_try && bl.exception.activate
-        bl_exception_last_traceback="$(
-            cat "$bl_exception_last_traceback_file_path")"
-        rm "$bl_exception_last_traceback_file_path"
+        if $bl_exception_active_before_try; then
+            bl.exception.activate true
+        else
+            bl.exception.deactivate
+        fi
+        if [ -f "$bl_exception_last_traceback_file_path" ]; then
+            bl_exception_last_traceback="$(
+                cat "$bl_exception_last_traceback_file_path")"
+            rm "$bl_exception_last_traceback_file_path"
+        else
+            bl.logging.warn \
+                "Tracback file under \"$bl_exception_last_traceback_file_path\" is missing."
+        fi
     else
-        bl.exception.activate
+        bl.exception.activate true
     fi
     # shellcheck disable=SC2086
     return $bl_exception_result
 }
-alias bl.exception.try='bl.exception.enter_try; (bl.exception.activate; '
-alias bl.exception.catch='; true); bl.exception.exit_try $? || '
-alias bl.exception.catch_single='true); bl.exception.exit_try $? || '
+alias bl.exception.try='bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; '
+# shellcheck disable=SC2142
+alias bl.exception.catch='; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || '
+# shellcheck disable=SC2142
+alias bl.exception.catch_single='return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || '
 # endregion
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
