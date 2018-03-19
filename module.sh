@@ -54,8 +54,20 @@ bl_module_declared_function_names_after_source=''
 bl_module_declared_function_names_before_source_file_path=''
 bl_module_declared_names_after_source=''
 bl_module_declared_names_before_source_file_path=''
-bl_module_directory_names_to_ignore=(apiDocumentation documentation mockup node_modules test)
-bl_module_file_names_to_ignore=(package.json package-lock.json PKGBUILD readme.md)
+bl_module_directory_names_to_ignore=(
+    apiDocumentation
+    data
+    documentation
+    mockup
+    node_modules
+    test
+)
+bl_module_file_names_to_ignore=(
+    package.json
+    package-lock.json
+    PKGBUILD
+    readme.md
+)
 bl_module_import_level=0
 bl_module_imported=(
     "$(bl.path.convert_to_absolute "${BASH_SOURCE[0]}")"
