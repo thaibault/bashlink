@@ -64,9 +64,9 @@
   },
   "scripts": {
     "clear": "rm --recursive apiDocumentation &>/dev/null || true",
-    "document": "mkdir --parents apiDocumentation/bashlink/latest && ./documentation.sh bashlink 1>apiDocumentation/bashlink/latest/index.html",
+    "document": "mkdir --parents apiDocumentation/bashlink/latest && npm run document:show 1>apiDocumentation/bashlink/latest/index.html",
     "document:show": "./documentation.sh",
-    "document:show:error": "./documentation.sh bashlink 1>/dev/null",
+    "document:show:error": "./documentation.sh 1>/dev/null",
     "lint": "hash shellcheck && shellcheck -x *.sh || echo Please install \"shellcheck\". || true",
     "lint:given": "shellcheck -x",
     "report:coverage": "true",
