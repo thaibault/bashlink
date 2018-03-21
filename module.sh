@@ -77,7 +77,7 @@ bl_module_imported=(
 bl_module_known_extensions=(.sh '' .zsh .csh .ksh .bash .shell)
 bl_module_tidy_up=false
 if $bl_module_retrieve_remote_modules && [[
-    "${bl_module_remote_module_cache_path:-}" == ''
+    "${bl_module_remote_module_cache_path:-}" = ''
 ]]; then
     bl_module_remote_module_cache_path="$(
         mktemp --directory --suffix -bashlink-module-cache)"
