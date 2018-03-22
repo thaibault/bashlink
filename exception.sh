@@ -414,7 +414,7 @@ bl_exception_exit_try() {
         >>> }
         caught
     '
-    local bl_exception_result=$1
+    local bl_exception_return_code=$1
     (( bl_exception_try_catch_level-- ))
     if (( bl_exception_try_catch_level == 0 )); then
         if $bl_exception_active_before_try; then
@@ -434,7 +434,7 @@ bl_exception_exit_try() {
         bl.exception.activate true
     fi
     # shellcheck disable=SC2086
-    return $bl_exception_result
+    return $bl_exception_return_code
 }
 alias bl.exception.try='bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; '
 # shellcheck disable=SC2142
