@@ -11,9 +11,8 @@
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # Ensure to load module "module" once.
-if [ ${#bl_module_imported[@]} -ne 0 ]; then
+[[ "${#bl_module_imported[@]}" != 0 ]] && \
     return 0
-fi
 # Expand aliases in non interactive shells.
 shopt -s expand_aliases
 if [ "${bl_module_retrieve_remote_modules:-}" = '' ]; then
@@ -31,7 +30,8 @@ if $bl_module_retrieve_remote_modules && ! [[
         if wget "${bl_module_url}/path.sh" \
             -O "$(dirname "${BASH_SOURCE[0]}")/path.sh" --quiet
         then
-            bl_module_tidy_up_path=true
+            [ "${bl_module_remote_module_cache_path:-}" = '' ] && \
+                bl_module_tidy_up_path=true
             break
         fi
     done
@@ -77,7 +77,7 @@ bl_module_imported=(
 bl_module_known_extensions=(.sh '' .zsh .csh .ksh .bash .shell)
 bl_module_tidy_up=false
 if $bl_module_retrieve_remote_modules && [[
-    "${bl_module_remote_module_cache_path:-}" == ''
+    "${bl_module_remote_module_cache_path:-}" = ''
 ]]; then
     bl_module_remote_module_cache_path="$(
         mktemp --directory --suffix -bashlink-module-cache)"
