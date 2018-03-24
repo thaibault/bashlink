@@ -84,7 +84,10 @@ if $bl_module_retrieve_remote_modules && [[
     bl_module_tidy_up=true
 fi
 bl_module_prevent_namespace_check=true
-bl_module_scope_rewrites=('^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/')
+bl_module_scope_rewrites=(
+    '^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/'
+    '[^a-zA-Z0-9._]/./g'
+)
 # endregion
 # region functions
 alias bl.module.check_name=bl_module_check_name
@@ -276,8 +279,7 @@ bl_module_log() {
         fi
         if [ "$level" = error ]; then
             bl.module.log_plain "${level}:" "$@" \
-                1>&2 \
-                3>&4
+                1>&2
         else
             bl.module.log_plain "${level}: $*"
         fi
@@ -449,7 +451,7 @@ bl_module_import() {
         >>> )
         imported module a
         >>> (
-        >>>     bl.module.import bashlink.mockup.a false
+        >>>     bl.module.import bashlink.mockup.a
         >>>     echo $bl_module_declared_function_names_after_source
         >>> )
         imported module a
@@ -457,7 +459,7 @@ bl_module_import() {
         >>> (
         >>>     bl.module.import bashlink.logging
         >>>     bl_logging_set_level warn
-        >>>     bl.module.import bashlink.mockup.c false
+        >>>     bl.module.import bashlink.mockup.c
         >>>     echo $bl_module_declared_function_names_after_source
         >>> )
         +bl.doctest.multiline_contains
@@ -488,14 +490,20 @@ bl_module_import() {
                 local excluded=false
                 local excluded_name
                 for excluded_name in "${bl_module_directory_names_to_ignore[@]}"; do
-                    if [[ -d "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
+                    if \
+                        [ -d "$sub_file_path" ] && \
+                        [ "$excluded_name" = "$(basename "$sub_file_path")" ]
+                    then
                         excluded=true
                         break
                     fi
                 done
                 if ! $excluded; then
                     for excluded_name in "${bl_module_file_names_to_ignore[@]}"; do
-                        if [[ -f "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
+                        if \
+                            [ -f "$sub_file_path" ] && \
+                            [ "$excluded_name" = "$(basename "$sub_file_path")" ]
+                        then
                             excluded=true
                             break
                         fi
@@ -516,7 +524,8 @@ bl_module_import() {
             if $bl_module_prevent_namespace_check; then
                 bl.module.import_raw "$file_path"
             else
-                scope_name="$(bl.module.remove_known_file_extension "$scope_name")"
+                scope_name="$(
+                    bl.module.remove_known_file_extension "$scope_name")"
                 bl.module.import_with_namespace_check \
                     "$file_path" \
                     "$(bl.module.rewrite_scope_name "$scope_name")" \
@@ -555,6 +564,9 @@ bl_module_resolve() {
     local __documentation__='
         Resolves given module reference to its corresponding file path.
 
+        If second parameter is set to "true" resolved scope name will also be
+        printed with a "/" as delimiter.
+
         >>> bl.module.resolve bashlink.module
         +bl.doctest.contains
         /bashlink/module.sh
@@ -562,13 +574,17 @@ bl_module_resolve() {
     local name="$1"
     local caller_path
     bl_module_declared_function_names_after_source=''
-    local current_path="$(dirname "$(dirname "$(bl.path.convert_to_absolute "${BASH_SOURCE[0]}")")")"
+    local current_path="$(dirname "$(dirname "$(
+        bl.path.convert_to_absolute "${BASH_SOURCE[0]}")")")"
     if (( $# == 1 )) || [ "${!#}" = true ] || [ "${!#}" = false ]; then
-        caller_path="$(dirname "$(bl.path.convert_to_absolute "${BASH_SOURCE[1]}")")"
+        caller_path="$(dirname "$(
+            bl.path.convert_to_absolute "${BASH_SOURCE[1]}")")"
     else
         caller_path="$(dirname "$(bl.path.convert_to_absolute "${!#}")")"
     fi
-    local execution_path="$(dirname "$(bl.path.convert_to_absolute "${BASH_SOURCE[-1]}")")"
+    local initial_caller_path="$(dirname "$(
+        bl.path.convert_to_absolute "${BASH_SOURCE[-1]}")")"
+    local execution_path="$(pwd)"
     local file_path=''
     while true; do
         local extension
@@ -580,25 +596,30 @@ bl_module_resolve() {
             extension_description+="\"$extension\""
             # Try absolute file path reference.
             if [[ "$name" = /* ]]; then
-                if [[ -e "${name}${extension}" ]]; then
+                if [ -e "${name}${extension}" ]; then
                     file_path="${name}${extension}"
                     break
                 fi
             else
                 # Try relative to caller file path reference.
-                if [[ -e "${caller_path}/${name}${extension}" ]]; then
+                if [ -e "${caller_path}/${name}${extension}" ]; then
                     file_path="${caller_path}/${name}${extension}"
                     break
                 fi
+                # Try relative to initial caller file path reference.
+                if [[ -e "${initial_caller_path}/${name}${extension}" ]]; then
+                    file_path="${initial_caller_path}/${name}${extension}"
+                    break
+                fi
                 # Try relative to executer file path reference.
-                if [[ -e "${execution_path}/${name}${extension}" ]]; then
+                if [ -e "${execution_path}/${name}${extension}" ]; then
                     file_path="${execution_path}/${name}${extension}"
                     break
                 fi
                 local path
                 # Try locations in "$PATH" listed references.
                 for path in ${PATH//:/ }; do
-                    if [[ -e "${path}/${name}${extension}" ]]; then
+                    if [ -e "${path}/${name}${extension}" ]; then
                         file_path="${path}/${name}${extension}"
                         break
                     fi
@@ -608,7 +629,7 @@ bl_module_resolve() {
                 fi
             fi
             # Try to find module in this library or this whole library itself.
-            if [[ -e "${current_path}/${name}${extension}" ]]; then
+            if [ -e "${current_path}/${name}${extension}" ]; then
                 file_path="${current_path}/${name}${extension}"
                 break
             fi
@@ -618,7 +639,7 @@ bl_module_resolve() {
                     path_candidate="${bl_module_remote_module_cache_path}/${name}${extension}"
                 fi
                 # Try if already downloaded remote module exists.
-                if [[ -e "$path_candidate" ]]; then
+                if [ -e "$path_candidate" ]; then
                     file_path="$path_candidate"
                     break
                 fi
@@ -674,7 +695,8 @@ bl_module_resolve() {
     file_path="$(bl.path.convert_to_absolute "$file_path")"
     if [ "$2" = true ]; then
         local scope_name="$(basename "$1")"
-        if [[ "$file_path" == "$current_path"* ]] && \
+        if \
+            [[ "$file_path" == "$current_path"* ]] && \
             [[ "$(basename "$1")" != bashlink.* ]] && \
             [[ "$(basename "$1")" != bashlink ]]
         then
@@ -712,6 +734,9 @@ bl_module_rewrite_scope_name() {
 
         >>> bl.module.rewrite_scope_name bashlink.module
         bl.module
+
+        >>> bl.module.rewrite_scope_name a-b+a
+        a.b.a
     '
     local resolved_scope_name="$1"
     local rewrite
