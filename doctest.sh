@@ -814,7 +814,7 @@ bl_doctest_run_test() {
 alias bl.doctest.test=bl_doctest_test
 bl_doctest_test() {
     __documentation__='
-        Runs test if give package, module or module function.
+        Runs tests from given package, module or module function.
 
         >>> bl.doctest.test bashlink.doctest bl_doctest_run_test
 
@@ -855,7 +855,7 @@ bl_doctest_test() {
     done
     local success=0
     local total=0
-    if [[ -d "$file_path" ]]; then
+    if [ -d "$file_path" ]; then
         shopt -s nullglob
         local file_paths=(*)
         if [[ ${#file_paths[@]} -gt 1 ]]; then
@@ -974,12 +974,11 @@ bl_doctest_main() {
     local __documentation__='
         Main entry point for this module.
 
-        # TODO
-        #>>> bl.doctest.main --help
-        #+bl.doctest.multiline_ellipsis
-        #...
-        #This module implements functions module level testing via documentation
-        #...
+        >>> bl.doctest.main --help
+        +bl.doctest.multiline_ellipsis
+        ...
+        This module implements functions module level testing via documentation
+        ...
 
         >>> bl.doctest.main --synchronized non_existing_module; echo $?
         +bl.doctest.contains
