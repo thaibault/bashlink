@@ -25,7 +25,7 @@ bl_ssh__documentation__='
 # region functions
 alias bl.ssh.make_key=bl_ssh_make_key
 bl_ssh_make_key() {
-    local __documentation__='
+    local -r __documentation__='
     Generates a new ssh key.
 
     ```
@@ -42,7 +42,7 @@ bl_ssh_make_key() {
 }
 alias bl.ssh.print=bl_ssh_print
 bl_ssh_print() {
-    local __documentation__='
+    local -r __documentation__='
         Prints a file via ssh. A given printable file will be sent to a given
         location via scp. The file be stored in remotes home directory with
         given name. After this procedure a remote print order will be sent.
@@ -111,7 +111,7 @@ bl_ssh_print() {
 }
 alias bl.ssh.screen=bl_ssh_screen
 bl_ssh_screen() {
-    local __documentation__='
+    local -r __documentation__='
         Wraps the ssh client for automatically starting a screen session on
         server.
 

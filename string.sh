@@ -25,7 +25,7 @@ bl_string__documentation__='
 # region functions
 alias bl.string.generate_random=bl_string_generate_random
 bl_string_generate_random() {
-    local __documentation__='
+    local -r __documentation__='
         Generates a random string with given length.
 
         >>> local output="$(bl.string.generate_random 5)"
@@ -42,7 +42,7 @@ bl_string_generate_random() {
 }
 alias bl.string.get_unique_lines=bl_string_get_unique_lines
 bl_string_get_unique_lines() {
-    local __documentation__='
+    local -r __documentation__='
         >>> local foo="a\nb\na\nb\nc\nb\nc"
         >>> echo -e "$foo" | bl.string.get_unique_lines
         a
@@ -58,7 +58,7 @@ bl_string_get_unique_lines() {
 alias bl.string.images_to_css_classes=bl_string_images_to_css_classes
 bl_string_images_to_css_classes() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         This function converts a folder of images to a single includeable css
         file.
 
@@ -123,7 +123,7 @@ alias bl.string.make_command_promt_prefix=bl_string_make_command_promt_prefix
 bl_string_make_command_promt_prefix() {
     # NOTE: This have to be the first statement to retrieve last return code.
     local return_code=$?
-    local __documentation__='
+    local -r __documentation__='
         Generates a new user prompt with useful runtime parameters.
 
         ```bash
@@ -174,7 +174,7 @@ bl_string_make_command_promt_prefix() {
 alias bl.string.merge_text_files=bl_string_merge_text_files
 bl_string_merge_text_files() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Concatenate files and print on the standard output.
 
         ```bash
@@ -246,7 +246,7 @@ bl_string_merge_text_files() {
 }
 alias bl.string.translate=bl_string_translate
 bl_string_translate() {
-    local __documentation__='
+    local -r __documentation__='
         Translates a given string in a given (or automatic detected) language
         and gives a translation in given language (German by default) back.
         Accesses "http://translate.google.com" from terminal.
@@ -375,7 +375,7 @@ EOF
 }
 alias bl.string.validate_argument=bl_string_validate_argument
 bl_string_validate_argument() {
-    local __documentation__='
+    local -r __documentation__='
         Validates a given bash argument.
 
         >>> bl.string.validate_argument hans
@@ -399,7 +399,7 @@ bl_string_validate_argument() {
 }
 alias bl.string.validate_regular_expression_replacement=bl_string_validate_regular_expression_replacement
 bl_string_validate_regular_expression_replacement() {
-    local __documentation__='
+    local -r __documentation__='
         This functions escapes every special meaning character for a sed
         replacement.
 

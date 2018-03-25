@@ -207,7 +207,7 @@ declare -ig bl_exception_try_catch_level=0
 # region functions
 alias bl.exception.check_context=bl_exception_check_context
 bl_exception_check_context() {
-    local __documentation__='
+    local -r __documentation__='
         Tests if context allows error traps.
 
         `set -e` and `ERR traps` are prevented from working in a subprocess
@@ -248,7 +248,7 @@ bl_exception_check_context() {
 # Depends on "bl.exception.check_context"
 alias bl.exception.activate=bl_exception_activate
 bl_exception_activate() {
-    local __documentation__='
+    local -r __documentation__='
         Activates exception handling for following code.
 
         >>> set -o errtrace
@@ -328,7 +328,7 @@ bl_exception_activate() {
 }
 alias bl.exception.deactivate=bl_exception_deactivate
 bl_exception_deactivate() {
-    local __documentation__='
+    local -r __documentation__='
         Deactivates exception handling for code which where activated
         previously.
 
@@ -352,7 +352,7 @@ bl_exception_deactivate() {
 }
 alias bl.exception.enter_try=bl_exception_enter_try
 bl_exception_enter_try() {
-    local __documentation__='
+    local -r __documentation__='
         Catches exceptions for following code blocks.
 
         >>> bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; {
@@ -373,7 +373,7 @@ bl_exception_enter_try() {
 alias bl.exception.error_handler=bl_exception_error_handler
 bl_exception_error_handler() {
     local error_code=$?
-    local __documentation__='
+    local -r __documentation__='
         Error handler for captured exceptions.
 
         >>> bl.exception.error_handler
@@ -404,7 +404,7 @@ bl_exception_error_handler() {
 }
 alias bl.exception.exit_try=bl_exception_exit_try
 bl_exception_exit_try() {
-    local __documentation__='
+    local -r __documentation__='
         Introduces an exception handling code block.
 
         >>> bl.exception.try {

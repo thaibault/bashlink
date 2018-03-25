@@ -39,7 +39,7 @@ bl_documentation__documentation__='
 # region functions
 alias bl.documentation.format_buffers=bl_documentation_format_buffers
 bl_documentation_format_buffers() {
-    local __documentation__='
+    local -r __documentation__='
         Converts given docstring into markdown compatible code description
         block.
 
@@ -66,7 +66,7 @@ bl_documentation_format_buffers() {
 }
 alias bl.documentation.format_docstring=bl_documentation_format_docstring
 bl_documentation_format_docstring() {
-    local __documentation__='
+    local -r __documentation__='
         Removes doctest documentation exclude modifier and their content from
         given docstring and converts doctest to markdown code blocks.
 
@@ -87,7 +87,7 @@ bl_documentation_format_docstring() {
 }
 alias bl.documentation.generate=bl_documentation_generate
 bl_documentation_generate() {
-    local __documentation__='
+    local -r __documentation__='
         Generates a documentation in markdown for given module reference.
 
         >>> bl.documentation.generate bashlink.documentation
@@ -179,7 +179,7 @@ bl_documentation_generate() {
 }
 alias bl.documentation.main=bl_documentation_main
 bl_documentation_main() {
-    local __documentation__='
+    local -r __documentation__='
         Initializes main documentation task after consuming given command line
         arguments.
 
@@ -200,7 +200,7 @@ bl_documentation_main() {
 }
 alias bl.documentation.get_formatted_docstring=bl_documentation_get_formatted_docstring
 bl_documentation_get_formatted_docstring() {
-    local __documentation__='
+    local -r __documentation__='
         Prints given docstring without sliced elements specified by their
         modifier.
 

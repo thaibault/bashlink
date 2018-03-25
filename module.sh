@@ -92,7 +92,7 @@ bl_module_scope_rewrites=(
 # region functions
 alias bl.module.check_name=bl_module_check_name
 bl_module_check_name() {
-    local __documentation__='
+    local -r __documentation__='
         Checks if given name is belongs to given scope.
 
         >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
@@ -138,7 +138,7 @@ bl_module_check_name() {
 }
 alias bl.module.determine_aliases=bl_module_determine_aliases
 bl_module_determine_aliases() {
-    local __documentation__='
+    local -r __documentation__='
         Returns all defined aliases in the current scope.
     '
     alias | command grep '^alias' \
@@ -146,7 +146,7 @@ bl_module_determine_aliases() {
 }
 alias bl.module.determine_declared_names=bl_module_determine_declared_names
 bl_module_determine_declared_names() {
-    local __documentation__='
+    local -r __documentation__='
         Return all declared variables and function in the current scope.
 
         ```bash
@@ -164,7 +164,7 @@ bl_module_determine_declared_names() {
 }
 alias bl.module.is_defined=bl_module_is_defined
 bl_module_is_defined() {
-    local __documentation__='
+    local -r __documentation__='
         Tests if variable is defined (can also be empty)
 
         >>> local foo=bar
@@ -216,7 +216,7 @@ bl_module_is_defined() {
 }
 alias bl.module.is_imported=bl_module_is_imported
 bl_module_is_imported() {
-    local __documentation__='
+    local -r __documentation__='
         Checks if giveb module is already imported.
 
         >>> bl.module.is_imported bashlink.module; echo $?
@@ -243,7 +243,7 @@ bl_module_is_imported() {
 }
 alias bl.module.log_plain=bl_module_log_plain
 bl_module_log_plain() {
-    local __documentation__='
+    local -r __documentation__='
         Prints arbitrary strings, no matter which output descriptor is defined.
 
         >>> bl.module.log_plain test
@@ -258,7 +258,7 @@ bl_module_log_plain() {
 # NOTE: Depends on "bl.module.log_plain"
 alias bl.module.log=bl_module_log
 bl_module_log() {
-    local __documentation__='
+    local -r __documentation__='
         Logs arbitrary strings with given level.
 
         >>> bl.module.log test
@@ -292,7 +292,7 @@ bl_module_log() {
 # NOTE: Depends on "bl.module.log"
 alias bl.module.import_raw=bl_module_import_raw
 bl_module_import_raw() {
-    local __documentation__='
+    local -r __documentation__='
         Imports given module into current scope.
 
         >>> bl.module.import_raw bashlink.not_existing; echo $?
@@ -318,7 +318,7 @@ bl_module_import_raw() {
 # NOTE: Depends on "bl.module.log"
 alias bl.module.import_with_namespace_check=bl_module_import_with_namespace_check
 bl_module_import_with_namespace_check() {
-    local __documentation__='
+    local -r __documentation__='
         Sources a script and checks variable definitions before and after
         sourcing.
 
@@ -426,7 +426,7 @@ bl_module_import_with_namespace_check() {
 alias bl.module.import=bl_module_import
 bl_module_import() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Main function to do all checks and module reference resolves to source
         given module.
 
@@ -539,7 +539,7 @@ bl_module_import() {
 }
 alias bl.module.import_without_namespace_check=bl_module_import_without_namespace_check
 bl_module_import_without_namespace_check() {
-    local __documentation__='
+    local -r __documentation__='
         Imports given module without any namespace checks. Needed for internal
         usage.
 
@@ -561,7 +561,7 @@ bl_module_import_without_namespace_check() {
 }
 alias bl.module.resolve=bl_module_resolve
 bl_module_resolve() {
-    local __documentation__='
+    local -r __documentation__='
         Resolves given module reference to its corresponding file path.
 
         If second parameter is set to "true" resolved scope name will also be
@@ -710,7 +710,7 @@ bl_module_resolve() {
 }
 alias bl.module.remove_known_file_extension=bl_module_remove_known_file_extension
 bl_module_remove_known_file_extension() {
-    local __documentation__='
+    local -r __documentation__='
         Removes known file extension from given module references.
 
         >>> bl.module.remove_known_file_extension module.sh
@@ -729,7 +729,7 @@ bl_module_remove_known_file_extension() {
 }
 alias bl.module.rewrite_scope_name=bl_module_rewrite_scope_name
 bl_module_rewrite_scope_name() {
-    local __documentation__='
+    local -r __documentation__='
         Rewrite scope name. Usually needed to shorten a scope name.
 
         >>> bl.module.rewrite_scope_name bashlink.module

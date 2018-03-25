@@ -27,7 +27,7 @@ bl_ui__dependencies__=(dialog)
 alias bl.ui.dialog=bl_ui_dialog
 bl_ui_dialog() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Shows a dialog box. Forwards all given parameter to dialog.
 
         ```

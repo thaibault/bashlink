@@ -20,7 +20,7 @@ bl_path__documentation__='
 # region functions
 alias bl.path.convert_to_absolute=bl_path_convert_to_absolute
 bl_path_convert_to_absolute() {
-    local __documentation__='
+    local -r __documentation__='
         Converts given path into an absolute one.
 
         >>> bl.path.convert_to_absolute ./
@@ -42,7 +42,7 @@ bl_path_convert_to_absolute() {
 }
 alias bl.path.convert_to_relative=bl_path_convert_to_relative
 bl_path_convert_to_relative() {
-    local __documentation__='
+    local -r __documentation__='
         Computes relative path from first given argument to second one.
 
         >>> bl.path.convert_to_relative /A/B/C /A
@@ -109,7 +109,7 @@ bl_path_convert_to_relative() {
 }
 alias bl.path.open=bl_path_open
 bl_path_open() {
-    local __documentation__='
+    local -r __documentation__='
         Opens a given path with a useful program.
 
         ```bash
@@ -146,7 +146,7 @@ bl_path_open() {
 }
 alias bl.path.pack=bl_path_pack
 bl_path_pack() {
-    local __documentation__='
+    local -r __documentation__='
         Packs files in an archive.
 
         ```bash
@@ -208,7 +208,7 @@ bl_path_pack() {
 }
 alias bl.path.run_in_programs_location=bl_path_run_in_programs_location
 bl_path_run_in_programs_location() {
-    local __documentation__='
+    local -r __documentation__='
         Changes current working directory to given program path and runs the
         program.
 
@@ -227,7 +227,7 @@ bl_path_run_in_programs_location() {
 }
 alias bl.path.unpack=bl_path_unpack
 bl_path_unpack() {
-    local __documentation__='
+    local -r __documentation__='
         Unpack archives in various formats.
 
         ```bash

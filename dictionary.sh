@@ -16,7 +16,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.tools
 # endregion
 # region variables
-bl_dictionary__documentation__='
+declare -gr bl_dictionary__documentation__='
     The dictionary module implements utility functions concerning dictionary
     operations.
 '
@@ -24,7 +24,7 @@ bl_dictionary__documentation__='
 # region functions
 alias bl.dictionary.get=bl_dictionary_get
 bl_dictionary_get() {
-    local __documentation__='
+    local -r __documentation__='
 
         ```bash
             variable=$(bl.dictionary.get dictionary_name key)
@@ -57,21 +57,24 @@ bl_dictionary_get() {
         >>> bl.dictionary.get map foo
         a b c
     '
-    local name="$1"
-    local key="$2"
-    if [[ ${BASH_VERSINFO[0]} -lt 4 ]] || ! [ -z "${bl_dictionary_bash_version_test:-}" ]; then
-        local store="bl_dictionary_store_${name}_${key}"
+    local -r name="$1"
+    local -r key="$2"
+    local store
+    if \
+        [[ ${BASH_VERSINFO[0]} -lt 4 ]] || \
+        ! [ -z "${bl_dictionary_bash_version_test:-}" ]
+    then
+        store="bl_dictionary_store_${name}_${key}"
     else
-        local store="bl_dictionary_store_${name}[${key}]"
+        store="bl_dictionary_store_${name}[${key}]"
     fi
     bl.tools.is_defined "$store" || \
         return 1
-    local value="${!store}"
-    echo "$value"
+    echo "${!store}"
 }
 alias bl.dictionary.get_keys=bl_dictionary_get_keys
 bl_dictionary_get_keys() {
-    local __documentation__='
+    local -r __documentation__='
         Get keys of a dictionary as array.
 
         ```bash
@@ -97,7 +100,7 @@ bl_dictionary_get_keys() {
         bar
         foo
     '
-    local name="$1"
+    local -r name="$1"
     local keys
     local store="bl_dictionary_store_${name}"
     if [[ ${BASH_VERSINFO[0]} -lt 4 ]] || ! [ -z "${bl_dictionary_bash_version_test:-}" ]; then
@@ -110,14 +113,13 @@ bl_dictionary_get_keys() {
         eval 'keys="${!'"$store"'[@]}"'
     fi
     local key
-    # shellcheck disable=SC2154
     for key in ${keys:-}; do
         echo "$key"
     done
 }
 alias bl.dictionary.set=bl_dictionary_set
 bl_dictionary_set() {
-    local __documentation__='
+    local -r __documentation__='
         ```bash
             bl.dictionary.set dictionary_name key value
         ```
@@ -142,21 +144,24 @@ bl_dictionary_set() {
         >>> echo $bl_dictionary_store_map_foo
         a b c
     '
-    local name="$1"
+    local -r name="$1"
     while true; do
         local key="$2"
         local value="\"$3\""
         shift 2
-        (( $# % 2 )) || return 1
-        # shellcheck disable=SC2154
-        if [[ ${BASH_VERSINFO[0]} -lt 4 ]] \
-                || ! [ -z "${bl_dictionary_bash_version_test:-}" ]; then
+        (( $# % 2 )) || \
+            return 1
+        if \
+            [[ ${BASH_VERSINFO[0]} -lt 4 ]] || \
+            ! [ -z "${bl_dictionary_bash_version_test:-}" ]
+        then
             eval "bl_dictionary_store_${name}_${key}=$value"
         else
             declare -Ag "bl_dictionary_store_${name}"
             eval "bl_dictionary_store_${name}[${key}]=$value"
         fi
-        (( $# == 1 )) && return
+        (( $# == 1 )) && \
+            return
     done
 }
 # endregion

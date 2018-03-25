@@ -25,7 +25,7 @@ bl_number__documentation__='
 # region functions
 alias bl.number.calculate_percent=bl_number_calculate_percent
 bl_number_calculate_percent() {
-    local __documentation__='
+    local -r __documentation__='
         Calculates percent of second argument from the first argument.
 
         >>> bl_number_calculate_percent 100 50
@@ -40,7 +40,7 @@ bl_number_calculate_percent() {
 }
 alias bl.number.normalize_version=bl_number_normalize_version
 bl_number_normalize_version() {
-    local __documentation__='
+    local -r __documentation__='
         Normalizes given version number to a raw number.
 
         >>> bl.number.normalize_version "database/openssl-1.1.0.g-1"

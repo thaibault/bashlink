@@ -21,10 +21,10 @@ if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
 fi
 # endregion
 # region import
-# shellcheck source=./cli.sh
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.arguments
+# shellcheck source=./cli.sh
 bl.module.import bashlink.cli
 bl.module.import bashlink.dependency
 bl.module.import bashlink.documentation
@@ -35,7 +35,7 @@ bl.module.import bashlink.time
 bl.module.import bashlink.tools
 # endregion
 # region variables
-bl_doctest__documentation__='
+declare -gr bl_doctest__documentation__='
     This module implements function and module level testing via documentation
     strings. Tests can be run by invoking:
 
@@ -157,21 +157,21 @@ bl_doctest__documentation__='
 
     -bl.documentation.exclude_print
 '
-bl_doctest_debug=false
-bl_doctest_module_reference_under_test=''
-bl_doctest_name_indicator=__documentation__
-bl_doctest_nounset=false
-bl_doctest_synchronized=false
-bl_doctest_is_synchronized=true
-bl_doctest_supress_undocumented=false
-bl_doctest_regular_expression="/${bl_doctest_name_indicator}='/,/';$/p"
-bl_doctest_regular_expression_one_line="${bl_doctest_name_indicator}='.*';$"
-bl_doctest_use_side_by_side_output=true
+declare -g bl_doctest_debug=false
+declare -g bl_doctest_module_reference_under_test=''
+declare -gr bl_doctest_name_indicator=__documentation__
+declare -g bl_doctest_nounset=false
+declare -g bl_doctest_synchronized=false
+declare -g bl_doctest_is_synchronized=true
+declare -g bl_doctest_supress_undocumented=false
+declare -gr bl_doctest_regular_expression="/${bl_doctest_name_indicator}='/,/';$/p"
+declare -g bl_doctest_regular_expression_one_line="${bl_doctest_name_indicator}='.*';$"
+declare -g bl_doctest_use_side_by_side_output=true
 # endregion
 # region functions
 alias bl.doctest.compare_result=bl_doctest_compare_result
 bl_doctest_compare_result() {
-    local __documentation__='
+    local -r __documentation__='
         Compares specified result with given one.
 
         >>> local buffer="line 1
@@ -378,7 +378,7 @@ bl_doctest_compare_result() {
 }
 alias bl.doctest.eval=bl_doctest_eval
 bl_doctest_eval() {
-    local __documentation__='
+    local -r __documentation__='
         >>> local test_buffer="
         >>> echo foo
         >>> echo bar
@@ -528,7 +528,7 @@ EOF
 }
 alias bl.doctest.get_formatted_docstring_output=bl_doctest_get_formatted_docstring_output
 bl_doctest_get_formatted_docstring_output() {
-    local __documentation__='
+    local -r __documentation__='
         Slices doctest modifier from given doctest output.
 
         >>> bl.doctest.get_formatted_docstring_output ""
@@ -551,6 +551,7 @@ bl_doctest_get_formatted_docstring_output() {
 }
 alias bl.doctest.get_function_docstring=bl_doctest_get_function_docstring
 bl_doctest_get_function_docstring() {
+    # NOTE: We have to overwrite this variable here so "-r" is not useful.
     local __documentation__='
         Retrieves the docstring from given function name in current scope.
 
@@ -577,7 +578,7 @@ bl_doctest_get_function_docstring() {
 }
 alias bl.doctest.parse_docstring=bl_doctest_parse_docstring
 bl_doctest_parse_docstring() {
-    local __documentation__='
+    local -r __documentation__='
         >>> local docstring="
         >>>     (test)block
         >>>     output block
@@ -768,7 +769,7 @@ bl_doctest_parse_docstring() {
 }
 alias bl.doctest.run_test=bl_doctest_run_test
 bl_doctest_run_test() {
-    __documentation__='
+    local -r __documentation='
         Parses given docstring, evaluates doctest and represents result.
 
         >>> bl.doctest.run_test "" bashlink.doctest bl_doctest_get_function_docstring
@@ -813,7 +814,7 @@ bl_doctest_run_test() {
 }
 alias bl.doctest.test=bl_doctest_test
 bl_doctest_test() {
-    __documentation__='
+    local -r __documentation='
         Runs tests from given package, module or module function.
 
         >>> bl.doctest.test bashlink.doctest bl_doctest_run_test
@@ -971,7 +972,7 @@ bl_doctest_test() {
 # NOTE: Depends on "bl.doctest.test"
 alias bl.doctest.main=bl_doctest_main
 bl_doctest_main() {
-    local __documentation__='
+    local -r __documentation__='
         Main entry point for this module.
 
         >>> bl.doctest.main --help
