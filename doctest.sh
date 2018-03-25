@@ -844,21 +844,9 @@ bl_doctest_test() {
         echo "$result" | command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
     local -r module_name="$(
         echo "$result" | command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
-    local -r scope_name="$(
+    local scope_name="$(
         bl.module.rewrite_scope_name "$module_name" | \
             command sed --regexp-extended 's:\.:_:g')"
-    local name
-    local function_names_to_test=''
-    for name in $given_function_names_to_test; do
-        if [[ "$function_names_to_test" != '' ]]; then
-            function_names_to_test+=' '
-        fi
-        if [ "${name/$scope_name/}" = "$name" ]; then
-            function_names_to_test+="${scope_name}_${name}"
-        else
-            function_names_to_test+="$name"
-        fi
-    done
     local -i success=0
     local -i total=0
     if [ -d "$file_path" ]; then
@@ -928,6 +916,21 @@ bl_doctest_test() {
     (
         bl.module.import_without_namespace_check \
             "$bl_doctest_module_reference_under_test"
+        scope_name="$(
+            bl.module.rewrite_scope_name "$module_name" | \
+                command sed --regexp-extended 's:\.:_:g')"
+        local name
+        local function_names_to_test=''
+        for name in $given_function_names_to_test; do
+            if [[ "$function_names_to_test" != '' ]]; then
+                function_names_to_test+=' '
+            fi
+            if [ "${name/$scope_name/}" = "$name" ]; then
+                function_names_to_test+="${scope_name}_${name}"
+            else
+                function_names_to_test+="$name"
+            fi
+        done
         if [ "$function_names_to_test" = '' ]; then
             # Get all external module prefix and un-prefixed function names.
             # shellcheck disable=SC2154
