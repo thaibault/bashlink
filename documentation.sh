@@ -153,7 +153,7 @@ bl_documentation_generate() {
         # Module level documentation
         # shellcheck disable=SC2154
         local -r module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
-        local -r docstring="${!module_documentation_variable_name}"
+        local docstring="${!module_documentation_variable_name}"
         echo "## Module $module_name"
         if [ "$docstring" = '' ]; then
             bl.logging.warn \
