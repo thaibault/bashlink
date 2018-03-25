@@ -25,7 +25,7 @@ bl_pacman__documentation__='
 # region functions
 alias bl.pacman.show_config_backups=bl_pacman_show_config_backups
 bl_pacman_show_config_backups() {
-    local __documentation__='
+    local -r __documentation__='
         Shows all config backups created by pacman.
 
         ```bash
@@ -42,7 +42,7 @@ bl_pacman_show_config_backups() {
 }
 alias bl.pacman.show_not_maintained_by_pacman_system_files=bl_tools_show_not_maintained_by_pacman_system_files
 bl_pacman_show_not_maintained_by_pacman_system_files() {
-    local __documentation__='
+    local -r __documentation__='
         Shows all files which are not maintained by pacman on currently running
         system.
 

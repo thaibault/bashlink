@@ -132,7 +132,7 @@ EOF
 ## region btrfs
 alias bl.filesystem.btrfs_is_root=bl_filesystem_btrfs_is_root
 bl_filesystem_btrfs_is_root() {
-    local __documentation__='
+    local -r __documentation__='
         >>> bl.filesystem.btrfs_is_root /broot; echo $?
         0
         >>> bl.filesystem.btrfs_is_root /broot/foo; echo $?
@@ -146,7 +146,7 @@ bl_filesystem_btrfs_is_root() {
 # NOTE: Depends on "bl.filesystem.is_root"
 alias bl.filesystem.btrfs_find_root=bl_filesystem_btrfs_find_root
 bl_filesystem_btrfs_find_root() {
-    local __documentation__='
+    local -r __documentation__='
         Returns absolute path to btrfs root.
 
         >>> bl.filesystem.btrfs_find_root /broot/__active
@@ -169,7 +169,7 @@ bl_filesystem_btrfs_find_root() {
 # NOTE: Depends on "bl.filesystem.is_root"
 alias bl.filesystem.btrfs_subvolume_filter=bl_filesystem_btrfs_subvolume_filter
 bl_filesystem_btrfs_subvolume_filter() {
-    local __documentation__='
+    local -r __documentation__='
         >>> bl.filesystem.btrfs_subvolume_filter /broot parent 256
         ID 259 parent 256 top level 256 path __active/var
         ID 258 parent 256 top level 256 path __active/usr
@@ -191,7 +191,7 @@ bl_filesystem_btrfs_subvolume_filter() {
 }
 alias bl.filesystem.btrfs_is_subvolume=bl_filesystem_btrfs_is_subvolume
 bl_filesystem_btrfs_is_subvolume() {
-    local __documentation__='
+    local -r __documentation__='
         Checks if path is a subvolume. Note: The btrfs root is also a
         subvolume.
 
@@ -209,7 +209,7 @@ bl_filesystem_btrfs_is_subvolume() {
 # NOTE: Depends on "bl.filesystem.btrfs_subvolume", "bl.filesystem.btrfs_subvolume_filter"
 alias bl.filesystem.btrfs_get_child_volumes=bl_filesystem_btrfs_get_child_volumes
 bl_filesystem_btrfs_get_child_volumes() {
-    local __documentation__='
+    local -r __documentation__='
         Returns absolute paths to subvolumes.
 
         >>> bl.filesystem.btrfs_get_child_volumes /broot/__active
@@ -239,7 +239,7 @@ bl_filesystem_btrfs_get_child_volumes() {
 }
 alias bl.filesystem.btrfs_get_subvolume_list_field=bl_filesystem_btrfs_get_subvolume_list_field
 bl_filesystem_btrfs_get_subvolume_list_field() {
-    local __documentation__='
+    local -r __documentation__='
         >>> local entry="$(btrfs subvolume list /broot | head -n1)"
         >>> bl.filesystem.btrfs_get_subvolume_list_field path "$entry"
         >>> bl.filesystem.btrfs_get_subvolume_list_field ID "$entry"
@@ -266,7 +266,7 @@ bl_filesystem_btrfs_get_subvolume_list_field() {
 }
 alias bl.filesystem.btrfs_subvolume_set_read_only=bl_filesystem_btrfs_subvolume_set_read_only
 bl_filesystem_btrfs_subvolume_set_read_only() {
-    local __documentation__='
+    local -r __documentation__='
         Make subvolume writable or readonly. Also applies to child subvolumes.
     '
     local volume="$1"
@@ -286,7 +286,7 @@ bl_filesystem_btrfs_subvolume_set_read_only() {
 # NOTE: Depends on "bl.filesystem.btrfs_subvolume_set_read_only"
 alias bl.filesystem.btrfs_send=bl_filesystem_btrfs_send
 bl_filesystem_btrfs_send() {
-    local __documentation__='
+    local -r __documentation__='
         Sends snapshots.
 
         >>> bl.filesystem.btrfs_send /broot/__active /backup/__active_backup
@@ -321,7 +321,7 @@ bl_filesystem_btrfs_send() {
 alias bl.filesystem.btrfs_send_update=bl_filesystem_btrfs_send_update
 bl_filesystem_btrfs_send_update() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Update snapshot (needs backing snapshot).
 
         >>> bl.filesystem.btrfs_send_update /broot/__active \
@@ -359,7 +359,7 @@ bl_filesystem_btrfs_send_update() {
 }
 alias bl.filesystem.btrfs_snapshot=bl_filesystem_btrfs_snapshot
 bl_filesystem_btrfs_snapshot() {
-    local __documentation__='
+    local -r __documentation__='
         Make snapshot of subvolume.
 
         >>> bl.filesystem.btrfs_snapshot /broot/__active /backup/__active_backup
@@ -394,7 +394,7 @@ bl_filesystem_btrfs_snapshot() {
 }
 alias bl.filesystem.btrfs_subvolume_backup=bl_filesystem_btrfs_subvolume_backup
 bl_filesystem_btrfs_subvolume_backup() {
-    local __documentation__='
+    local -r __documentation__='
         Create, delete or list system backups.
 
         ```bash
@@ -433,7 +433,7 @@ EOF
 }
 alias bl.filesystem.btrfs_subvolume_backup_autocomplete=bl_filesystem_btrfs_subvolume_backup_autocomplete
 bl_filesystem_btrfs_subvolume_backup_autocomplete() {
-    local __documentation__='
+    local -r __documentation__='
         Autocompletion function for `bl.filesystem.subvolume_backup`.
     '
     local last_complete_argument="${COMP_WORDS[${COMP_CWORD}-1]}"
@@ -453,7 +453,7 @@ bl_filesystem_btrfs_subvolume_backup_autocomplete() {
 complete -F bl_filesystem_btrfs_subvolume_backup_autocomplete bl_filesystem_btrfs_subvolume_backup
 alias bl.filesystem.btrfs_subvolume_delete=bl_filesystem_btrfs_subvolume_delete
 bl_filesystem_btrfs_subvolume_delete() {
-    local __documentation__='
+    local -r __documentation__='
         Delete a subvolume. Also deletes child subvolumes.
 
         >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/backup_last; echo $?
@@ -474,7 +474,7 @@ bl_filesystem_btrfs_subvolume_delete() {
 ## endregion
 alias bl.filesystem.close_crypt_blockdevice=bl_filesystem_close_crypt_blockdevice
 bl_filesystem_close_crypt_blockdevice() {
-    local __documentation__='
+    local -r __documentation__='
         Mounts encrypted blockdevices as analyseable blockdevice.
 
         ```bash
@@ -486,7 +486,7 @@ bl_filesystem_close_crypt_blockdevice() {
 }
 alias bl.filesystem.create_partition_via_offset=bl_filesystem_create_partition_via_offset
 bl_filesystem_create_partition_via_offset() {
-    local __documentation__='
+    local -r __documentation__='
         Creates a partition after given disk offset.
     '
     local device="$1"
@@ -511,7 +511,7 @@ bl_filesystem_create_partition_via_offset() {
 }
 alias bl.filesystem.find_block_device=bl_filesystem_find_block_device
 bl_filesystem_find_block_device() {
-    local __documentation__='
+    local -r __documentation__='
         >>> bl.filesystem.find_block_device "boot_partition"
         /dev/sdb1
 
@@ -587,7 +587,7 @@ bl_filesystem_find_block_device() {
 ## region file links
 alias bl.filesystem.find_hardlinks=bl_filesystem_find_hardlinks
 bl_filesystem_find_hardlinks() {
-    local __documentation__='
+    local -r __documentation__='
         Finds same files as given file (hardlinks).
 
         ```bash
@@ -599,7 +599,7 @@ bl_filesystem_find_hardlinks() {
 }
 alias bl.filesystem.show_symbolic_links=bl_filesystem_show_symbolic_links
 bl_filesystem_show_symbolic_links() {
-    local __documentation__='
+    local -r __documentation__='
         Shows symbolic links in current directory if no argument is provided or
         in given location and their subdirectories (recursive).
 
@@ -621,7 +621,7 @@ bl_filesystem_show_symbolic_links() {
 ## endregion
 alias bl.filesystem.make_crypt_blockdevice=bl_filesystem_make_crypt_blockdevice
 bl_filesystem_make_crypt_blockdevice() {
-    local __documentation__='
+    local -r __documentation__='
         Creates encrypted blockdevices.
 
         ```bash
@@ -634,7 +634,7 @@ bl_filesystem_make_crypt_blockdevice() {
 alias bl.filesystem.make_uefi_boot_entry=bl_filesystem_make_uefi_boot_entry
 bl_filesystem_make_uefi_boot_entry() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Creates an uefi boot entry.
 
         ```bash
@@ -668,7 +668,7 @@ bl_filesystem_make_uefi_boot_entry() {
 }
 alias bl.filesystem.open_crypt_blockdevice=bl_filesystem_open_crypt_blockdevice
 bl_filesystem_open_crypt_blockdevice() {
-    local __documentation__='
+    local -r __documentation__='
         Mounts encrypted blockdevices as analyseable blockdevice.
 
         ```bash
@@ -680,7 +680,7 @@ bl_filesystem_open_crypt_blockdevice() {
 }
 alias bl.filesystem.overlay_location=bl_filesystem_overlay_location
 bl_filesystem_overlay_location() {
-    local __documentation__='
+    local -r __documentation__='
         Mounts an overlay over given location. This could be useful if we have a
         read only system caused by physical reasons.
 
@@ -695,7 +695,7 @@ bl_filesystem_overlay_location() {
 }
 alias bl.filesystem.repair=bl_filesystem_repair
 bl_filesystem_repair() {
-    local __documentation__='
+    local -r __documentation__='
         Finds filesystem errors on linux based filesystem and repairs them.
 
         ```bash
@@ -712,7 +712,7 @@ bl_filesystem_repair() {
 }
 alias bl.filesystem.set_maximum_user_watches=bl_filesystem_set_maximum_user_watches
 bl_filesystem_set_maximum_user_watches() {
-    local __documentation__='
+    local -r __documentation__='
         Sets the maximum number of concurrent allowed file observations via
         inotify.
 
@@ -726,7 +726,7 @@ bl_filesystem_set_maximum_user_watches() {
 alias bl.filesystem.write_blockdevice_to_image=bl_filesystem_write_blockdevice_to_image
 bl_filesystem_write_blockdevice_to_image() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Writes a given backup from given blockdevice.
 
         ```bash
@@ -749,7 +749,7 @@ bl_filesystem_write_blockdevice_to_image() {
 alias bl.filesystem.write_image_to_blockdevice=bl_filesystem_write_image_to_blockdevice
 bl_filesystem_write_image_to_blockdevice() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Writes a given image to given blockdevice.
 
         ```bash

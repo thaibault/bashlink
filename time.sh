@@ -19,7 +19,7 @@ bl_time_start=0
 # region functions
 alias bl.time.get_elapsed=bl_time_get_elapsed
 bl_time_get_elapsed() {
-    local __documentation__='
+    local -r __documentation__='
         Prints elapsed time in milliseconds since last `bl.time.start` call.
 
         >>> local time=$(bl.time.get_elapsed)
@@ -37,7 +37,7 @@ bl_time_get_elapsed() {
 }
 alias bl.time.start=bl_time_start
 bl_time_start() {
-    local __documentation__='
+    local -r __documentation__='
         Prints elapsed time in milliseconds since last `bl.time.start` call.
 
         >>> bl.time.start

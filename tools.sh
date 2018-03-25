@@ -26,7 +26,7 @@ bl_tools__documentation__='
 # region functions
 alias bl.tools.compile_and_install_without_root=bl_tools_compile_and_install_without_root
 bl_tools_compile_and_install_without_root() {
-    local __documentation__='
+    local -r __documentation__='
         Compiles and installs a program by its given source code. Your have to
         be inside the source code folder to run this function.
 
@@ -48,7 +48,7 @@ bl_tools_compile_and_install_without_root() {
 alias bl.tools.is_defined=bl_module_is_defined
 alias bl.tools.is_empty=bl_tools_is_empty
 bl_tools_is_empty() {
-    local __documentation__='
+    local -r __documentation__='
         Tests if variable is empty (undefined variables are not empty)
 
         >>> local foo="bar"
@@ -69,7 +69,7 @@ bl_tools_is_empty() {
 }
 alias bl.tools.is_main=bl_tools_is_main
 bl_tools_is_main() {
-    local __documentation__='
+    local -r __documentation__='
         Returns true if current script is being executed.
 
         NOTE: This test passes because `bl.tools.is_main` is called by
@@ -82,7 +82,7 @@ bl_tools_is_main() {
 }
 alias bl.tools.make_openssl_pem_file=bl_tools_make_openssl_pem_file
 bl_tools_make_openssl_pem_file() {
-    local __documentation__='
+    local -r __documentation__='
         Creates a concatenated pem file needed for server with https support.
 
         ```bash
@@ -106,7 +106,7 @@ bl_tools_make_openssl_pem_file() {
 }
 alias bl.tools.make_single_executbale=bl_tools_make_single_executable
 bl_tools_make_single_executable() {
-    local __documentation__='
+    local -r __documentation__='
         Creates a bsd and virtually posix shell compatible single executable
         file from an application directory.
 
@@ -152,7 +152,7 @@ EOF
 alias bl.tools.run_with_appended_shebang=bl_tools_run_with_appended_shebang
 bl_tools_run_with_appended_shebang() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         This function reads and returns the shebang from given file if exist.
 
         ```bash
@@ -208,7 +208,7 @@ bl_tools_run_with_appended_shebang() {
 alias bl.tools.send_e_mail=bl_tools_send_e_mail
 bl_tools_send_e_mail() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Sends an email.
 
         ```bash
