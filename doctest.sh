@@ -563,6 +563,7 @@ bl_doctest_get_function_docstring() {
     '
     local -r function_name="$1"
     (
+        local docstring
         if ! docstring="$(type "$function_name" 2>/dev/null | \
             command grep "$bl_doctest_regular_expression_one_line")"
         then
