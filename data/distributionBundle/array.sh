@@ -16,14 +16,14 @@
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 # endregion
 # region variables
-bl_array__documentation__='
+declare -gr bl_array__documentation__='
     This module implements utility functions concerning arrays.
 '
 # endregion
 # region functions
 alias bl.array.contains=bl_array_contains
 bl_array_contains() {
-    local __documentation__='
+    local -r __documentation__='
         Checks if given item equals to one item in given array.
 
         >>> local a=(a b c)
@@ -44,7 +44,7 @@ bl_array_contains() {
 }
 alias bl.array.filter=bl_array_filter
 bl_array_filter() {
-    local __documentation__='
+    local -r __documentation__='
         Filters values from given array by given regular expression.
 
         >>> local a=(one two three wolf)
@@ -52,7 +52,7 @@ bl_array_filter() {
         >>> echo ${b[*]}
         two wolf
     '
-    local pattern="$1"
+    local -r pattern="$1"
     shift
     local element
     for element in "$@"; do
@@ -62,7 +62,7 @@ bl_array_filter() {
 }
 alias bl.array.get_index=bl_array_get_index
 bl_array_get_index() {
-    local __documentation__='
+    local -r __documentation__='
         Get index of value in an array
 
         >>> local a=(one two three)
@@ -74,24 +74,24 @@ bl_array_get_index() {
         >>> bl_array_get_index bar foo bar baz
         1
     '
-    local value="$1"
+    local -r value="$1"
     shift
-    local array=("$@")
-    local -i index=-1
-    local i
-    for i in "${!array[@]}"; do
-        if [[ "${array[$i]}" == "${value}" ]]; then
-            local index="${i}"
+    local -ar array=("$@")
+    local -i result=-1
+    local -i index
+    for index in "${!array[@]}"; do
+        if [[ "${array[$index]}" == "${value}" ]]; then
+            result="$index"
         fi
     done
-    echo "$index"
-    if (( index == -1 )); then
+    echo "$result"
+    if (( result == -1 )); then
         return 1
     fi
 }
 alias bl.array.reverse=bl_array_reverse
 bl_array_reverse() {
-    local __documentation__='
+    local -r __documentation__='
         Reverse given array.
 
         >>> bl.array.reverse
@@ -115,7 +115,7 @@ bl_array_reverse() {
 }
 alias bl.array.slice=bl_array_slice
 bl_array_slice() {
-    local __documentation__='
+    local -r __documentation__='
         Returns a slice of an array (similar to Python). One way to remember
         how slices work is to think of the indices as pointing between
         elements, with the left edge of the first character numbered `0`. Then
@@ -198,7 +198,10 @@ bl_array_slice() {
         >>> bl.array.slice -7 "${a[@]}"; echo $?
         1
     '
-    local array_length end length start
+    local -i array_length
+    local end
+    local -i length
+    local start
     if [[ "$1" == *:* ]]; then
         IFS=':' read -r start end <<< "$1"
         shift
@@ -234,7 +237,7 @@ bl_array_slice() {
 }
 alias bl.array.unique=bl_array_unique
 bl_array_unique() {
-    local __documentation__='
+    local -r __documentation__='
         Removes duplicates in given array.
 
         >>> bl.array.unique ""

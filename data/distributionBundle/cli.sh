@@ -12,11 +12,10 @@
 # shellcheck disable=SC2016,SC2034,SC2155
 # region import
 # shellcheck source=./module.sh
-# shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 # endregion
 # region variables
-bl_cli__documentation__='
+declare -gr bl_cli__documentation__='
     This module provides variables for printing colorful and unicode glyphs.
     The Terminal features are detected automatically but can also be
     enabled/disabled manually.
@@ -24,66 +23,66 @@ bl_cli__documentation__='
     [bl.cli.enable_color](#function-bl_cli_enable_color) and
     [bl.cli.enable_unicode_glyphs](#function-bl_cli_enable_unicode_glyphs)
 '
-bl_cli_color_enabled=false
+declare -g bl_cli_color_enabled=false
 ## region color
-bl_cli_color_black=''
-bl_cli_color_blink=''
-bl_cli_color_blue=''
-bl_cli_color_bold=''
-bl_cli_color_cyan=''
-bl_cli_color_dark_gray=''
-bl_cli_color_default=''
-bl_cli_color_dim=''
-bl_cli_color_green=''
-bl_cli_color_invert=''
-bl_cli_color_invisible=''
-bl_cli_color_light_blue=''
-bl_cli_color_light_cyan=''
-bl_cli_color_light_gray=''
-bl_cli_color_light_green=''
-bl_cli_color_light_magenta=''
-bl_cli_color_light_red=''
-bl_cli_color_light_yellow=''
-bl_cli_color_magenta=''
-bl_cli_color_nodim=''
-bl_cli_color_noblink=''
-bl_cli_color_nobold=''
-bl_cli_color_noinvert=''
-bl_cli_color_noinvisible=''
-bl_cli_color_nounderline=''
-bl_cli_color_red=''
-bl_cli_color_underline=''
-bl_cli_color_white=''
-bl_cli_color_yellow=''
+declare -g bl_cli_color_black=''
+declare -g bl_cli_color_blink=''
+declare -g bl_cli_color_blue=''
+declare -g bl_cli_color_bold=''
+declare -g bl_cli_color_cyan=''
+declare -g bl_cli_color_dark_gray=''
+declare -g bl_cli_color_default=''
+declare -g bl_cli_color_dim=''
+declare -g bl_cli_color_green=''
+declare -g bl_cli_color_invert=''
+declare -g bl_cli_color_invisible=''
+declare -g bl_cli_color_light_blue=''
+declare -g bl_cli_color_light_cyan=''
+declare -g bl_cli_color_light_gray=''
+declare -g bl_cli_color_light_green=''
+declare -g bl_cli_color_light_magenta=''
+declare -g bl_cli_color_light_red=''
+declare -g bl_cli_color_light_yellow=''
+declare -g bl_cli_color_magenta=''
+declare -g bl_cli_color_nodim=''
+declare -g bl_cli_color_noblink=''
+declare -g bl_cli_color_nobold=''
+declare -g bl_cli_color_noinvert=''
+declare -g bl_cli_color_noinvisible=''
+declare -g bl_cli_color_nounderline=''
+declare -g bl_cli_color_red=''
+declare -g bl_cli_color_underline=''
+declare -g bl_cli_color_white=''
+declare -g bl_cli_color_yellow=''
 ## endregion
 ## region unicode glyphs
 # NOTE: Each fall-back symbol should only consist of one character. To allow
 # interactive shell integration (with fixed number of printed characters to
 # replace).
-bl_cli_powerline_arrow_down='_'
-bl_cli_powerline_arrow_left='<'
-bl_cli_powerline_arrow_right='>'
-bl_cli_powerline_arrow_right_down='>'
-bl_cli_powerline_branch='}'
-bl_cli_powerline_cog='*'
-bl_cli_powerline_fail='x'
-bl_cli_powerline_heart='3'
-bl_cli_powerline_lightning='!'
-bl_cli_powerline_ok='+'
-bl_cli_powerline_pointingarrow='~'
-bl_cli_powerline_plusminus='x'
-bl_cli_powerline_refersto='*'
-bl_cli_powerline_star='*'
-bl_cli_powerline_saxophone='y'
-bl_cli_powerline_thumbsup='+'
+declare -g bl_cli_powerline_arrow_down=_
+declare -g bl_cli_powerline_arrow_left='<'
+declare -g bl_cli_powerline_arrow_right='>'
+declare -g bl_cli_powerline_arrow_right_down='>'
+declare -g bl_cli_powerline_branch='}'
+declare -g bl_cli_powerline_cog='*'
+declare -g bl_cli_powerline_fail=x
+declare -g bl_cli_powerline_heart=3
+declare -g bl_cli_powerline_lightning=!
+declare -g bl_cli_powerline_ok=+
+declare -g bl_cli_powerline_pointingarrow=~
+declare -g bl_cli_powerline_plusminus=x
+declare -g bl_cli_powerline_refersto='*'
+declare -g bl_cli_powerline_star='*'
+declare -g bl_cli_powerline_saxophone=y
+declare -g bl_cli_powerline_thumbsup=+
 ## endregion
 # NOTE: Use 'xfd -fa <font-name>' to watch glyphs.
-bl_cli_unicode_enabled=false
+declare -g bl_cli_unicode_enabled=false
 # endregion
 # region functions
 alias bl.cli.glyph_available_in_font=bl_cli_glyph_available_in_font
 bl_cli_glyph_available_in_font() {
-    local __documentation__='
+    local -r __documentation__='
         Check if unicode glyphicons are available.
 
         >>> bl.cli.glyph_available_in_font
@@ -98,8 +97,8 @@ bl_cli_glyph_available_in_font() {
     fi
     hash fc-match &>/dev/null || \
         return 1
-    local font_file_name="$(fc-match "$current_font" | cut -d: -f1)"
-    local font_file_extension="${font_file_name##*.}"
+    local -r font_file_name="$(fc-match "$current_font" | cut -d: -f1)"
+    local -r font_file_extension="${font_file_name##*.}"
     if [ "$font_file_extension" = otf ]; then
         hash otfinfo &>/dev/null || \
             return 1
@@ -117,7 +116,7 @@ bl_cli_glyph_available_in_font() {
 }
 alias bl.cli.disable_color=bl_cli_disable_color
 bl_cli_disable_color() {
-    local __documentation__='
+    local -r __documentation__='
         Disables color output explicitly.
 
         >>> bl.cli.enable_color
@@ -163,7 +162,7 @@ bl_cli_disable_color() {
 }
 alias bl.cli.enable_color=bl_cli_enable_color
 bl_cli_enable_color() {
-    local __documentation__='
+    local -r __documentation__='
         Enables color output explicitly.
 
         >>> bl.cli.disable_color
@@ -210,7 +209,7 @@ bl_cli_enable_color() {
 ## region glyphs
 alias bl.cli.disable_unicode_glyphs=bl_cli_disable_unicode_glyphs
 bl_cli_disable_unicode_glyphs() {
-    local __documentation__='
+    local -r __documentation__='
         Disables unicode glyphs explicitly.
 
         >>> bl.cli.enable_unicode_glyphs
@@ -246,7 +245,7 @@ bl_cli_disable_unicode_glyphs() {
 }
 alias bl.cli.enable_unicode_glyphs=bl_cli_enable_unicode_glyphs
 bl_cli_enable_unicode_glyphs() {
-    local __documentation__='
+    local -r __documentation__='
         Enables unicode glyphs explicitly.
 
         >>> bl.cli.disable_unicode_glyphs
@@ -254,7 +253,6 @@ bl_cli_enable_unicode_glyphs() {
         >>> echo -E "$bl_cli_powerline_ok"
         \u2714
     '
-    local suffix
     for name in \
         arrow_down \
         arrow_left \
