@@ -48,7 +48,7 @@ Integrate bashlink into your bash script (only main entry file):
 Integrate bashlink into your standalone bash script:
 
 ```bash
-    moduleName_bashlink_path="$(
+    declare -gr moduleName_bashlink_path="$(
         mktemp --directory --suffix -module-name-bashlink
     )/bashlink/"
     mkdir "$moduleName_bashlink_path"
@@ -57,7 +57,7 @@ Integrate bashlink into your standalone bash script:
         --output-document "${moduleName_bashlink_path}module.sh" \
         --quiet
     then
-        bl_module_retrieve_remote_modules=true
+        declare -gr bl_module_retrieve_remote_modules=true
         # shellcheck disable=SC1091
         source "${moduleName_bashlink_path}module.sh"
     else
@@ -78,7 +78,7 @@ Or combine both to implement a very agnostic script.
         # shellcheck disable=SC1091
         source "/usr/lib/bashlink/module.sh"
     else
-        moduleName_bashlink_path="$(
+        declare -gr moduleName_bashlink_path="$(
             mktemp --directory --suffix -module-name-bashlink
         )/bashlink/"
         mkdir "$moduleName_bashlink_path"
@@ -87,7 +87,7 @@ Or combine both to implement a very agnostic script.
             --output-document "${moduleName_bashlink_path}module.sh" \
             --quiet
         then
-            bl_module_retrieve_remote_modules=true
+            declare -gr bl_module_retrieve_remote_modules=true
             # shellcheck disable=SC1090
             source "${moduleName_bashlink_path}/module.sh"
         else
@@ -109,7 +109,7 @@ Best practise (entry) module pattern:
         # shellcheck disable=SC1091
         source "/usr/lib/bashlink/module.sh"
     else
-        moduleName_bashlink_path="$(
+        declare -gr moduleName_bashlink_path="$(
             mktemp --directory --suffix -module-name-bashlink
         )/bashlink/"
         mkdir "$moduleName_bashlink_path"
@@ -118,7 +118,7 @@ Best practise (entry) module pattern:
             --output-document "${moduleName_bashlink_path}module.sh" \
             --quiet
         then
-            bl_module_retrieve_remote_modules=true
+            declare -gr bl_module_retrieve_remote_modules=true
             # shellcheck disable=SC1090
             source "${moduleName_bashlink_path}/module.sh"
         else
