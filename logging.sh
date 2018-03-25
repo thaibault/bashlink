@@ -20,7 +20,7 @@ bl.module.import bashlink.array
 bl.module.import bashlink.cli
 # endregion
 # region variables
-bl_logging__documentation__='
+declare -gr bl_logging__documentation__='
     The available log levels are:
 
     - error
@@ -91,12 +91,12 @@ bl_logging__documentation__='
     >>> bl.logging.critical foo
     [myprefix - critical] foo
 '
-bl_logging_file_path=''
-bl_logging_error_file_path=''
-bl_logging_commands_file_path=''
-bl_logging_commands_error_file_path=''
+declare -g bl_logging_file_path=''
+declare -g bl_logging_error_file_path=''
+declare -g bl_logging_commands_file_path=''
+declare -g bl_logging_commands_error_file_path=''
 # logging levels from low to high
-bl_logging_levels=(
+declare -ag bl_logging_levels=(
     error
     critical
     warning
@@ -104,17 +104,19 @@ bl_logging_levels=(
     debug
 )
 # matches the order of logging levels
-bl_logging_levels_color=(
+declare -ag bl_logging_levels_color=(
     "$bl_cli_color_red"
     "$bl_cli_color_magenta"
     "$bl_cli_color_yellow"
     "$bl_cli_color_green"
     "$bl_cli_color_blue"
 )
-bl_logging_commands_level=$(bl.array.get_index critical "${bl_logging_levels[@]}")
-bl_logging_level=$(bl.array.get_index critical "${bl_logging_levels[@]}")
-bl_logging_output_target=std
-bl_logging_command_output_target=std
+declare -g bl_logging_commands_level=$(
+    bl.array.get_index critical "${bl_logging_levels[@]}")
+declare -g bl_logging_level=$(
+    bl.array.get_index critical "${bl_logging_levels[@]}")
+declare -g bl_logging_output_target=std
+declare -g bl_logging_command_output_target=std
 # endregion
 # Save existing standard descriptors (in descriptor 5 and 6) and set default
 # redirections for logging output (file descriptor 3 and 4).
@@ -169,17 +171,18 @@ bl_logging_get_prefix() {
         +bl.doctest.contains
         critical
     '
-    local level=$1
-    local level_index=$(bl.array.get_index "$level" "${bl_logging_levels[@]}")
+    local -r level=$1
+    local -r level_index=$(
+        bl.array.get_index "$level" "${bl_logging_levels[@]}")
     if (( level_index <= -1 )); then
         bl.logging.critical \
             "Given logging level \"$level\" is not available, use one of:" \
             "${bl_logging_levels[*]} or warn."
         return 1
     fi
-    local color=${bl_logging_levels_color[$level_index]}
+    local -r color=${bl_logging_levels_color[$level_index]}
     # shellcheck disable=SC2154
-    local loglevel=${color}${level}${bl_cli_color_default}
+    local -r loglevel=${color}${level}${bl_cli_color_default}
     local path="${BASH_SOURCE[2]##./}"
     path="${path%.sh}"
     # shellcheck disable=SC2154
@@ -196,8 +199,8 @@ bl_logging_is_enabled() {
         0
         1
     '
-    local level="$1"
-    local level_index=$(bl.array.get_index "$level" "${bl_logging_levels[@]}")
+    local -r level="$1"
+    local -r level_index=$(bl.array.get_index "$level" "${bl_logging_levels[@]}")
     if (( level_index <= -1 )); then
         # NOTE: `bl.logging.error` is not defined yet.
         bl_logging_log \

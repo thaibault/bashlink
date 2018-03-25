@@ -19,12 +19,12 @@ bl.module.import bashlink.logging
 bl.module.import bashlink.path
 # endregion
 # region variables
-bl_filesystem__dependencies__=(pv)
-bl_filesystem__documentation__='
+declare -gr bl_filesystem__documentation__='
     Provides filesystem aware utility functions.
 '
+declare -gr bl_filesystem__dependencies__=(pv)
 # shellcheck disable=SC1004
-bl_filesystem__doctest_setup__='
+declare -gr bl_filesystem__doctest_setup__='
     # Runs once before tests are started:
     # region import
     bl.module.import bashlink.array
@@ -138,10 +138,19 @@ bl_filesystem_btrfs_is_root() {
         >>> bl.filesystem.btrfs_is_root /broot/foo; echo $?
         1
     '
-    (btrfs subvolume show "$1" | command grep 'is btrfs root') &>/dev/null || \
-        (btrfs subvolume show "$1" | command grep 'is toplevel') &>/dev/null || \
-        (btrfs subvolume show "$1" | command grep 'Name:.*<FS_TREE>') &>/dev/null || \
-        return 1
+    (
+        btrfs subvolume show "$1" | \
+            command grep 'is btrfs root'
+    ) &>/dev/null || \
+        (
+            btrfs subvolume show "$1" | \
+                command grep 'is toplevel'
+        ) &>/dev/null || \
+            (
+                btrfs subvolume show "$1" | \
+                    command grep 'Name:.*<FS_TREE>'
+            ) &>/dev/null || \
+                return 1
 }
 # NOTE: Depends on "bl.filesystem.is_root"
 alias bl.filesystem.btrfs_find_root=bl_filesystem_btrfs_find_root
@@ -158,10 +167,11 @@ bl_filesystem_btrfs_find_root() {
     '
     local path="$1"
     while true; do
-        bl.filesystem.btrfs_is_root "$path" && \
-            echo "$path" && \
+        if bl.filesystem.btrfs_is_root "$path"; then
+            echo "$path"
             return 0
-        [ "$path" = '/' ] && \
+        fi
+        [ "$path" = / ] && \
             return 1
         path="$(dirname "$path")"
     done
@@ -177,17 +187,23 @@ bl_filesystem_btrfs_subvolume_filter() {
         >>> bl.filesystem.btrfs_subvolume_filter /broot id 256
         ID 256 parent 5 top level 5 path __active
     '
-    local btrfs_root="$(readlink --canonicalize "$1")"
-    local target_key="$2"
-    local target_value="$3"
+    local -r btrfs_root="$(readlink --canonicalize "$1")"
+    bl.filesystem.btrfs_is_root "$btrfs_root" || \
+        return 1
+    local -r target_key="$2"
+    local -r target_value="$3"
     local entry
-    bl.filesystem.btrfs_is_root "$btrfs_root" || return 1
-    btrfs subvolume list -p "$btrfs_root" | while read -r entry; do
-        local value="$(bl.filesystem.btrfs_get_subvolume_list_field "$target_key" "$entry")"
-        if [[ "$value" == "$target_value" ]]; then
-            echo "$entry"
-        fi
-    done
+    btrfs subvolume list -p "$btrfs_root" | \
+        while read -r entry; do
+            local value="$(
+                bl.filesystem.btrfs_get_subvolume_list_field \
+                    "$target_key" \
+                    "$entry"
+            )"
+            if [ "$value" = "$target_value" ]; then
+                echo "$entry"
+            fi
+        done
 }
 alias bl.filesystem.btrfs_is_subvolume=bl_filesystem_btrfs_is_subvolume
 bl_filesystem_btrfs_is_subvolume() {
@@ -221,15 +237,15 @@ bl_filesystem_btrfs_get_child_volumes() {
         /broot/__snapshot/backup_last/usr
         /broot/__snapshot/backup_last/home
     '
-    local volume="$1"
+    local -r volume="$1"
     bl.filesystem.btrfs_is_subvolume "${volume}" || \
         return 1
-    local btrfs_root="$(bl.filesystem.btrfs_find_root "$volume")"
-    local volume_relative="$(
+    local -r btrfs_root="$(bl.filesystem.btrfs_find_root "$volume")"
+    local -r volume_relative="$(
         bl.path.convert_to_relative "$btrfs_root" "$volume")"
     local entry="$(
         bl.filesystem.btrfs_subvolume_filter "$btrfs_root" path "$volume_relative")"
-    local volume_id="$(
+    local -r volume_id="$(
         bl.filesystem.btrfs_get_subvolume_list_field id "$entry")"
     bl.filesystem.btrfs_subvolume_filter "$btrfs_root" parent "$volume_id" | \
         while read -r entry; do
@@ -248,7 +264,7 @@ bl_filesystem_btrfs_get_subvolume_list_field() {
         256
         5
     '
-    local target="$1"
+    local -r target="$1"
     local entry
     read -r -a entry <<< "$2"
     local found=false
@@ -259,7 +275,7 @@ bl_filesystem_btrfs_get_subvolume_list_field() {
             break
         fi
         # case insensitive match (bash >= 4)
-        if [[ "${field,,}" == "${target,,}" ]]; then
+        if [ "${field,,}" = "${target,,}" ]; then
             found=true
         fi
     done
@@ -269,15 +285,18 @@ bl_filesystem_btrfs_subvolume_set_read_only() {
     local -r __documentation__='
         Make subvolume writable or readonly. Also applies to child subvolumes.
     '
-    local volume="$1"
+    local -r volume="$1"
     local read_only="$2"
-    [ -z "$2" ] && read_only=true
+    [ "$read_only" = '' ] && \
+        read_only=true
     # if setting to writable set top volume first
-    $read_only || btrfs property set -ts "$volume" ro $read_only
+    $read_only || \
+        btrfs property set -ts "$volume" ro $read_only
     local child
-    bl.filesystem.btrfs_get_child_volumes "$volume" | while read -r child; do
-        btrfs property set -ts "$child" ro $read_only
-    done
+    bl.filesystem.btrfs_get_child_volumes "$volume" | \
+        while read -r child; do
+            btrfs property set -ts "$child" ro $read_only
+        done
     # if setting to read_only set top volume last
     if $read_only; then
         btrfs property set -ts "$volume" ro $read_only
@@ -296,10 +315,10 @@ bl_filesystem_btrfs_send() {
         btrfs send /broot/__active/home | pv | btrfs receive /backup/__active
         mv /backup/__active /backup/__active_backup
     '
-    local volume="$1"
-    local volume_name="$(basename "$1")"
-    local target_path="$2"
-    local target_directory_path="$(dirname "$2")"
+    local -r volume="$1"
+    local -r volume_name="$(basename "$1")"
+    local -r target_path="$2"
+    local -r target_directory_path="$(dirname "$2")"
     # Note btrfs send can only operate on read-only snapshots
     bl.filesystem.btrfs_subvolume_set_read_only "$volume" true
     btrfs send "$volume" | \
@@ -335,10 +354,10 @@ bl_filesystem_btrfs_send_update() {
         rmdir /backup/__active/home
         btrfs send -p /broot/backing/home /broot/__active/home | pv | btrfs receive /backup/__active
     '
-    local volume="$1"
-    local volume_name="$(basename "$1")"
-    local backing_snapshot="$2"
-    local target="$3"
+    local -r volume="$1"
+    local -r volume_name="$(basename "$1")"
+    local -r backing_snapshot="$2"
+    local -r target="$3"
     # Note btrfs send can only operate on read-only snapshots
     bl.filesystem.btrfs_subvolume_set_read_only "$volume" true
     bl.filesystem.btrfs_subvolume_set_read_only "$backing_snapshot" true
@@ -379,9 +398,9 @@ bl_filesystem_btrfs_snapshot() {
         rmdir /backup/__active_backup/home
         btrfs subvolume snapshot /broot/__active/home /backup/__active_backup/home
     '
-    local volume="$1"
-    local target="$2"
-    local exclude="$3"
+    local -r volume="$1"
+    local -r target="$2"
+    local -r exclude="$3"
     btrfs subvolume snapshot "${volume}" "${target}"
     local child child_relative
     bl.filesystem.btrfs_get_child_volumes "$volume" | while read -r child; do
@@ -412,17 +431,17 @@ bl_filesystem_btrfs_subvolume_backup() {
     sudo umount /mnt &>/dev/null
     if [[ "$1" == create ]]; then
         sudo mount PARTLABEL=system /mnt
-        local timestamp="$(date +"%d:%m:%y:%T")"
+        local -r timestamp="$(date +"%d:%m:%y:%T")"
         sudo btrfs subvolume snapshot /mnt/root \
             "/mnt/rootBackup${timestamp}"
         # NOTE: Autocompletion should be done by sudo. Not bash as user.
         sudo bash -c "cp --recursive /boot/* \"/mnt/rootBackup${timestamp}/boot/\""
         sudo umount /mnt
-    elif [[ "$1" == delete ]] && [[ "$2" ]]; then
+    elif [ "$1" = delete ] && [[ "$2" ]]; then
         sudo mount PARTLABEL=system /mnt
         sudo btrfs subvolume delete "/mnt/$(basename "$2")"
         sudo umount /mnt
-    elif [[ "$1" == list ]]; then
+    elif [ "$1" = list ]; then
         sudo btrfs subvolume list /
     else
         bl.logging.cat << EOF
@@ -436,12 +455,15 @@ bl_filesystem_btrfs_subvolume_backup_autocomplete() {
     local -r __documentation__='
         Autocompletion function for `bl.filesystem.subvolume_backup`.
     '
-    local last_complete_argument="${COMP_WORDS[${COMP_CWORD}-1]}"
-    local current_argument="${COMP_WORDS[-1]}"
+    local -r last_complete_argument="${COMP_WORDS[${COMP_CWORD}-1]}"
+    local -r current_argument="${COMP_WORDS[-1]}"
     if [[ $COMP_CWORD == 1 ]]; then
-        read -r -a COMPREPLY <<< "$(compgen -W 'create delete list' -- "$current_argument")"
-    elif [[ $UID == 0 ]] && [[ $COMP_CWORD == 2 ]]
-         [[ "$last_complete_argument" == delete ]]
+        read -r -a COMPREPLY <<< "$(
+            compgen -W 'create delete list' -- "$current_argument")"
+    elif \
+        (( UID == 0 )) && \
+        (( COMP_CWORD == 2 )) && \
+        [ "$last_complete_argument" = delete ]
     then
         read -r -a COMPREPLY <<< "$(compgen -W "$(
             bl.filesystem.btrfs_subvolume_backup list | \
@@ -461,14 +483,13 @@ bl_filesystem_btrfs_subvolume_delete() {
         >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/foo; echo $?
         1
     '
-    local volume="$1"
+    local -r volume="$1"
     local child
     bl.filesystem.btrfs_subvolume_set_read_only "$volume" false
-    bl.filesystem.btrfs_get_child_volumes "$volume" \
-        | while read -r child
-    do
-        btrfs subvolume delete "$child"
-    done
+    bl.filesystem.btrfs_get_child_volumes "$volume" | \
+        while read -r child; do
+            btrfs subvolume delete "$child"
+        done
     btrfs subvolume delete "$volume"
 }
 ## endregion
@@ -489,18 +510,19 @@ bl_filesystem_create_partition_via_offset() {
     local -r __documentation__='
         Creates a partition after given disk offset.
     '
-    local device="$1"
-    local name_or_uuid="$2"
-    local loop_device="$(losetup --find)"
-    local sector_size="$(blockdev --getbsz "$device")"
+    local -r device="$1"
+    local -r name_or_uuid="$2"
+    local -r loop_device="$(losetup --find)"
+    local -r sector_size="$(blockdev --getbsz "$device")"
     # NOTE: partx's NAME field corresponds to partition labels
-    local partition_info=$(partx --raw --noheadings --output \
+    local -r partition_info=$(partx --raw --noheadings --output \
         START,NAME,UUID,TYPE "$device" 2>/dev/null| command grep "$name_or_uuid")
-    local offset_sectors="$(
+    local -r offset_sectors="$(
         echo "$partition_info" | \
             cut --delimiter ' ' --fields 1)"
-    if [ -z "$offset_sectors" ]; then
-        bl.logging.warn "Could not find partition with label/uuid \"$name_or_uuid\" on device \"$device\""
+    if [ "$offset_sectors" = '' ]; then
+        bl.logging.error_exception \
+            "Could not find partition with label/uuid \"$name_or_uuid\" on device \"$device\""
         return 1
     fi
     local offset_bytes="$(
@@ -530,9 +552,10 @@ bl_filesystem_find_block_device() {
         >>> bl.filesystem.find_block_device "" || echo not found
         not found
     '
-    local partition_pattern="$1"
-    local device="${2-}"
-    [ "$partition_pattern" = '' ] && return 1
+    local -r partition_pattern="$1"
+    local -r device="${2-}"
+    [ "$partition_pattern" = '' ] && \
+        return 1
     bl_filesystem_find_block_device_simple() {
         local device_info
         lsblk \
@@ -584,7 +607,7 @@ bl_filesystem_find_block_device() {
         return 1
     echo "${candidates[0]}"
 }
-## region file links
+## region file  links
 alias bl.filesystem.find_hardlinks=bl_filesystem_find_hardlinks
 bl_filesystem_find_hardlinks() {
     local -r __documentation__='
@@ -651,12 +674,12 @@ bl_filesystem_make_uefi_boot_entry() {
                 vmlinuz-linux-lts
         ```
     '
-    local kernel_parameter_file_path="${bl_globals_configuration_path}linux/kernel/${1}CommandLine"
-    local kernel='vmlinuz-linux'
+    local -r kernel_parameter_file_path="${bl_globals_configuration_path}linux/kernel/${1}CommandLine"
+    local kernel=vmlinuz-linux
     if [[ "$2" ]]; then
         kernel="$2"
     fi
-    if [[ -f "$kernel_parameter_file_path" ]]; then
+    if [ -f "$kernel_parameter_file_path" ]; then
         local command="sudo efibootmgr --verbose --create --disk /dev/sda --part 1 -l \"\\${kernel}\" --label \"$1\" --unicode \"$(cat "$kernel_parameter_file_path")\""
         bl.logging.info "Create boot entry \"$1\" with command \"${command}\"."
         eval "$command"
@@ -720,7 +743,8 @@ bl_filesystem_set_maximum_user_watches() {
             bl.filesystem.set_maximum_user_watches 500000
         ```
     '
-    echo "$1" | sudo tee /proc/sys/fs/inotify/max_user_watches
+    echo "$1" | \
+        sudo tee /proc/sys/fs/inotify/max_user_watches
     return $?
 }
 alias bl.filesystem.write_blockdevice_to_image=bl_filesystem_write_blockdevice_to_image

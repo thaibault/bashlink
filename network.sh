@@ -11,7 +11,7 @@
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region variables
-bl_network__documentation__='
+declare -gr bl_network__documentation__='
     The network module implements utility functions concerning network
     confgurations.
 '

@@ -18,7 +18,7 @@ bl.module.import bashlink.globals
 bl.module.import bashlink.logging
 # endregion
 # region variables
-bl_ssh__documentation__='
+declare -gr bl_ssh__documentation__='
     This module implements utility functions concerning ssh connections.
 '
 # endregion
