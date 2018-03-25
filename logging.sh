@@ -20,7 +20,7 @@ bl.module.import bashlink.array
 bl.module.import bashlink.cli
 # endregion
 # region variables
-bl_logging__documentation__='
+declare -gr bl_logging__documentation__='
     The available log levels are:
 
     - error
@@ -91,12 +91,12 @@ bl_logging__documentation__='
     >>> bl.logging.critical foo
     [myprefix - critical] foo
 '
-bl_logging_file_path=''
-bl_logging_error_file_path=''
-bl_logging_commands_file_path=''
-bl_logging_commands_error_file_path=''
+declare -g bl_logging_file_path=''
+declare -g bl_logging_error_file_path=''
+declare -g bl_logging_commands_file_path=''
+declare -g bl_logging_commands_error_file_path=''
 # logging levels from low to high
-bl_logging_levels=(
+declare -ag bl_logging_levels=(
     error
     critical
     warning
@@ -104,17 +104,19 @@ bl_logging_levels=(
     debug
 )
 # matches the order of logging levels
-bl_logging_levels_color=(
+declare -ag bl_logging_levels_color=(
     "$bl_cli_color_red"
     "$bl_cli_color_magenta"
     "$bl_cli_color_yellow"
     "$bl_cli_color_green"
     "$bl_cli_color_blue"
 )
-bl_logging_commands_level=$(bl.array.get_index critical "${bl_logging_levels[@]}")
-bl_logging_level=$(bl.array.get_index critical "${bl_logging_levels[@]}")
-bl_logging_output_target=std
-bl_logging_command_output_target=std
+declare -g bl_logging_commands_level=$(
+    bl.array.get_index critical "${bl_logging_levels[@]}")
+declare -g bl_logging_level=$(
+    bl.array.get_index critical "${bl_logging_levels[@]}")
+declare -g bl_logging_output_target=std
+declare -g bl_logging_command_output_target=std
 # endregion
 # Save existing standard descriptors (in descriptor 5 and 6) and set default
 # redirections for logging output (file descriptor 3 and 4).
@@ -126,7 +128,7 @@ exec \
 # region functions
 alias bl.logging.cat=bl_logging_cat
 bl_logging_cat() {
-    local __documentation__='
+    local -r __documentation__='
         This function prints files
         (e.g `bl.logging.cat < file.txt`) or heredocs. Like `bl.logging.plain`,
         it also prints at any log level and without the prefix.
@@ -140,7 +142,7 @@ bl_logging_cat() {
 }
 alias bl.logging.get_commands_level=bl_logging_get_commands_level
 bl_logging_get_commands_level() {
-    local __documentation__='
+    local -r __documentation__='
         Retrieves current command output level.
 
         >>> bl.logging.set_commands_level critical
@@ -151,7 +153,7 @@ bl_logging_get_commands_level() {
 }
 alias bl.logging.get_level=bl_logging_get_level
 bl_logging_get_level() {
-    local __documentation__='
+    local -r __documentation__='
         Retrieves current logging level.
 
         >>> bl.logging.set_level critical
@@ -162,24 +164,25 @@ bl_logging_get_level() {
 }
 alias bl.logging.get_prefix=bl_logging_get_prefix
 bl_logging_get_prefix() {
-    local __documentation__='
+    local -r __documentation__='
         Determines logging prefix string.
 
         >>> bl.logging.get_prefix critical
         +bl.doctest.contains
         critical
     '
-    local level=$1
-    local level_index=$(bl.array.get_index "$level" "${bl_logging_levels[@]}")
+    local -r level=$1
+    local -r level_index=$(
+        bl.array.get_index "$level" "${bl_logging_levels[@]}")
     if (( level_index <= -1 )); then
         bl.logging.critical \
             "Given logging level \"$level\" is not available, use one of:" \
             "${bl_logging_levels[*]} or warn."
         return 1
     fi
-    local color=${bl_logging_levels_color[$level_index]}
+    local -r color=${bl_logging_levels_color[$level_index]}
     # shellcheck disable=SC2154
-    local loglevel=${color}${level}${bl_cli_color_default}
+    local -r loglevel=${color}${level}${bl_cli_color_default}
     local path="${BASH_SOURCE[2]##./}"
     path="${path%.sh}"
     # shellcheck disable=SC2154
@@ -187,7 +190,7 @@ bl_logging_get_prefix() {
 }
 alias bl.logging.is_enabled=bl_logging_is_enabled
 bl_logging_is_enabled() {
-    local __documentation__='
+    local -r __documentation__='
         Checks if given logging level is enabled.
 
         >>> bl.logging.set_level critical
@@ -196,8 +199,8 @@ bl_logging_is_enabled() {
         0
         1
     '
-    local level="$1"
-    local level_index=$(bl.array.get_index "$level" "${bl_logging_levels[@]}")
+    local -r level="$1"
+    local -r level_index=$(bl.array.get_index "$level" "${bl_logging_levels[@]}")
     if (( level_index <= -1 )); then
         # NOTE: `bl.logging.error` is not defined yet.
         bl_logging_log \
@@ -211,7 +214,7 @@ bl_logging_is_enabled() {
 }
 alias bl.logging.plain_raw=bl_logging_plain_raw
 bl_logging_plain_raw() {
-    local __documentation__='
+    local -r __documentation__='
         This function prints at any log level and without prefix.
 
         >>> bl.logging.set_level critical
@@ -231,7 +234,7 @@ bl_logging_plain_raw() {
 }
 alias bl.logging.plain=bl_logging_plain
 bl_logging_plain() {
-    local __documentation__='
+    local -r __documentation__='
         This function prints a given string in evaluated representation at any
         log level and without prefix.
 
@@ -252,7 +255,7 @@ bl_logging_plain() {
 # NOTE: Depends on "bl.logging.plain"
 alias bl.logging.log=bl_logging_log
 bl_logging_log() {
-    local __documentation__='
+    local -r __documentation__='
         Main logging function which will be wrapped from each level specific
         logging function.
 
@@ -314,7 +317,7 @@ alias bl.logging.warning=bl.logging.warn
 alias bl.logging.set_file_descriptors=bl_logging_set_file_descriptors
 bl_logging_set_file_descriptors() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Sets file descriptors for all generic commands outputs and logging
         methods defined in this module.
 
@@ -563,7 +566,7 @@ bl_logging_set_file_descriptors() {
 # NOTE: Depends on "bl.logging.set_file_descriptors"
 alias bl.logging.set_command_output_off=bl_logging_set_command_output_off
 bl_logging_set_command_output_off() {
-    local __documentation__='
+    local -r __documentation__='
         Disables each command output.
 
         >>> bl.logging.set_command_output_off
@@ -580,7 +583,7 @@ bl_logging_set_command_output_off() {
 # NOTE: Depends on "bl.logging.set_file_descriptors"
 alias bl.logging.set_command_output_on=bl_logging_set_command_output_on
 bl_logging_set_command_output_on() {
-    local __documentation__='
+    local -r __documentation__='
         Enables each command output.
 
         >>> bl.logging.set_command_output_on
@@ -598,7 +601,7 @@ bl_logging_set_command_output_on() {
 # NOTE: Depends on "bl.logging.set_command_output_on", bl.logging.set_command_output_off"
 alias bl.logging.set_commands_level=bl_logging_set_commands_level
 bl_logging_set_commands_level() {
-    local __documentation__='
+    local -r __documentation__='
         Enables each command output.
 
         >>> bl.logging.set_commands_level critical
@@ -622,7 +625,7 @@ bl_logging_set_commands_level() {
 }
 alias bl.logging.set_level=bl_logging_set_level
 bl_logging_set_level() {
-    local __documentation__='
+    local -r __documentation__='
         >>> bl.logging.set_commands_level info
         >>> bl.logging.set_level info
         >>> echo $bl_logging_level
@@ -643,7 +646,7 @@ bl_logging_set_level() {
 }
 alias bl.logging.set_file=bl_logging_set_file
 bl_logging_set_file() {
-    local __documentation__='
+    local -r __documentation__='
         >>> local test_file_path="$(bl_logging_bl_doctest_mktemp)"
         >>> bl.logging.set_file "$test_file_path"
         >>> bl.logging.plain test

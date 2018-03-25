@@ -17,7 +17,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.array
 # endregion
 # region variables
-bl_arguments__documentation__='
+declare -gr bl_arguments__documentation__='
     The arguments module provides an argument parser that can be used in
     functions and scripts.
 
@@ -47,12 +47,12 @@ bl_arguments__documentation__='
     1: positional3
     1: positional3
 '
-bl_arguments_new=()
+declare -ag bl_arguments_new=()
 # endregion
 # region functions
 alias bl.arguments.apply_new='set -- "${bl_arguments_new[@]}"'
 bl_arguments_apply_new() {
-    local __documentation__='
+    local -r __documentation__='
         Call this function after you are finished with argument parsing. The
         arguments array ($@) will then contain all unparsed arguments that are
         left.
@@ -62,7 +62,7 @@ bl_arguments_apply_new() {
 }
 alias bl.arguments.get_flag=bl_arguments_get_flag
 bl_arguments_get_flag() {
-    local __documentation__='
+    local -r __documentation__='
         Sets `variable_name` to `true` if flag (or on of its aliases) is
         contained in the argument array (see `bl.arguments.set`).
 
@@ -86,28 +86,29 @@ bl_arguments_get_flag() {
         >>> echo $foo
         true
     '
-    local flag_aliases
+    local -a flag_aliases
     read -r -a flag_aliases <<< "$(bl.array.slice :-1 "$@")"
-    local variable_name="$(bl.array.slice -1 "$@")"
-    local new_arguments=()
+    local -r variable_name="$(bl.array.slice -1 "$@")"
+    local -a new_arguments=()
     eval "${variable_name}=false"
     local argument
     for argument in "${bl_arguments_new[@]:-}"; do
         local match=false
         local flag
         for flag in "${flag_aliases[@]}"; do
-            if [[ "$argument" == "$flag" ]]; then
+            if [ "$argument" = "$flag" ]; then
                 match=true
                 eval "${variable_name}=true"
             fi
         done
-        $match || new_arguments+=("$argument")
+        $match || \
+            new_arguments+=("$argument")
     done
     bl_arguments_new=("${new_arguments[@]:+${new_arguments[@]}}")
 }
 alias bl.arguments.get_keyword=bl_arguments_get_keyword
 bl_arguments_get_keyword() {
-    local __documentation__='
+    local -r __documentation__='
         Sets `variable_name` to the value of `keyword` the argument array (see
         `bl.arguments.set`) contains `keyword=value`.
 
@@ -131,18 +132,17 @@ bl_arguments_get_keyword() {
         bar
         baz
     '
-    local keyword="$1"
+    local -r keyword="$1"
     local variable="$1"
-    [[ "${2:-}" != "" ]] && variable="$2"
-    # NOTE: use unique variable name "value_csh94wwn25" here as this prevents
-    # evaling something like "value=$value"
-    local argument key value_csh94wwn25
+    [[ "${2:-}" != '' ]] && \
+        variable="$2"
+    local argument key bl_arguments__temporary_value__
     local new_arguments=()
     for argument in "${bl_arguments_new[@]:-}"; do
         if [[ "$argument" == *=* ]]; then
-            IFS="=" read -r key value_csh94wwn25 <<<"$argument"
+            IFS='=' read -r key bl_arguments__temporary_value__ <<<"$argument"
             if [[ "$key" == "$keyword" ]]; then
-                eval "${variable}=$value_csh94wwn25"
+                eval "${variable}=$bl_arguments__temporary_value__"
             else
                 new_arguments+=("$argument")
             fi
@@ -154,7 +154,7 @@ bl_arguments_get_keyword() {
 }
 alias bl.arguments.get_parameter=bl_arguments_get_parameter
 bl_arguments_get_parameter() {
-    local __documentation__='
+    local -r __documentation__='
         Sets `variable_name` to the field following `parameter` (or one of the
         `parameter_aliases`) from the argument array (see `bl.arguments.set`).
 
@@ -174,30 +174,36 @@ bl_arguments_get_parameter() {
         bar
         other_param1 other_param2
     '
-    local parameter_aliases parameter variable argument index match
     # shellcheck disable=SC2207
-    parameter_aliases=($(bl.array.slice :-1 "$@"))
-    variable="$(bl.array.slice -1 "$@")"
-    match=false
+    local -ar parameter_aliases=($(bl.array.slice :-1 "$@"))
+    local -r variable="$(bl.array.slice -1 "$@")"
+    local match=false
     local new_arguments=()
+    local index
     for index in "${!bl_arguments_new[@]}"; do
-        argument="${bl_arguments_new[$index]}"
-        $match && match=false && continue
+        local argument="${bl_arguments_new[$index]}"
+        if $match; then
+            match=false
+            continue
+        fi
         match=false
+        local parameter
         for parameter in "${parameter_aliases[@]}"; do
-            if [[ "$argument" == "$parameter" ]]; then
-                eval "${variable}=${bl_arguments_new[((index+1))]}"
+            if [ "$argument" = "$parameter" ]; then
+                eval "${variable}=${bl_arguments_new[(( index + 1 ))]}"
                 match=true
                 break
             fi
         done
-        $match || new_arguments+=("$argument")
+        if ! $match; then
+            new_arguments+=("$argument")
+        fi
     done
     bl_arguments_new=("${new_arguments[@]:+${new_arguments[@]}}")
 }
 alias bl.arguments.get_positional=bl_arguments_get_positional
 bl_arguments_get_positional() {
-    local __documentation__='
+    local -r __documentation__='
         Get the positional parameter at `index`. Use after extracting
         parameters, keywords and flags.
 
@@ -215,14 +221,14 @@ bl_arguments_get_positional() {
         >>> echo "$positional1 $positional2"
         pos1 pos2
     '
-    local index="$1"
-    (( index-- )) # $0 is not available here
-    local variable="$2"
+    local -i index="$1"
+    (( index-- ))
+    local -r variable="$2"
     eval "${variable}=${bl_arguments_new[index]}"
 }
 alias bl.arguments.set=bl_arguments_set
 bl_arguments_set() {
-    local __documentation__='
+    local -r __documentation__='
         Set the array this module should work on. After getting the desired
         arguments, the new argument array can be accessed via
         `bl_arguments_new`. This new array contains all remaining arguments.
@@ -236,7 +242,7 @@ bl_arguments_set() {
 alias bl.arguments.wrapper_with_minimum_number_of_arguments=bl_arguments_wrapper_with_minimum_number_of_arguments
 bl_arguments_wrapper_with_minimum_number_of_arguments() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Supports default arguments with a minimum number of arguments for
         functions by wrapping them. Runs `sub_program` with arguments `all`,
         `--log-level` and `warning` if not at least two arguments are given to
@@ -257,7 +263,7 @@ bl_arguments_wrapper_with_minimum_number_of_arguments() {
         >>>         all --log-level warning $@)
         >>> }
     '
-    if [ $# -le $(($1+$2+1)) ]; then
+    if [ $# -le $(( $1 + $2 + 1 )) ]; then
         # Return default arguments.
         # shellcheck disable=SC2068
         bl.module.log_plain ${@:3:$1}
@@ -273,7 +279,7 @@ bl_arguments_wrapper_with_minimum_number_of_arguments() {
 alias bl.arguments.default_wrapper=bl_arguments_default_wrapper
 bl_arguments_default_wrapper() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Wrapper function for
         `bl.arguments.wrapper_with_minimum_number_of_arguments` with second
         parameter is setted to `1`.

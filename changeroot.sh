@@ -17,26 +17,30 @@ bl.module.import bashlink.exception
 bl.module.import bashlink.logging
 # endregion
 # region variables
-bl_changeroot__dependencies__=(mountpoint mount umount mkdir)
-bl_changeroot__optional_dependencies__=(fakeroot fakechroot)
-bl_changeroot__documentation__='
+declare -gr bl_changeroot__documentation__='
     The changeroot module implements utility functions concerning advanced
     change roots with kernel filesystem application interfaces.
 '
-bl_changeroot_kernel_api_locations=(
-    /proc \
-    /sys \
-    /sys/firmware/efi/efivars \
-    /dev \
-    /dev/pts \
-    /dev/shm \
+declare -agr bl_changeroot__dependencies__=(
+    chroot
+    mountpoint mount umount
+    mkdir
+)
+declare -agr bl_changeroot__optional_dependencies__=(fakeroot fakechroot)
+declare -agr bl_changeroot_kernel_api_locations=(
+    /proc
+    /sys
+    /sys/firmware/efi/efivars
+    /dev
+    /dev/pts
+    /dev/shm
     /run
 )
 # endregion
 # region functions
 alias bl.changeroot=bl_changeroot
 bl_changeroot() {
-    local __documentation__='
+    local -r __documentation__='
         This function performs a linux change root if needed and provides all
         kernel api filesystems in target root by using a change root interface
         with minimal needed rights.
@@ -56,7 +60,7 @@ bl_changeroot() {
 alias bl.changeroot.with_fake_fallback=bl_changeroot_with_fake_fallback
 bl_changeroot_with_fake_fallback() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Perform the available change root program wich needs at least rights.
 
         ```bash
@@ -64,7 +68,7 @@ bl_changeroot_with_fake_fallback() {
                 some arguments
         ```
     '
-    if [ "$UID" = 0 ]; then
+    if (( UID == 0 )); then
         chroot "$@"
         return $?
     fi
@@ -74,7 +78,7 @@ bl_changeroot_with_fake_fallback() {
 alias bl.changeroot.with_kernel_api=bl_changeroot_with_kernel_api
 bl_changeroot_with_kernel_api() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Performs a change root by mounting needed host locations in change root
         environment.
 
@@ -86,10 +90,10 @@ bl_changeroot_with_kernel_api() {
     '
     local new_root_location="$1"
     if [[ ! "$new_root_location" =~ .*/$ ]]; then
-        new_root_location+='/'
+        new_root_location+=/
     fi
-    local created_locations=()
-    local mounted_locations=()
+    local -a created_locations=()
+    local -a mounted_locations=()
     local mountpoint_path
     for mountpoint_path in "${bl_changeroot_kernel_api_locations[@]}"; do
         mountpoint_path="${mountpoint_path#/}"
@@ -133,7 +137,7 @@ bl_changeroot_with_kernel_api() {
             mounted_locations+=("$mountpoint_path")
         fi
     done
-    local return_code=0
+    local -i return_code=0
     bl.changeroot.with_fake_fallback "$@" || \
         return_code=$?
     for mountpoint_path in $(bl.array.reverse "${mounted_locations[*]}"); do

@@ -31,7 +31,7 @@ bl.module.import bashlink.string
 bl.module.import bashlink.tools
 # endregion
 # region variables
-bl_documentation__documentation__='
+declare -gr bl_documentation__documentation__='
     The documentation module implements function and module level documentation
     generation in markdown.
 '
@@ -39,7 +39,7 @@ bl_documentation__documentation__='
 # region functions
 alias bl.documentation.format_buffers=bl_documentation_format_buffers
 bl_documentation_format_buffers() {
-    local __documentation__='
+    local -r __documentation__='
         Converts given docstring into markdown compatible code description
         block.
 
@@ -50,9 +50,9 @@ bl_documentation_format_buffers() {
         b
         ```
     '
-    local buffer="$1"
-    local output_buffer="$2"
-    local text_buffer="$3"
+    local -r buffer="$1"
+    local -r output_buffer="$2"
+    local -r text_buffer="$3"
     [[ "$text_buffer" != '' ]] && \
         echo "$text_buffer"
     if [[ "$buffer" != '' ]]; then
@@ -66,7 +66,7 @@ bl_documentation_format_buffers() {
 }
 alias bl.documentation.format_docstring=bl_documentation_format_docstring
 bl_documentation_format_docstring() {
-    local __documentation__='
+    local -r __documentation__='
         Removes doctest documentation exclude modifier and their content from
         given docstring and converts doctest to markdown code blocks.
 
@@ -75,9 +75,8 @@ bl_documentation_format_docstring() {
         echo a
         ```
     '
-    local docstring="$1"
-    docstring="$(
-        echo "$docstring" | \
+    local -r docstring="$(
+        echo "$1" | \
             command sed '/+bl.documentation.exclude_print/d' | \
                 command sed '/-bl.documentation.exclude_print/d' | \
                     command sed \
@@ -87,7 +86,7 @@ bl_documentation_format_docstring() {
 }
 alias bl.documentation.generate=bl_documentation_generate
 bl_documentation_generate() {
-    local __documentation__='
+    local -r __documentation__='
         Generates a documentation in markdown for given module reference.
 
         >>> bl.documentation.generate bashlink.documentation
@@ -97,18 +96,18 @@ bl_documentation_generate() {
         The documentation module implements function and module level documen
         ...
     '
-    local module_reference="$1"
-    local result="$(bl.module.resolve "$module_reference" true)"
-    local file_path="$(
+    local -r module_reference="$1"
+    local -r result="$(bl.module.resolve "$module_reference" true)"
+    local -r file_path="$(
         echo "$result" | \
             command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
-    local module_name="$(
+    local -r module_name="$(
         echo "$result" | \
             command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
-    local scope_name="$(
+    local -r scope_name="$(
         bl.module.rewrite_scope_name "$module_name" | \
             command sed --regexp-extended 's:\.:_:g')"
-    if [[ -d "$file_path" ]]; then
+    if [ -d "$file_path" ]; then
         echo "# Package $module_reference"
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
@@ -145,21 +144,21 @@ bl_documentation_generate() {
         bl.module.import "$module_reference" 1>&2
         # NOTE: Get all external module prefix and unprefixed function names.
         # shellcheck disable=SC2154
-        local declared_function_names="$module_declared_function_names_after_source"
-        # NOTE: Adds internal already loaded but correctly prefixed functions.
-        declared_function_names+=" $(! declare -F | cut -d' ' -f3 | command grep -e "^$scope_name" )"
+        local declared_function_names="$module_declared_function_names_after_source $(
+            ! declare -F | cut -d' ' -f3 | command grep -e "^$scope_name"
+        )"
         # NOTE: Removes duplicates.
         declared_function_names="$(bl.string.get_unique_lines <(
             echo "$declared_function_names"))"
         # Module level documentation
         # shellcheck disable=SC2154
-        local module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
-        local docstring="${!module_documentation_variable_name}"
+        local -r module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
+        local -r docstring="${!module_documentation_variable_name}"
         echo "## Module $module_name"
-        if [[ -z "$docstring" ]]; then
+        if [ "$docstring" = '' ]; then
             bl.logging.warn \
                 "No top level documentation for module \"$module_name\" referenced by \"$module_reference\"." \
-                1>&2
+                    1>&2
         else
             bl.documentation.format_docstring "$docstring"
         fi
@@ -168,7 +167,7 @@ bl_documentation_generate() {
         for name in $declared_function_names; do
             # shellcheck disable=SC2089
             docstring="$(bl.doctest.get_function_docstring "$name")"
-            if [[ -z "$docstring" ]]; then
+            if [ "$docstring" = '' ]; then
                 bl.logging.warn "No documentation for function \"$name\"." 1>&2
             else
                 echo "### Function $name"
@@ -179,7 +178,7 @@ bl_documentation_generate() {
 }
 alias bl.documentation.main=bl_documentation_main
 bl_documentation_main() {
-    local __documentation__='
+    local -r __documentation__='
         Initializes main documentation task after consuming given command line
         arguments.
 
@@ -200,15 +199,14 @@ bl_documentation_main() {
 }
 alias bl.documentation.get_formatted_docstring=bl_documentation_get_formatted_docstring
 bl_documentation_get_formatted_docstring() {
-    local __documentation__='
+    local -r __documentation__='
         Prints given docstring without sliced elements specified by their
         modifier.
 
         >>> bl.documentation.get_formatted_docstring test
         test
     '
-    local docstring="$1"
-    echo "$docstring" | \
+    echo "$1" | \
         command sed '/+bl.documentation.exclude_print/,/-bl.documentation.exclude_print/d' | \
             command sed '/+bl.documentation.exclude/,/-bl.documentation.exclude/d' | \
                 command sed '/```/d'

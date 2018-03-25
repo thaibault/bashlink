@@ -13,36 +13,40 @@
 # NOTE: This module is the only dependency of `bashlink.module` and so can not
 # import any other modules to avoid a cyclic dependency graph.
 # region variables
-bl_path__documentation__='
+declare -gr bl_path__documentation__='
     The path module implements utility functions concerning path.
 '
 # endregion
 # region functions
 alias bl.path.convert_to_absolute=bl_path_convert_to_absolute
 bl_path_convert_to_absolute() {
-    local __documentation__='
+    local -r __documentation__='
         Converts given path into an absolute one.
 
         >>> bl.path.convert_to_absolute ./
         +bl.doctest.contains
         /
     '
-    local path="$1"
+    local -r path="$1"
     if [ -d "$path" ]; then
-        pushd "$path" &>/dev/null || return 1
+        pushd "$path" &>/dev/null || \
+            return 1
         pwd
-        popd &>/dev/null || return 1
+        popd &>/dev/null || \
+            return 1
     else
-        local file_name="$(basename "$path")"
-        pushd "$(dirname "$path")" &>/dev/null || return 1
+        local -r file_name="$(basename "$path")"
+        pushd "$(dirname "$path")" &>/dev/null || \
+            return 1
         local absolute_path="$(pwd)"
-        popd &>/dev/null || return 1
+        popd &>/dev/null || \
+            return 1
         echo "${absolute_path}/${file_name}"
     fi
 }
 alias bl.path.convert_to_relative=bl_path_convert_to_relative
 bl_path_convert_to_relative() {
-    local __documentation__='
+    local -r __documentation__='
         Computes relative path from first given argument to second one.
 
         >>> bl.path.convert_to_relative /A/B/C /A
@@ -72,36 +76,36 @@ bl_path_convert_to_relative() {
     '
     # both $1 and $2 are absolute paths beginning with /
     # returns relative path to $2/$target from $1/$source
-    local source="$1"
-    local target="$2"
+    local -r source="$1"
+    local -r target="$2"
     if [ "$source" = "$target" ]; then
         echo .
         return
     fi
-    local common_part="$source" # for now
-    local result="" # for now
-    while [[ "${target#$common_part}" == "${target}" ]]; do
+    local common_part="$source"
+    local result=''
+    while [ "${target#$common_part}" = "${target}" ]; do
         # no match, means that candidate common part is not correct
         # go up one level (reduce common part)
         common_part="$(dirname "$common_part")"
         # and record that we went back, with correct / handling
-        if [[ -z $result ]]; then
+        if [ "$result" = '' ]; then
             result=..
         else
             result="../$result"
         fi
     done
-    if [[ $common_part == '/' ]]; then
+    if [ "$common_part" = / ]; then
         # special case for root (no common path)
         result="$result/"
     fi
     # since we now have identified the common part,
     # compute the non-common part
-    local forward_part="${target#$common_part}"
+    local -r forward_part="${target#$common_part}"
     # and now stick all parts together
-    if [[ -n $result ]] && [[ -n $forward_part ]]; then
+    if [[ "$result" != '' ]] && [[ "$forward_part" != '' ]]; then
         result="${result}${forward_part}"
-    elif [[ -n $forward_part ]]; then
+    elif [[ "$forward_part" != '' ]]; then
         # extra slash removal
         result="${forward_part:1}"
     fi
@@ -109,7 +113,7 @@ bl_path_convert_to_relative() {
 }
 alias bl.path.open=bl_path_open
 bl_path_open() {
-    local __documentation__='
+    local -r __documentation__='
         Opens a given path with a useful program.
 
         ```bash
@@ -146,7 +150,7 @@ bl_path_open() {
 }
 alias bl.path.pack=bl_path_pack
 bl_path_pack() {
-    local __documentation__='
+    local -r __documentation__='
         Packs files in an archive.
 
         ```bash
@@ -208,7 +212,7 @@ bl_path_pack() {
 }
 alias bl.path.run_in_programs_location=bl_path_run_in_programs_location
 bl_path_run_in_programs_location() {
-    local __documentation__='
+    local -r __documentation__='
         Changes current working directory to given program path and runs the
         program.
 
@@ -227,7 +231,7 @@ bl_path_run_in_programs_location() {
 }
 alias bl.path.unpack=bl_path_unpack
 bl_path_unpack() {
-    local __documentation__='
+    local -r __documentation__='
         Unpack archives in various formats.
 
         ```bash

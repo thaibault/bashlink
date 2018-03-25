@@ -16,7 +16,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.logging
 # endregion
 # region variables
-bl_dependency__documentation__='
+declare -gr bl_dependency__documentation__='
     The dependency module implements utility functions to check current
     environment again needed assumptions.
 '
@@ -24,7 +24,7 @@ bl_dependency__documentation__='
 # region functions
 alias bl.dependency.check=bl_dependency_check
 bl_dependency_check() {
-    local __documentation__='
+    local -r __documentation__='
         This function check if all given dependencies are present.
 
         >>> bl.dependency.check mkdir ls; echo $?
@@ -45,7 +45,7 @@ bl_dependency_check() {
             'Missing dependency "hash" to check for available executables.'
         return 1
     fi
-    local return_code=0
+    local -i return_code=0
     local dependency
     for dependency in "$@"; do
         if ! hash "$dependency" &>/dev/null; then
@@ -57,7 +57,7 @@ bl_dependency_check() {
 }
 alias bl.dependency.check_pkgconfig=bl_dependency_check_pkgconfig
 bl_dependency_check_pkgconfig() {
-    local __documentation__='
+    local -r __documentation__='
         This function check if all given libraries can be found.
 
         >>> bl.dependency.check_shared_library libc.so; echo $?
@@ -72,7 +72,7 @@ bl_dependency_check_pkgconfig() {
             'Missing dependency "pkg-config" to check for packages.'
         return 1
     fi
-    local return_code=0
+    local -i return_code=0
     local library
     for library in "$@"; do
         if ! pkg-config "$library" &>/dev/null; then
@@ -84,7 +84,7 @@ bl_dependency_check_pkgconfig() {
 }
 alias bl.dependency.check_shared_library=bl_dependency_check_shared_library
 bl_dependency_check_shared_library() {
-    local __documentation__='
+    local -r __documentation__='
         This function check if all given shared libraries can be found.
 
         >>> bl.dependency.check_shared_library libc.so; echo $?
@@ -99,7 +99,7 @@ bl_dependency_check_shared_library() {
             'Missing dependency "ldconfig" to check for shared libraries.'
         return 1
     fi
-    local return_code=0
+    local -i return_code=0
     local pattern
     for pattern in "$@"; do
         if ! ldconfig --print-cache | cut --fields 1 --delimiter ' ' | \
