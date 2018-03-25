@@ -18,10 +18,10 @@ bl.module.import bashlink.exception
 bl.module.import bashlink.logging
 # endregion
 # region variables
-bl_ui__documentation__='
+declare -gr bl_ui__documentation__='
     This module provides helper methods to use low level graphical interfaces.
 '
-bl_ui__dependencies__=(dialog)
+declare -agr bl_ui__dependencies__=(dialog)
 # endregion
 # region functions
 alias bl.ui.dialog=bl_ui_dialog
@@ -38,9 +38,8 @@ bl_ui_dialog() {
                 --passwordbox "" 0 0
         ```
     '
-    local result
-    local return_code
-    local output_buffer_file_path="$(mktemp --suffix -bashlink-ui-input)"
+    local -i return_code
+    local -r output_buffer_file_path="$(mktemp --suffix -bashlink-ui-input)"
     bl.exception.try
     {
         dialog "$@" 1>&5 2>"$output_buffer_file_path"

@@ -16,13 +16,13 @@
 # Expand aliases in non interactive shells.
 shopt -s expand_aliases
 if [ "${bl_module_retrieve_remote_modules:-}" = '' ]; then
-    bl_module_retrieve_remote_modules=false
+    declare -g bl_module_retrieve_remote_modules=false
 fi
-bl_module_known_remote_urls=(
+declare -g bl_module_known_remote_urls=(
     http://torben.website/bashlink/data/distributionBundle
 )
 # region import
-bl_module_tidy_up_path=false
+declare -g bl_module_tidy_up_path=false
 if $bl_module_retrieve_remote_modules && ! [[
     -f "$(dirname "${BASH_SOURCE[0]}")/path.sh"
 ]]; then
@@ -43,18 +43,24 @@ if $bl_module_tidy_up_path; then
 fi
 # endregion
 #  region variables
-bl_module__documentation__='
+declare -gr bl_module__documentation__='
     Central module import mechanism. To scope modules and ensure running each
     module only once.
 '
-bl_module_allowed_names=(BASH_REMATCH COLUMNS HISTFILESIZE HISTSIZE LINES)
-bl_module_allowed_scope_names=()
-bl_module_bash_version_test=''
-bl_module_declared_function_names_after_source=''
-bl_module_declared_function_names_before_source_file_path=''
-bl_module_declared_names_after_source=''
-bl_module_declared_names_before_source_file_path=''
-bl_module_directory_names_to_ignore=(
+declare -ag bl_module_allowed_names=(
+    BASH_REMATCH
+    COLUMNS
+    HISTFILESIZE
+    HISTSIZE
+    LINES
+)
+declare -ag bl_module_allowed_scope_names=()
+declare -g bl_module_bash_version_test=''
+declare -g bl_module_declared_function_names_after_source=''
+declare -g bl_module_declared_function_names_before_source_file_path=''
+declare -g bl_module_declared_names_after_source=''
+declare -g bl_module_declared_names_before_source_file_path=''
+declare -ag bl_module_directory_names_to_ignore=(
     apiDocumentation
     data
     documentation
@@ -62,29 +68,37 @@ bl_module_directory_names_to_ignore=(
     node_modules
     test
 )
-bl_module_file_names_to_ignore=(
+declare -ag bl_module_file_names_to_ignore=(
     package.json
     package-lock.json
     PKGBUILD
     readme.md
 )
-bl_module_import_level=0
-bl_module_imported=(
+declare -ig bl_module_import_level=0
+declare -ag bl_module_imported=(
     "$(bl.path.convert_to_absolute "${BASH_SOURCE[0]}")"
     "$(bl.path.convert_to_absolute "${BASH_SOURCE[1]}")"
     "$(bl.path.convert_to_absolute "$(dirname "${BASH_SOURCE[0]}")/path.sh")"
 )
-bl_module_known_extensions=(.sh '' .zsh .csh .ksh .bash .shell)
-bl_module_tidy_up=false
+declare -ag bl_module_known_extensions=(
+    .sh
+    ''
+    .zsh
+    .csh
+    .ksh
+    .bash
+    .shell
+)
+declare -g bl_module_tidy_up=false
 if $bl_module_retrieve_remote_modules && [[
     "${bl_module_remote_module_cache_path:-}" = ''
 ]]; then
-    bl_module_remote_module_cache_path="$(
+    declare -g bl_module_remote_module_cache_path="$(
         mktemp --directory --suffix -bashlink-module-cache)"
     bl_module_tidy_up=true
 fi
-bl_module_prevent_namespace_check=true
-bl_module_scope_rewrites=(
+declare -g bl_module_prevent_namespace_check=true
+declare -ag bl_module_scope_rewrites=(
     '^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/'
     '[^a-zA-Z0-9._]/./g'
 )
@@ -104,9 +118,9 @@ bl_module_check_name() {
         >>> bl.module.check_name "bl_other_module_not_existing" "bl_module"; echo $?
         1
     '
-    local name="$1"
-    local resolved_scope_name="$2"
-    local alternate_resolved_scope_name="$(
+    local -r name="$1"
+    local -r resolved_scope_name="$2"
+    local -r alternate_resolved_scope_name="$(
         echo "$resolved_scope_name" | \
             command sed --regexp-extended 's/\./_/g')"
     if ! [[ \
@@ -141,8 +155,10 @@ bl_module_determine_aliases() {
     local -r __documentation__='
         Returns all defined aliases in the current scope.
     '
-    alias | command grep '^alias' \
-        | cut --delimiter ' ' --fields 2 - | cut --delimiter '=' --fields 1
+    alias | \
+        command grep '^alias' | \
+            cut --delimiter ' ' --fields 2 - | \
+                cut --delimiter '=' --fields 1
 }
 alias bl.module.determine_declared_names=bl_module_determine_declared_names
 bl_module_determine_declared_names() {
@@ -154,12 +170,16 @@ bl_module_determine_declared_names() {
         ```
     '
     local only_functions="${1:-}"
-    [ -z "$only_functions" ] && only_functions=false
+    [ "$only_functions" = '' ] && \
+        only_functions=false
     {
-        declare -F | cut --delimiter ' ' --fields 3
+        declare -F | \
+            cut --delimiter ' ' --fields 3
         $only_functions || \
-        declare -p | command grep '^declare' | cut --delimiter ' ' --fields 3 - | \
-            cut --delimiter '=' --fields 1
+            declare -p | \
+                command grep '^declare' | \
+                    cut --delimiter ' ' --fields 3 - | \
+                        cut --delimiter '=' --fields 1
     } | sort --unique
 }
 alias bl.module.is_defined=bl_module_is_defined
@@ -200,16 +220,20 @@ bl_module_is_defined() {
     '
     (
         set +o nounset
-        if ((BASH_VERSINFO[0] >= 4)) && ((BASH_VERSINFO[1] >= 3)) \
-                && [ -z "$bl_module_bash_version_test" ]; then
-            [[ -v "${1:-}" ]] || exit 1
+        if \
+            ((BASH_VERSINFO[0] >= 4)) && \
+            ((BASH_VERSINFO[1] >= 3)) && \
+            [ "$bl_module_bash_version_test" = '' ]
+        then
+            [[ -v "${1:-}" ]] || \
+                exit 1
         else # for bash < 4.3
-            # NOTE: ${varname:-foo} expands to foo if varname is unset or set to
-            # the empty string; ${varname-foo} only expands to foo if varname is
-            # unset.
+            # NOTE: ${varname:-foo} expands to foo if varname is unset or set
+            # to the empty string; ${varname-foo} only expands to foo if
+            # variable name is unset.
             eval \
-                '! [[ "${'"$1"'-this_variable_is_undefined_!!!}"' \
-                ' == "this_variable_is_undefined_!!!" ]]'
+                '! [[ "${'"$1"'-this_variable_is_undefined_!!!}" == ' \
+                '"this_variable_is_undefined_!!!" ]]'
             exit $?
         fi
     )
@@ -231,7 +255,7 @@ bl_module_is_imported() {
     if (( $# == 2 )); then
         caller_file_path="$2"
     fi
-    local file_path="$(bl.module.resolve "$1" "$caller_file_path")"
+    local -r file_path="$(bl.module.resolve "$1" "$caller_file_path")"
     # Check if module already loaded.
     local loaded_module
     for loaded_module in "${bl_module_imported[@]}"; do
@@ -302,11 +326,13 @@ bl_module_import_raw() {
         1
     '
     bl_module_import_level=$((bl_module_import_level + 1))
-    local return_code
     # shellcheck disable=SC1090
     source "$1"
-    return_code=$?
-    if $bl_module_tidy_up && [[ "$1" == "$bl_module_remote_module_cache_path"* ]]; then
+    local -i return_code=$?
+    if \
+        $bl_module_tidy_up && \
+        [[ "$1" == "$bl_module_remote_module_cache_path"* ]]
+    then
         rm "$1"
     fi
     if (( return_code != 0 )); then
@@ -326,9 +352,9 @@ bl_module_import_with_namespace_check() {
         +bl.doctest.multiline_contains
         warning: Namespace "bl_module" in "bashlink.module" is not clean: Name "
     '
-    local file_path="$1"
-    local resolved_scope_name="$2"
-    local scope_name="$3"
+    local -r file_path="$1"
+    local -r resolved_scope_name="$2"
+    local -r scope_name="$3"
     if (( bl_module_import_level == 0 )); then
         bl_module_declared_function_names_before_source_file_path="$(
             mktemp \
@@ -336,7 +362,7 @@ bl_module_import_with_namespace_check() {
                     -bashlink-module-declared-function-names-before-source-"$scope_name")"
     fi
     bl_module_declared_function_names_after_source=''
-    local declared_names_after_source_file_path="$(
+    local -r declared_names_after_source_file_path="$(
         mktemp \
             --suffix \
                 -bashlink-module-declared-names-after-source-"$scope_name")"
@@ -478,13 +504,13 @@ bl_module_import() {
     # NOTE: We have to use "local" before to avoid shadowing the "$?" value.
     local result
     if result="$(bl.module.resolve "$1" true "$caller_file_path")"; then
-        local file_path="$(
+        local -r file_path="$(
             echo "$result" | \
                 command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
         local scope_name="$(
             echo "$result" | \
                 command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
-        if [[ -d "$file_path" ]]; then
+        if [ -d "$file_path" ]; then
             local sub_file_path
             for sub_file_path in "${file_path}"/*; do
                 local excluded=false
@@ -574,7 +600,7 @@ bl_module_resolve() {
     local name="$1"
     local caller_path
     bl_module_declared_function_names_after_source=''
-    local current_path="$(dirname "$(dirname "$(
+    local -r current_path="$(dirname "$(dirname "$(
         bl.path.convert_to_absolute "${BASH_SOURCE[0]}")")")"
     if (( $# == 1 )) || [ "${!#}" = true ] || [ "${!#}" = false ]; then
         caller_path="$(dirname "$(
@@ -582,9 +608,9 @@ bl_module_resolve() {
     else
         caller_path="$(dirname "$(bl.path.convert_to_absolute "${!#}")")"
     fi
-    local initial_caller_path="$(dirname "$(
+    local -r initial_caller_path="$(dirname "$(
         bl.path.convert_to_absolute "${BASH_SOURCE[-1]}")")"
-    local execution_path="$(pwd)"
+    local -r execution_path="$(pwd)"
     local file_path=''
     while true; do
         local extension
@@ -716,7 +742,7 @@ bl_module_remove_known_file_extension() {
         >>> bl.module.remove_known_file_extension module.sh
         module
     '
-    local name="$1"
+    local -r name="$1"
     local extension
     for extension in "${bl_module_known_extensions[@]}"; do
         local result="${name%$extension}"

@@ -18,7 +18,7 @@ bl.module.import bashlink.array
 bl.module.import bashlink.logging
 # endregion
 # region variables
-bl_number__documentation__='
+declare -gr bl_number__documentation__='
     The number module implements utility functions concerning numbers.
 '
 # endregion
@@ -71,7 +71,7 @@ bl_number_normalize_version() {
         1
         0
     '
-    local items
+    local -a items
     IFS='.' read -ra items <<< "$(
         echo "$1" | \
             command sed --regexp-extended 's/[^0-9.-]+//g' | \
@@ -80,10 +80,10 @@ bl_number_normalize_version() {
     )"
     # NOTE: We should initialize this value with `1` and decrement the final
     # result to avoid adding `0` to `0` which results into an error.
-    local result=1
+    local -i result=1
     local item
-    local initial_point="${2:-13}"
-    local point=$(( initial_point - 1 ))
+    local -ir initial_point="${2:-13}"
+    local -i point=$(( initial_point - 1 ))
     for item in "${items[@]}"; do
         if (( point < 0 )); then
             bl.logging.warn \

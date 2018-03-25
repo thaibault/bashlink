@@ -18,7 +18,7 @@ bl.module.import bashlink.cli
 bl.module.import bashlink.logging
 # endregion
 # region variables
-bl_string__documentation__='
+declare -gr bl_string__documentation__='
     This module implements utility functions concerning strings.
 '
 # endregion
@@ -38,7 +38,8 @@ bl_string_generate_random() {
         >>> echo ${#output}
         1
     '
-    tr -dc 'a-zA-Z0-9' </dev/urandom | head -c "$1"
+    tr -dc 'a-zA-Z0-9' </dev/urandom | \
+        head -c "$1"
 }
 alias bl.string.get_unique_lines=bl_string_get_unique_lines
 bl_string_get_unique_lines() {
@@ -122,7 +123,7 @@ bl_string_images_to_css_classes() {
 alias bl.string.make_command_promt_prefix=bl_string_make_command_promt_prefix
 bl_string_make_command_promt_prefix() {
     # NOTE: This have to be the first statement to retrieve last return code.
-    local return_code=$?
+    local -ir return_code=$?
     local -r __documentation__='
         Generates a new user prompt with useful runtime parameters.
 
@@ -230,7 +231,7 @@ bl_string_merge_text_files() {
             command grep \
                 --extended-regexp '^[^ ]+' \
                 --only-matching)"
-    local index=0
+    local -i index=0
     local file_path
     for file_path in ${file_paths[*]}; do
         if (( index > 0 )); then
@@ -272,7 +273,7 @@ bl_string_translate() {
         ```
     '
     local default_target_language=de
-    if [[ "$1" = -h || "$1" = --help || "$#" -lt 1 ]]; then
+    if [ "$1" = '-h' ] || [ "$1" = '--help' ] || (( $# < 1 )); then
         bl.logging.cat <<EOF
 translate <text> [[<source language>] <target language>]
 
@@ -280,7 +281,7 @@ if target missing, use $default_target_language
 if source missing, use "auto"
 list supported languages: translate -l
 EOF
-    elif [[ "$1" = -l || "$1" = --languages ]]; then
+    elif [ "$1" = '-l' ] || [ "$1" = '--languages' ]; then
         bl.logging.cat <<EOF
 af=Afrikaans
 sq=Albanisch
@@ -361,7 +362,7 @@ EOF
                 local target="$default_target_language"
             fi
         fi
-        local result="$(curl -s -i --user-agent '' -d "sl=$source" -d \
+        local -r result="$(curl -s -i --user-agent '' -d "sl=$source" -d \
             "tl=$target" --data-urlencode "text=$1" \
             http://translate.google.com)"
         # NOTE Temporary outcomment to have right code highlighting.

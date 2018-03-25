@@ -19,7 +19,7 @@ bl.module.import bashlink.logging
 bl.module.import bashlink.string
 # endregion
 # region variables
-bl_tools__documentation__='
+declare -gr bl_tools__documentation__='
     This module provides generic utility functions.
 '
 # endregion
@@ -63,9 +63,11 @@ bl_tools_is_empty() {
         >>> bl.tools.is_empty undefined_variable; echo $?
         1
     '
-    local variable_name="$1"
-    bl.tools.is_defined "$variable_name" || return 1
-    [ -z "${!variable_name}" ] || return 1
+    local -r variable_name="$1"
+    bl.tools.is_defined "$variable_name" || \
+        return 1
+    [ "${!variable_name}" = '' ] || \
+        return 1
 }
 alias bl.tools.is_main=bl_tools_is_main
 bl_tools_is_main() {
@@ -89,7 +91,7 @@ bl_tools_make_openssl_pem_file() {
             bl.tools.make_openssl_pem_file
         ```
     '
-    local host='localhost'
+    local host=localhost
     if [[ "$1" ]]; then
         host="$1"
     fi
@@ -98,8 +100,13 @@ bl_tools_make_openssl_pem_file() {
     bl.logging.info Create a temporary csr file.
     openssl req -new -key "${host}.key" -out "${host}.csr"
     bl.logging.info Self-sign your certificate.
-    openssl x509 -req -days 365 -in "${host}.csr" -signkey "${host}.key" -out \
-        "${host}.crt"
+    openssl \
+        x509 \
+        -req \
+        -days 365 \
+        -in "${host}.csr" \
+        -signkey "${host}.key" \
+        -out "${host}.crt"
     bl.logging.info Creating a pem file.
     cat "${host}.key" "${host}.crt" 1>"${host}.pem"
     return $?
@@ -127,7 +134,7 @@ bl_tools_make_single_executable() {
     if [[ $3 ]]; then
         relative_start_file_path="$3"
     fi
-    local directory_name="$(basename "$(readlink --canonicalize "$1")")"
+    local -ar directory_name="$(basename "$(readlink --canonicalize "$1")")"
     # NOTE: short option is necessary for mac compatibility.
     cat << EOF 1>"$file_name"
 #!/usr/bin/env bash
@@ -140,7 +147,7 @@ tail -n +\$dataOffset "\$0" | tar -xzf - -C "\$executableDirectory" \\
 rm --recursive "\$executable_directory_path"
 exit \$?
 EOF
-    local temporary_archiv_file_path="$(
+    local -r temporary_archiv_file_path="$(
         mktemp --suffix -bashlink-tools-single-executable-archiv.tar.gz)"
     tar --create --verbose --gzip --posix --file \
         "$temporary_archiv_file_path" "$1"
@@ -196,7 +203,7 @@ bl_tools_run_with_appended_shebang() {
                 ;;
         esac
     done
-    local command="$(
+    local -r command="$(
         head --lines 1 "$application_file_path" | \
             command sed \
                 --regexp-extended \

@@ -17,7 +17,7 @@ bl.module.import bashlink.logging
 bl.module.import bashlink.number
 # endregion
 # region variables
-bl_pacman__documentation__='
+declare -gr bl_pacman__documentation__='
     This module implements utility functions concerning the package manager
     `pacman`.
 '
@@ -33,6 +33,7 @@ bl_pacman_show_config_backups() {
         ```
     '
     pushd / 1>/dev/null && \
+    local pattern
     for pattern in '*.pacnew' '*.orig' '*_backup*' '*.pacorig'; do
         sudo command find -name "$pattern" -and \( -type f -or -type l -or -type d \)
     done
@@ -50,8 +51,8 @@ bl_pacman_show_not_maintained_by_pacman_system_files() {
             bl.pacman.show_not_maintained_by_pacman_system_file
         ```
     '
-    local paths_file_path="$(mktemp --suffix -bashlink-pacman-file-paths)"
-    local maintained_paths_file_path="$(
+    local -r paths_file_path="$(mktemp --suffix -bashlink-pacman-file-paths)"
+    local -r maintained_paths_file_path="$(
         mktemp --suffix -bashlink-pacman-maintained-file-paths)"
     sudo command find / | \
         sort | \
@@ -75,11 +76,15 @@ bl_pacman_show_not_maintained_by_pacman_system_files() {
         command sed 's:^/proc/.*$::g' | \
         sort | \
         uniq --unique
-    local number_of_files=$(wc --lines "$paths_file_path" | cut --delimiter ' ' --field 1)
-    local number_of_maintained_files=$(wc --lines "$maintained_paths_file_path" | cut --delimiter ' ' --field 1)
+    local -ir number_of_files=$(
+        wc --lines "$paths_file_path" | \
+            cut --delimiter ' ' --field 1)
+    local -ir number_of_maintained_files=$(
+        wc --lines "$maintained_paths_file_path" | \
+            cut --delimiter ' ' --field 1)
     rm "$paths_file_path"
     rm "$maintained_paths_file_path"
-    local number_of_not_maintained_files
+    local -i number_of_not_maintained_files
     (( number_of_not_maintained_files=(( number_of_files - number_of_maintained_files )) ))
     # shellcheck disable=SC2086
     bl.logging.cat << EOF
