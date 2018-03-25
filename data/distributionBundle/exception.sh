@@ -16,7 +16,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.logging
 # endregion
 # region variables
-bl_exception__documentation__='
+declare -gr bl_exception__documentation__='
     >>> _() {
     >>>    bl.exception.try {
     >>>        echo $1
@@ -198,16 +198,16 @@ bl_exception__documentation__='
     >>> }
     caught
 '
-bl_exception_active=false
-bl_exception_active_before_try=false
-bl_exception_last_traceback=''
-bl_exception_last_traceback_file_path=''
+declare -g bl_exception_active=false
+declare -g bl_exception_active_before_try=false
+declare -g bl_exception_last_traceback=''
+declare -g bl_exception_last_traceback_file_path=''
 declare -ig bl_exception_try_catch_level=0
 # endregion
 # region functions
 alias bl.exception.check_context=bl_exception_check_context
 bl_exception_check_context() {
-    local __documentation__='
+    local -r __documentation__='
         Tests if context allows error traps.
 
         `set -e` and `ERR traps` are prevented from working in a subprocess
@@ -248,7 +248,7 @@ bl_exception_check_context() {
 # Depends on "bl.exception.check_context"
 alias bl.exception.activate=bl_exception_activate
 bl_exception_activate() {
-    local __documentation__='
+    local -r __documentation__='
         Activates exception handling for following code.
 
         >>> set -o errtrace
@@ -265,7 +265,7 @@ bl_exception_activate() {
         if [ $? = 1 ]; then
             # NOTE: We should call exception trap logic by hand in this case.
             bl_exception_error_handler true
-            local message='Error: Context does not allow error traps.'
+            local -r message='Error: Context does not allow error traps.'
             if [ -f "$bl_exception_last_traceback_file_path" ]; then
                 bl_exception_last_traceback="$(
                     cat "$bl_exception_last_traceback_file_path")"
@@ -286,10 +286,8 @@ bl_exception_activate() {
     bl_exception_functrace_saved=$(set -o | awk '/functrace/ {print $2}')
     bl_exception_err_traps=$(trap -p ERR | cut --delimiter "'" --fields 2)
     bl_exception_ps4_saved="$PS4"
-
     # improve xtrace output (set -x)
     export PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
-
     # If set, any trap on ERR is inherited by shell functions,
     # command substitutions, and commands executed in a subshell environment.
     # The ERR trap is normally not inherited in such cases.
@@ -328,7 +326,7 @@ bl_exception_activate() {
 }
 alias bl.exception.deactivate=bl_exception_deactivate
 bl_exception_deactivate() {
-    local __documentation__='
+    local -r __documentation__='
         Deactivates exception handling for code which where activated
         previously.
 
@@ -341,10 +339,14 @@ bl_exception_deactivate() {
         bl_exception_error_handler || return $?
         echo $foo
     '
-    $bl_exception_active || return 0
-    [ "$bl_exception_errtrace_saved" = off ] && set +o errtrace
-    [ "$bl_exception_pipefail_saved" = off ] && set +o pipefail
-    [ "$bl_exception_functrace_saved" = off ] && set +o functrace
+    $bl_exception_active || \
+        return 0
+    [ "$bl_exception_errtrace_saved" = off ] && \
+        set +o errtrace
+    [ "$bl_exception_pipefail_saved" = off ] && \
+        set +o pipefail
+    [ "$bl_exception_functrace_saved" = off ] && \
+        set +o functrace
     export PS4="$bl_exception_ps4_saved"
     # shellcheck disable=SC2064
     trap "$bl_exception_err_traps" ERR
@@ -352,7 +354,7 @@ bl_exception_deactivate() {
 }
 alias bl.exception.enter_try=bl_exception_enter_try
 bl_exception_enter_try() {
-    local __documentation__='
+    local -r __documentation__='
         Catches exceptions for following code blocks.
 
         >>> bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; {
@@ -372,8 +374,8 @@ bl_exception_enter_try() {
 }
 alias bl.exception.error_handler=bl_exception_error_handler
 bl_exception_error_handler() {
-    local error_code=$?
-    local __documentation__='
+    local -ir error_code=$?
+    local -r __documentation__='
         Error handler for captured exceptions.
 
         >>> bl.exception.error_handler
@@ -382,7 +384,7 @@ bl_exception_error_handler() {
         Traceback (most recent call first):
         ...
     '
-    local do_not_throw="$1"
+    local -r do_not_throw="$1"
     local traceback='Traceback (most recent call first):'
     local -i index=0
     while caller $index > /dev/null; do
@@ -404,7 +406,7 @@ bl_exception_error_handler() {
 }
 alias bl.exception.exit_try=bl_exception_exit_try
 bl_exception_exit_try() {
-    local __documentation__='
+    local -r __documentation__='
         Introduces an exception handling code block.
 
         >>> bl.exception.try {
@@ -414,7 +416,7 @@ bl_exception_exit_try() {
         >>> }
         caught
     '
-    local bl_exception_result=$1
+    local -ir bl_exception_return_code=$1
     (( bl_exception_try_catch_level-- ))
     if (( bl_exception_try_catch_level == 0 )); then
         if $bl_exception_active_before_try; then
@@ -434,7 +436,7 @@ bl_exception_exit_try() {
         bl.exception.activate true
     fi
     # shellcheck disable=SC2086
-    return $bl_exception_result
+    return $bl_exception_return_code
 }
 alias bl.exception.try='bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; '
 # shellcheck disable=SC2142

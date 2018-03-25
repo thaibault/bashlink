@@ -18,14 +18,14 @@ bl.module.import bashlink.cli
 bl.module.import bashlink.logging
 # endregion
 # region variables
-bl_string__documentation__='
+declare -gr bl_string__documentation__='
     This module implements utility functions concerning strings.
 '
 # endregion
 # region functions
 alias bl.string.generate_random=bl_string_generate_random
 bl_string_generate_random() {
-    local __documentation__='
+    local -r __documentation__='
         Generates a random string with given length.
 
         >>> local output="$(bl.string.generate_random 5)"
@@ -38,11 +38,12 @@ bl_string_generate_random() {
         >>> echo ${#output}
         1
     '
-    tr -dc 'a-zA-Z0-9' </dev/urandom | head -c "$1"
+    tr -dc 'a-zA-Z0-9' </dev/urandom | \
+        head -c "$1"
 }
 alias bl.string.get_unique_lines=bl_string_get_unique_lines
 bl_string_get_unique_lines() {
-    local __documentation__='
+    local -r __documentation__='
         >>> local foo="a\nb\na\nb\nc\nb\nc"
         >>> echo -e "$foo" | bl.string.get_unique_lines
         a
@@ -58,7 +59,7 @@ bl_string_get_unique_lines() {
 alias bl.string.images_to_css_classes=bl_string_images_to_css_classes
 bl_string_images_to_css_classes() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         This function converts a folder of images to a single includeable css
         file.
 
@@ -122,8 +123,8 @@ bl_string_images_to_css_classes() {
 alias bl.string.make_command_promt_prefix=bl_string_make_command_promt_prefix
 bl_string_make_command_promt_prefix() {
     # NOTE: This have to be the first statement to retrieve last return code.
-    local return_code=$?
-    local __documentation__='
+    local -ir return_code=$?
+    local -r __documentation__='
         Generates a new user prompt with useful runtime parameters.
 
         ```bash
@@ -174,7 +175,7 @@ bl_string_make_command_promt_prefix() {
 alias bl.string.merge_text_files=bl_string_merge_text_files
 bl_string_merge_text_files() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Concatenate files and print on the standard output.
 
         ```bash
@@ -230,7 +231,7 @@ bl_string_merge_text_files() {
             command grep \
                 --extended-regexp '^[^ ]+' \
                 --only-matching)"
-    local index=0
+    local -i index=0
     local file_path
     for file_path in ${file_paths[*]}; do
         if (( index > 0 )); then
@@ -246,7 +247,7 @@ bl_string_merge_text_files() {
 }
 alias bl.string.translate=bl_string_translate
 bl_string_translate() {
-    local __documentation__='
+    local -r __documentation__='
         Translates a given string in a given (or automatic detected) language
         and gives a translation in given language (German by default) back.
         Accesses "http://translate.google.com" from terminal.
@@ -272,7 +273,7 @@ bl_string_translate() {
         ```
     '
     local default_target_language=de
-    if [[ "$1" = -h || "$1" = --help || "$#" -lt 1 ]]; then
+    if [ "$1" = '-h' ] || [ "$1" = '--help' ] || (( $# < 1 )); then
         bl.logging.cat <<EOF
 translate <text> [[<source language>] <target language>]
 
@@ -280,7 +281,7 @@ if target missing, use $default_target_language
 if source missing, use "auto"
 list supported languages: translate -l
 EOF
-    elif [[ "$1" = -l || "$1" = --languages ]]; then
+    elif [ "$1" = '-l' ] || [ "$1" = '--languages' ]; then
         bl.logging.cat <<EOF
 af=Afrikaans
 sq=Albanisch
@@ -361,7 +362,7 @@ EOF
                 local target="$default_target_language"
             fi
         fi
-        local result="$(curl -s -i --user-agent '' -d "sl=$source" -d \
+        local -r result="$(curl -s -i --user-agent '' -d "sl=$source" -d \
             "tl=$target" --data-urlencode "text=$1" \
             http://translate.google.com)"
         # NOTE Temporary outcomment to have right code highlighting.
@@ -375,7 +376,7 @@ EOF
 }
 alias bl.string.validate_argument=bl_string_validate_argument
 bl_string_validate_argument() {
-    local __documentation__='
+    local -r __documentation__='
         Validates a given bash argument.
 
         >>> bl.string.validate_argument hans
@@ -399,7 +400,7 @@ bl_string_validate_argument() {
 }
 alias bl.string.validate_regular_expression_replacement=bl_string_validate_regular_expression_replacement
 bl_string_validate_regular_expression_replacement() {
-    local __documentation__='
+    local -r __documentation__='
         This functions escapes every special meaning character for a sed
         replacement.
 

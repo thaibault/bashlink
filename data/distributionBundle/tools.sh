@@ -19,14 +19,14 @@ bl.module.import bashlink.logging
 bl.module.import bashlink.string
 # endregion
 # region variables
-bl_tools__documentation__='
+declare -gr bl_tools__documentation__='
     This module provides generic utility functions.
 '
 # endregion
 # region functions
 alias bl.tools.compile_and_install_without_root=bl_tools_compile_and_install_without_root
 bl_tools_compile_and_install_without_root() {
-    local __documentation__='
+    local -r __documentation__='
         Compiles and installs a program by its given source code. Your have to
         be inside the source code folder to run this function.
 
@@ -48,7 +48,7 @@ bl_tools_compile_and_install_without_root() {
 alias bl.tools.is_defined=bl_module_is_defined
 alias bl.tools.is_empty=bl_tools_is_empty
 bl_tools_is_empty() {
-    local __documentation__='
+    local -r __documentation__='
         Tests if variable is empty (undefined variables are not empty)
 
         >>> local foo="bar"
@@ -63,13 +63,15 @@ bl_tools_is_empty() {
         >>> bl.tools.is_empty undefined_variable; echo $?
         1
     '
-    local variable_name="$1"
-    bl.tools.is_defined "$variable_name" || return 1
-    [ -z "${!variable_name}" ] || return 1
+    local -r variable_name="$1"
+    bl.tools.is_defined "$variable_name" || \
+        return 1
+    [ "${!variable_name}" = '' ] || \
+        return 1
 }
 alias bl.tools.is_main=bl_tools_is_main
 bl_tools_is_main() {
-    local __documentation__='
+    local -r __documentation__='
         Returns true if current script is being executed.
 
         NOTE: This test passes because `bl.tools.is_main` is called by
@@ -82,14 +84,14 @@ bl_tools_is_main() {
 }
 alias bl.tools.make_openssl_pem_file=bl_tools_make_openssl_pem_file
 bl_tools_make_openssl_pem_file() {
-    local __documentation__='
+    local -r __documentation__='
         Creates a concatenated pem file needed for server with https support.
 
         ```bash
             bl.tools.make_openssl_pem_file
         ```
     '
-    local host='localhost'
+    local host=localhost
     if [[ "$1" ]]; then
         host="$1"
     fi
@@ -98,15 +100,20 @@ bl_tools_make_openssl_pem_file() {
     bl.logging.info Create a temporary csr file.
     openssl req -new -key "${host}.key" -out "${host}.csr"
     bl.logging.info Self-sign your certificate.
-    openssl x509 -req -days 365 -in "${host}.csr" -signkey "${host}.key" -out \
-        "${host}.crt"
+    openssl \
+        x509 \
+        -req \
+        -days 365 \
+        -in "${host}.csr" \
+        -signkey "${host}.key" \
+        -out "${host}.crt"
     bl.logging.info Creating a pem file.
     cat "${host}.key" "${host}.crt" 1>"${host}.pem"
     return $?
 }
 alias bl.tools.make_single_executbale=bl_tools_make_single_executable
 bl_tools_make_single_executable() {
-    local __documentation__='
+    local -r __documentation__='
         Creates a bsd and virtually posix shell compatible single executable
         file from an application directory.
 
@@ -127,7 +134,7 @@ bl_tools_make_single_executable() {
     if [[ $3 ]]; then
         relative_start_file_path="$3"
     fi
-    local directory_name="$(basename "$(readlink --canonicalize "$1")")"
+    local -ar directory_name="$(basename "$(readlink --canonicalize "$1")")"
     # NOTE: short option is necessary for mac compatibility.
     cat << EOF 1>"$file_name"
 #!/usr/bin/env bash
@@ -140,7 +147,7 @@ tail -n +\$dataOffset "\$0" | tar -xzf - -C "\$executableDirectory" \\
 rm --recursive "\$executable_directory_path"
 exit \$?
 EOF
-    local temporary_archiv_file_path="$(
+    local -r temporary_archiv_file_path="$(
         mktemp --suffix -bashlink-tools-single-executable-archiv.tar.gz)"
     tar --create --verbose --gzip --posix --file \
         "$temporary_archiv_file_path" "$1"
@@ -152,7 +159,7 @@ EOF
 alias bl.tools.run_with_appended_shebang=bl_tools_run_with_appended_shebang
 bl_tools_run_with_appended_shebang() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         This function reads and returns the shebang from given file if exist.
 
         ```bash
@@ -196,7 +203,7 @@ bl_tools_run_with_appended_shebang() {
                 ;;
         esac
     done
-    local command="$(
+    local -r command="$(
         head --lines 1 "$application_file_path" | \
             command sed \
                 --regexp-extended \
@@ -208,7 +215,7 @@ bl_tools_run_with_appended_shebang() {
 alias bl.tools.send_e_mail=bl_tools_send_e_mail
 bl_tools_send_e_mail() {
     # shellcheck disable=SC1004
-    local __documentation__='
+    local -r __documentation__='
         Sends an email.
 
         ```bash
