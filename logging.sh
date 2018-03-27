@@ -136,8 +136,8 @@ bl_logging_cat() {
         >>> echo foo | bl.logging.cat
         foo
     '
-    sync
     # NOTE: Hack to free call stack and flush pending tee buffer.
+    sync
     cat "$@" 1>&3 2>&4
 }
 alias bl.logging.get_commands_level=bl_logging_get_commands_level
@@ -229,7 +229,6 @@ bl_logging_plain_raw() {
         >>> bl.logging.plain_raw "shown"
         shown
     '
-    # NOTE: Hack to free call stack and flush pending tee buffer.
     echo "$@" 1>&3 2>&4
 }
 alias bl.logging.plain=bl_logging_plain
@@ -455,7 +454,30 @@ bl_logging_set_file_descriptors() {
     if [ "$bl_logging_commands_error_file_path" = '' ]; then
         bl_logging_commands_error_file_path="$bl_logging_commands_file_path"
     fi
-    # NOTE: Hack to free call stack and flush pending tee buffer.
+    # NOTE: This is only needed for "dash" compatibility where process
+    # substitution is not available.
+    if \
+        [ "$bl_logging_output_target" = tee ] || \
+        [ "$bl_logging_command_output_target" = tee ]
+    then
+        local -r output_fifo_directory_path="$(
+            mktemp --directory --suffix -bashlink-logging-output-fifo)"
+        # shellcheck disable=SC2064
+        trap "rm --force --recursive '$output_fifo_directory_path'" EXIT
+    fi
+    if [ "$bl_logging_command_output_target" = tee ]; then
+        local -r commands_output_fifo_standard_file_path="$output_fifo_directory_path/commands_standard"
+        local -r commands_output_fifo_error_file_path="$output_fifo_directory_path/commands_error"
+        mkfifo "$commands_output_fifo_standard_file_path"
+        mkfifo "$commands_output_fifo_error_file_path"
+    fi
+    if [ "$bl_logging_output_target" = tee ]; then
+        local -r output_fifo_standard_file_path="$output_fifo_directory_path/standard"
+        local -r output_fifo_error_file_path="$output_fifo_directory_path/error"
+        mkfifo "$output_fifo_standard_file_path"
+        mkfifo "$output_fifo_error_file_path"
+    fi
+    ##
     if [ "$bl_logging_output_target" = file ]; then
         if [ "$bl_logging_command_output_target" = file ]; then
             exec \
@@ -470,9 +492,25 @@ bl_logging_set_file_descriptors() {
                 3>>"$bl_logging_file_path" \
                 4>>"$bl_logging_error_file_path"
         elif [ "$bl_logging_command_output_target" = tee ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
+            #    2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+            #    3>>"$bl_logging_file_path" \
+            #    4>>"$bl_logging_error_file_path"
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$commands_output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$commands_output_fifo_error_file_path" &
             exec \
-                1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
-                2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+                1>"$commands_output_fifo_standard_file_path" \
+                2>"$commands_output_fifo_error_file_path" \
                 3>>"$bl_logging_file_path" \
                 4>>"$bl_logging_error_file_path"
         elif [ "$bl_logging_command_output_target" = off ]; then
@@ -496,9 +534,25 @@ bl_logging_set_file_descriptors() {
                 3>&5 \
                 4>&6
         elif [ "$bl_logging_command_output_target" = tee ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
+            #    2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+            #    3>&5 \
+            #    4>&6
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$commands_output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$commands_output_fifo_error_file_path" &
             exec \
-                1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
-                2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+                1>"$commands_output_fifo_standard_file_path" \
+                2>"$commands_output_fifo_error_file_path" \
                 3>&5 \
                 4>&6
         elif [ "$bl_logging_command_output_target" = off ]; then
@@ -510,29 +564,93 @@ bl_logging_set_file_descriptors() {
         fi
     elif [ "$bl_logging_output_target" = tee ]; then
         if [ "$bl_logging_command_output_target" = file ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1>>"$bl_logging_commands_file_path" \
+            #    2>>"$bl_logging_commands_error_file_path" \
+            #    3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
+            #    4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$output_fifo_error_file_path" &
             exec \
                 1>>"$bl_logging_commands_file_path" \
                 2>>"$bl_logging_commands_error_file_path" \
-                3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
-                4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+                3>"$output_fifo_standard_file_path" \
+                4>"$output_fifo_error_file_path"
         elif [ "$bl_logging_command_output_target" = std ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1>&5 \
+            #    2>&6 \
+            #    3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
+            #    4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$output_fifo_error_file_path" &
             exec \
                 1>&5 \
                 2>&6 \
-                3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
-                4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+                3>"$output_fifo_standard_file_path" \
+                4>"$output_fifo_error_file_path"
         elif [ "$bl_logging_command_output_target" = tee ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
+            #    2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+            #    3>&1 \
+            #    4>&1
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$commands_output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$commands_output_fifo_error_file_path" &
             exec \
-                1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
-                2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+                1>"$commands_output_fifo_standard_file_path" \
+                2>"$commands_output_fifo_error_file_path" \
                 3>&1 \
                 4>&1
         elif [ "$bl_logging_command_output_target" = off ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1>/dev/null \
+            #    2>&1 \
+            #    3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
+            #    4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$output_fifo_error_file_path" &
             exec \
                 1>/dev/null \
                 2>&1 \
-                3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
-                4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+                3>"$output_fifo_standard_file_path" \
+                4>"$output_fifo_error_file_path"
         fi
     elif [ "$bl_logging_output_target" = off ]; then
         if [ "$bl_logging_command_output_target" = file ]; then
@@ -548,9 +666,25 @@ bl_logging_set_file_descriptors() {
                 3>/dev/null \
                 4>&3
         elif [ "$bl_logging_command_output_target" = tee ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
+            #    2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+            #    3>/dev/null \
+            #    4>&3
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_commands_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$output_fifo_error_file_path" &
             exec \
-                1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
-                2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+                1>"$output_fifo_standard_file_path" \
+                2>"$output_fifo_error_file_path" \
                 3>/dev/null \
                 4>&3
         elif [ "$bl_logging_command_output_target" = off ]; then
@@ -561,6 +695,7 @@ bl_logging_set_file_descriptors() {
                 4>&1
         fi
     fi
+    # NOTE: Hack to free call stack and flush pending tee buffer.
     sync
 }
 # NOTE: Depends on "bl.logging.set_file_descriptors"
