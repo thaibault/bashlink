@@ -137,7 +137,8 @@ bl_logging_cat() {
         foo
     '
     # NOTE: Hack to free call stack and flush pending tee buffer.
-    sync
+    hash sync && \
+        sync
     cat "$@" 1>&3 2>&4
 }
 alias bl.logging.get_commands_level=bl_logging_get_commands_level
@@ -696,7 +697,8 @@ bl_logging_set_file_descriptors() {
         fi
     fi
     # NOTE: Hack to free call stack and flush pending tee buffer.
-    sync
+    hash sync && \
+        sync
 }
 # NOTE: Depends on "bl.logging.set_file_descriptors"
 alias bl.logging.set_command_output_off=bl_logging_set_command_output_off
