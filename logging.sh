@@ -137,7 +137,7 @@ bl_logging_cat() {
         foo
     '
     # NOTE: Hack to free call stack and flush pending tee buffer.
-    hash sync && \
+    hash sync &>/dev/null && \
         sync
     cat "$@" 1>&3 2>&4
 }
@@ -697,7 +697,7 @@ bl_logging_set_file_descriptors() {
         fi
     fi
     # NOTE: Hack to free call stack and flush pending tee buffer.
-    hash sync && \
+    hash sync &>/dev/null && \
         sync
 }
 # NOTE: Depends on "bl.logging.set_file_descriptors"
