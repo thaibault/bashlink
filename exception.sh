@@ -302,7 +302,7 @@ bl_exception_activate() {
     # default.
     set -o pipefail
     # Treat unset variables and parameters other than the special parameters
-    # ‘@’ or ‘*’ as an error when performing parameter expansion.
+    # "@" or "*" as an error when performing parameter expansion.
     # An error message will be written to the standard error, and a
     # non-interactive shell will exit.
     #set -o nounset
