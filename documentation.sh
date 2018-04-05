@@ -214,7 +214,7 @@ bl_documentation_get_formatted_docstring() {
 # endregion
 if bl.tools.is_main; then
     bl.logging.set_level debug
-    bl.logging.set_commands_level info
+    bl.logging.set_command_level info
     bl.documentation.main "$@"
 fi
 # region vim modline
