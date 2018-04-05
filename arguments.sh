@@ -264,16 +264,14 @@ bl_arguments_wrapper_with_minimum_number_of_arguments() {
         >>> }
     '
     if [ $# -le $(( $1 + $2 + 1 )) ]; then
-        # Return default arguments.
+        # Output default arguments.
         # shellcheck disable=SC2068
         bl.module.log_plain ${@:3:$1}
         return $?
-    else
-        # Return given arguments.
-        # shellcheck disable=SC2068
-        bl.module.log_plain ${@:3+$1}
-        return $?
     fi
+    # Output given arguments.
+    # shellcheck disable=SC2068
+    bl.module.log_plain ${@:3+$1}
 }
 # NOTE: Depends on "bl.arguments.wrapper_with_minimum_number_of_arguments"
 alias bl.arguments.default_wrapper=bl_arguments_default_wrapper
@@ -294,7 +292,6 @@ bl_arguments_default_wrapper() {
     '
     # shellcheck disable=SC2068,SC2086
     bl.arguments.wrapper_with_minimum_number_of_arguments $1 1 ${@:2}
-    return $?
 }
 # endregion
 # region vim modline

@@ -38,7 +38,6 @@ bl_ssh_make_key() {
         user="$1"
     fi
     ssh-keygen -t rsa -C "$user"
-    return $?
 }
 alias bl.ssh.print=bl_ssh_print
 bl_ssh_print() {
@@ -121,7 +120,6 @@ bl_ssh_screen() {
     '
     # shellcheck disable=SC2029
     ssh "$1" -t 'screen -r || screen -S main' "${@:2}"
-    return $?
 }
 # endregion
 # region vim modline
