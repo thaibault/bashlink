@@ -211,7 +211,6 @@ bl_logging_is_enabled() {
         return 1
     fi
     (( level_index <= bl_logging_level ))
-    return $?
 }
 alias bl.logging.plain_raw=bl_logging_plain_raw
 bl_logging_plain_raw() {
@@ -303,9 +302,7 @@ bl_logging_log() {
                 "$@"
         fi
     fi
-    $exception && \
-        return 1
-    return 0
+    $exception
 }
 alias bl.logging.critical='bl_logging_log critical'
 alias bl.logging.debug='bl_logging_log debug'
@@ -699,7 +696,7 @@ bl_logging_set_file_descriptors() {
     # NOTE: Hack to free call stack and flush pending tee buffer.
     hash sync &>/dev/null && \
         sync
-    return
+    return 0
 }
 # NOTE: Depends on "bl.logging.set_file_descriptors"
 alias bl.logging.set_command_output_off=bl_logging_set_command_output_off

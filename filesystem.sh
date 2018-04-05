@@ -448,7 +448,6 @@ bl_filesystem_btrfs_subvolume_backup() {
 bl.filesystem.btrfs_subvolume_backup create|delete|list [backupName]
 EOF
     fi
-    return $?
 }
 alias bl.filesystem.btrfs_subvolume_backup_autocomplete=bl_filesystem_btrfs_subvolume_backup_autocomplete
 bl_filesystem_btrfs_subvolume_backup_autocomplete() {
@@ -503,7 +502,6 @@ bl_filesystem_close_crypt_blockdevice() {
         ```
     '
     sudo cryptsetup luksClose "$1"
-    return $?
 }
 alias bl.filesystem.create_partition_via_offset=bl_filesystem_create_partition_via_offset
 bl_filesystem_create_partition_via_offset() {
@@ -618,7 +616,6 @@ bl_filesystem_find_hardlinks() {
         ```
     '
     sudo command find / -samefile "$1" 2>/dev/null
-    return $?
 }
 alias bl.filesystem.show_symbolic_links=bl_filesystem_show_symbolic_links
 bl_filesystem_show_symbolic_links() {
@@ -639,7 +636,6 @@ bl_filesystem_show_symbolic_links() {
         bl.logging.plain "${element} -> "
         readlink "$element"
     done < <(command find "$1" -type l -print0)
-    return $?
 }
 ## endregion
 alias bl.filesystem.make_crypt_blockdevice=bl_filesystem_make_crypt_blockdevice
@@ -685,9 +681,8 @@ bl_filesystem_make_uefi_boot_entry() {
         eval "$command"
         return $?
     fi
-    bl.logging.error \
+    bl.logging.error_exception \
         "Error: file \"${kernel_parameter_file_path}\" doesn't exists."
-    return 1
 }
 alias bl.filesystem.open_crypt_blockdevice=bl_filesystem_open_crypt_blockdevice
 bl_filesystem_open_crypt_blockdevice() {
@@ -699,7 +694,6 @@ bl_filesystem_open_crypt_blockdevice() {
         ```
     '
     sudo cryptsetup luksOpen "$1" "$2"
-    return $?
 }
 alias bl.filesystem.overlay_location=bl_filesystem_overlay_location
 bl_filesystem_overlay_location() {
@@ -714,7 +708,6 @@ bl_filesystem_overlay_location() {
     mkdir --parents /tmp/overlayfsDifferences
     mount --types overlayfs --options \
         lowerdir="$1",upperdir='/tmp/overlayDifferences' overlayfs "$1"
-    return $?
 }
 alias bl.filesystem.repair=bl_filesystem_repair
 bl_filesystem_repair() {
@@ -731,7 +724,6 @@ bl_filesystem_repair() {
     fi
     sudo badblocks "$target"
     sudo fsck -a "$target"
-    return $?
 }
 alias bl.filesystem.set_maximum_user_watches=bl_filesystem_set_maximum_user_watches
 bl_filesystem_set_maximum_user_watches() {
@@ -745,7 +737,6 @@ bl_filesystem_set_maximum_user_watches() {
     '
     echo "$1" | \
         sudo tee /proc/sys/fs/inotify/max_user_watches
-    return $?
 }
 alias bl.filesystem.write_blockdevice_to_image=bl_filesystem_write_blockdevice_to_image
 bl_filesystem_write_blockdevice_to_image() {
@@ -768,7 +759,6 @@ bl_filesystem_write_blockdevice_to_image() {
         target="$2"
     fi
     sudo dd bs=4M if="$source" of="$target"
-    return $?
 }
 alias bl.filesystem.write_image_to_blockdevice=bl_filesystem_write_image_to_blockdevice
 bl_filesystem_write_image_to_blockdevice() {
@@ -792,7 +782,6 @@ bl_filesystem_write_image_to_blockdevice() {
         target="$2"
     fi
     sudo dd bs=4M if="$source" of="$target"
-    return $?
 }
 # endregion
 # region vim modline

