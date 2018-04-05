@@ -43,7 +43,6 @@ bl_tools_compile_and_install_without_root() {
     # NOTE: Another possibility to install to a specified path is
     # "make install DESTDIR=$1"
     make install
-    return $?
 }
 alias bl.tools.is_defined=bl_module_is_defined
 alias bl.tools.is_empty=bl_tools_is_empty
@@ -109,7 +108,6 @@ bl_tools_make_openssl_pem_file() {
         -out "${host}.crt"
     bl.logging.info Creating a pem file.
     cat "${host}.key" "${host}.crt" 1>"${host}.pem"
-    return $?
 }
 alias bl.tools.make_single_executbale=bl_tools_make_single_executable
 bl_tools_make_single_executable() {
@@ -154,7 +152,6 @@ EOF
     cat "$temporary_archiv_file_path" 1>>"$file_name"
     rm "$temporary_archiv_file_path"
     chmod +x "$file_name"
-    return $?
 }
 alias bl.tools.run_with_appended_shebang=bl_tools_run_with_appended_shebang
 bl_tools_run_with_appended_shebang() {
@@ -210,7 +207,6 @@ bl_tools_run_with_appended_shebang() {
                 's/^#!(.+)$/\1/g'
     )$shebang_arguments '$application_file_path' $arguments"
     eval "$command"
-    return $?
 }
 alias bl.tools.send_e_mail=bl_tools_send_e_mail
 bl_tools_send_e_mail() {
@@ -248,7 +244,6 @@ Subject: $1
 $2
 
 EOF
-    return $?
 }
 # endregion
 # region vim modline

@@ -27,9 +27,8 @@ bl_network_wlan_start() {
             bl.network.wlan_start
         ```
     '
-    wpa_supplicant -c /etc/wpa_supplicant.conf -i wlan0 -D wext -B
-    dhclient wlan0
-    return $?
+    wpa_supplicant -c /etc/wpa_supplicant.conf -i wlan0 -D wext -B && \
+        dhclient wlan0
 }
 alias bl.network.wlan_stop=bl_network_wlan_stop
 bl_network_wlan_stop() {
@@ -40,10 +39,9 @@ bl_network_wlan_stop() {
             bl.network.wlan_stop
         ```
     '
-    killall wpa_supplicant
-    killall dhclient
-    killall dhclient3
-    return $?
+    killall wpa_supplicant && \
+        killall dhclient && \
+            killall dhclient3
 }
 # NOTE: Depends on "bl.network.wlan_start" and "bl.network.wlan_stop"
 alias bl.network.wlan_restart=bl_network_wlan_restart
@@ -55,9 +53,8 @@ bl_network_wlan_restart() {
             bl.network.wlan_restart
         ```
     '
-    bl.network.wlan_stop
-    bl.network.wlan_start
-    return $?
+    bl.network.wlan_stop && \
+        bl.network.wlan_start
 }
 # endregion
 # region vim modline

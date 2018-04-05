@@ -741,11 +741,13 @@ bl_doctest_parse_docstring() {
                 if [ "$line" = '' ]; then
                     next_state=TEXT
                     bl_doctest_eval_buffers
-                    [ $? == 1 ] && return 1
+                    (( $? == 1 )) && \
+                        return 1
                 elif [[ "$line" = "$prompt"* ]]; then
                     next_state=TEST
                     bl_doctest_eval_buffers
-                    [ $? == 1 ] && return 1
+                    (( $? == 1 )) && \
+                        return 1
                     $preserve_prompt && temp_prompt="$prompt" && prompt=""
                     if [ "$test_buffer" = '' ]; then
                         test_buffer="${line#$prompt}"

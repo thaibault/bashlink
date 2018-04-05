@@ -36,7 +36,6 @@ bl_number_calculate_percent() {
             --regexp-extended \
             's/^(.)$/0\1/g' \
                 <<<$(((($2 * 10000) / $1) % 100)))"
-    return $?
 }
 alias bl.number.normalize_version=bl_number_normalize_version
 bl_number_normalize_version() {

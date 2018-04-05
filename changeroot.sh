@@ -55,7 +55,6 @@ bl_changeroot() {
         return $?
     fi
     bl_changeroot_with_kernel_api "$@"
-    return $?
 }
 alias bl.changeroot.with_fake_fallback=bl_changeroot_with_fake_fallback
 bl_changeroot_with_fake_fallback() {
@@ -73,7 +72,6 @@ bl_changeroot_with_fake_fallback() {
         return $?
     fi
     fakeroot fakechroot chroot "$@"
-    return $?
 }
 alias bl.changeroot.with_kernel_api=bl_changeroot_with_kernel_api
 bl_changeroot_with_kernel_api() {

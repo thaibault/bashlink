@@ -243,7 +243,6 @@ bl_exception_check_context() {
             exit 0
         exit 1
     )
-    return $?
 }
 # Depends on "bl.exception.check_context"
 alias bl.exception.activate=bl_exception_activate
