@@ -270,12 +270,12 @@ bl_logging_log() {
         +bl.doctest.contains
         Given logging level "not_existing_level" is not available
     '
-    local exception=false
+    local no_exception=true
     local level="$1"
     if [ "$level" = warn ]; then
         level=warning
     elif [ "$level" = error_exception ]; then
-        exception=true
+        no_exception=false
         level=error
     fi
     shift
@@ -302,7 +302,7 @@ bl_logging_log() {
                 "$@"
         fi
     fi
-    $exception
+    $no_exception
 }
 alias bl.logging.critical='bl_logging_log critical'
 alias bl.logging.debug='bl_logging_log debug'
