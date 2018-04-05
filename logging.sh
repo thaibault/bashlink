@@ -699,6 +699,7 @@ bl_logging_set_file_descriptors() {
     # NOTE: Hack to free call stack and flush pending tee buffer.
     hash sync &>/dev/null && \
         sync
+    return
 }
 # NOTE: Depends on "bl.logging.set_file_descriptors"
 alias bl.logging.set_command_output_off=bl_logging_set_command_output_off
