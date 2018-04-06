@@ -283,7 +283,7 @@ bl_exception_activate() {
     bl_exception_errtrace_saved=$(set -o | awk '/errtrace/ {print $2}')
     bl_exception_pipefail_saved=$(set -o | awk '/pipefail/ {print $2}')
     bl_exception_functrace_saved=$(set -o | awk '/functrace/ {print $2}')
-    bl_exception_err_traps=$(trap -p ERR | cut --delimiter "'" --fields 2)
+    bl_exception_error_traps=$(trap -p ERR | cut --delimiter "'" --fields 2)
     bl_exception_ps4_saved="$PS4"
     # improve xtrace output (set -x)
     export PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
@@ -351,7 +351,7 @@ bl_exception_deactivate() {
         set +o functrace
     export PS4="$bl_exception_ps4_saved"
     # shellcheck disable=SC2064
-    trap "$bl_exception_err_traps" ERR
+    trap "$bl_exception_error_traps" ERR
     bl_exception_active=false
 }
 alias bl.exception.enter_try=bl_exception_enter_try
@@ -371,6 +371,11 @@ bl_exception_enter_try() {
             mktemp --suffix -bashlink-exception-last-traceback)"
         bl_exception_active_before_try=$bl_exception_active
     fi
+    # NOTE: We have to deactivate exceptions here to avoid calling the error
+    # trap a second time after running the catch wrapper function. The nested
+    # error trap would be triggered when the wrapper function returns a number
+    # other than 0. The nested error trap converts an error into such a
+    # `return !=0`.
     bl.exception.deactivate
     (( bl_exception_try_catch_level++ ))
 }
