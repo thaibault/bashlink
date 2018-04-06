@@ -321,6 +321,18 @@ bl_exception_activate() {
     # NOTE: We have to check whether we should jump out of a function context
     # with "return $?" (e.g. in "...try { ... }" blocks) or in global scope
     # where an "exit $?" call is more appreciate.
+    # NOTE: We can not check "FUNCNAME" or any other context during trap
+    # generation because the following code wouldn't be predictable:
+    #
+    # _() {
+    #     trap 'echo handle trap' ERR
+    #     if __random__; then
+    #         false
+    #     fi
+    # }
+    # _
+    # false
+    #
     trap 'bl_exception_error_handler || local -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code' ERR
     # trap bl_exception_debug_handler DEBUG
     # trap bl_exception_exit_handler EXIT
