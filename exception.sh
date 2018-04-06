@@ -256,7 +256,7 @@ bl_exception_activate() {
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
         >>> bl.exception.deactivate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-        bl_exception_error_handler || return $?
+        bl_exception_error_handler || local -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
         echo foo
     '
     if [[ "$1" != true ]]; then
@@ -321,11 +321,7 @@ bl_exception_activate() {
     # NOTE: We have to check whether we should jump out of a function context
     # with "return $?" (e.g. in "...try { ... }" blocks) or in global scope
     # where an "exit $?" call is more appreciate.
-    if (( ${#FUNCNAME[@]} > 2 )); then
-        trap 'bl_exception_error_handler || return $?' ERR
-    else
-        trap 'bl_exception_error_handler || exit $?' ERR
-    fi
+    trap 'bl_exception_error_handler || local -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code' ERR
     # trap bl_exception_debug_handler DEBUG
     # trap bl_exception_exit_handler EXIT
     bl_exception_active=true
@@ -342,7 +338,7 @@ bl_exception_deactivate() {
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
         >>> bl.exception.deactivate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-        bl_exception_error_handler || return $?
+        bl_exception_error_handler || local -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
         echo $foo
     '
     $bl_exception_active || \
@@ -436,7 +432,7 @@ bl_exception_exit_try() {
             rm "$bl_exception_last_traceback_file_path"
         else
             bl.logging.warn \
-                "Tracback file under \"$bl_exception_last_traceback_file_path\" is missing."
+                "Traceback file under \"$bl_exception_last_traceback_file_path\" is missing."
         fi
     else
         bl.exception.activate true
