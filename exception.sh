@@ -333,7 +333,7 @@ bl_exception_activate() {
     # _
     # false
     #
-    trap 'bl_exception_error_handler || local -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code' ERR
+    trap 'bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code' ERR
     # trap bl_exception_debug_handler DEBUG
     # trap bl_exception_exit_handler EXIT
     bl_exception_active=true
