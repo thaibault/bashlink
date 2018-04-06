@@ -256,7 +256,7 @@ bl_exception_activate() {
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
         >>> bl.exception.deactivate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-        bl_exception_error_handler || local -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
+        bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
         echo foo
     '
     if [[ "$1" != true ]]; then
@@ -350,7 +350,7 @@ bl_exception_deactivate() {
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
         >>> bl.exception.deactivate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-        bl_exception_error_handler || local -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
+        bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
         echo $foo
     '
     $bl_exception_active || \
