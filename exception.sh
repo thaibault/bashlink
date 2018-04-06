@@ -313,14 +313,14 @@ bl_exception_activate() {
     # ERR       executed each time a command's failure would cause the shell to exit when the '-e' option ('errexit') is enabled
 
     # ERR is not executed in following cases:
-    # >>> err() { return 1;}
+    # >>> err() { return 1; }
     # >>> ! err
     # >>> err || echo foo
     # >>> err && echo foo
 
     trap 'bl_exception_error_handler || return $?' ERR
-    #trap bl_exception_debug_handler DEBUG
-    #trap bl_exception_exit_handler EXIT
+    # trap bl_exception_debug_handler DEBUG
+    # trap bl_exception_exit_handler EXIT
     bl_exception_active=true
 }
 alias bl.exception.deactivate=bl_exception_deactivate
@@ -392,7 +392,7 @@ bl_exception_error_handler() {
         local subroutine=${trace[1]}
         local filename=${trace[2]}
         # shellcheck disable=SC1117
-        traceback="${traceback}\n[$index] ${filename}:${line}: ${subroutine}"
+        traceback+="\n[$index] ${filename}:${line}: ${subroutine}"
         (( index++ ))
     done
     if (( bl_exception_try_catch_level == 0 )) && [ "$do_not_throw" != true ]
@@ -401,7 +401,13 @@ bl_exception_error_handler() {
     else
         echo "$traceback" >"$bl_exception_last_traceback_file_path"
     fi
-    return $error_code
+    # NOTE: We have to check whether we should jump out of a function context
+    # with "return $?" (e.g. in "...try { ... }" blocks) or in global scope
+    # where an "exit $?" call is more appreciate.
+    if caller 1 >/dev/null; then
+        return $error_code
+    fi
+    exit $error_code
 }
 alias bl.exception.exit_try=bl_exception_exit_try
 bl_exception_exit_try() {
