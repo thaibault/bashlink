@@ -318,7 +318,14 @@ bl_exception_activate() {
     # >>> err || echo foo
     # >>> err && echo foo
 
-    trap 'bl_exception_error_handler || return $?' ERR
+    # NOTE: We have to check whether we should jump out of a function context
+    # with "return $?" (e.g. in "...try { ... }" blocks) or in global scope
+    # where an "exit $?" call is more appreciate.
+    if (( ${#FUNCNAME[@]} > 2 )); then
+        trap 'bl_exception_error_handler || return $?' ERR
+    else
+        trap 'bl_exception_error_handler || exit $?' ERR
+    fi
     # trap bl_exception_debug_handler DEBUG
     # trap bl_exception_exit_handler EXIT
     bl_exception_active=true
@@ -401,13 +408,7 @@ bl_exception_error_handler() {
     else
         echo "$traceback" >"$bl_exception_last_traceback_file_path"
     fi
-    # NOTE: We have to check whether we should jump out of a function context
-    # with "return $?" (e.g. in "...try { ... }" blocks) or in global scope
-    # where an "exit $?" call is more appreciate.
-    if caller 1 >/dev/null; then
-        return $error_code
-    fi
-    exit $error_code
+    return $error_code
 }
 alias bl.exception.exit_try=bl_exception_exit_try
 bl_exception_exit_try() {
