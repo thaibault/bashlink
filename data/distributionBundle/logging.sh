@@ -54,7 +54,7 @@ declare -gr bl_logging__documentation__='
     The standard loglevel is critical
 
     >>> bl.logging.get_level
-    >>> bl.logging.get_commands_level
+    >>> bl.logging.get_command_level
     critical
     critical
 
@@ -74,11 +74,11 @@ declare -gr bl_logging__documentation__='
     greater than or equal to the log_level.
 
     >>> bl.logging.set_level critical
-    >>> bl.logging.set_commands_level debug
+    >>> bl.logging.set_command_level debug
     >>> echo foo
 
     >>> bl.logging.set_level info
-    >>> bl.logging.set_commands_level info
+    >>> bl.logging.set_command_level info
     >>> echo foo
     foo
 
@@ -93,8 +93,8 @@ declare -gr bl_logging__documentation__='
 '
 declare -g bl_logging_file_path=''
 declare -g bl_logging_error_file_path=''
-declare -g bl_logging_commands_file_path=''
-declare -g bl_logging_commands_error_file_path=''
+declare -g bl_logging_command_file_path=''
+declare -g bl_logging_command_error_file_path=''
 # logging levels from low to high
 declare -ag bl_logging_levels=(
     error
@@ -111,7 +111,7 @@ declare -ag bl_logging_levels_color=(
     "$bl_cli_color_green"
     "$bl_cli_color_blue"
 )
-declare -g bl_logging_commands_level=$(
+declare -g bl_logging_command_level=$(
     bl.array.get_index critical "${bl_logging_levels[@]}")
 declare -g bl_logging_level=$(
     bl.array.get_index critical "${bl_logging_levels[@]}")
@@ -136,20 +136,21 @@ bl_logging_cat() {
         >>> echo foo | bl.logging.cat
         foo
     '
-    sync
     # NOTE: Hack to free call stack and flush pending tee buffer.
+    hash sync &>/dev/null && \
+        sync
     cat "$@" 1>&3 2>&4
 }
-alias bl.logging.get_commands_level=bl_logging_get_commands_level
-bl_logging_get_commands_level() {
+alias bl.logging.get_command_level=bl_logging_get_command_level
+bl_logging_get_command_level() {
     local -r __documentation__='
         Retrieves current command output level.
 
-        >>> bl.logging.set_commands_level critical
-        >>> bl.logging.get_commands_level
+        >>> bl.logging.set_command_level critical
+        >>> bl.logging.get_command_level
         critical
     '
-    echo "${bl_logging_levels[$bl_logging_commands_level]}"
+    echo "${bl_logging_levels[$bl_logging_command_level]}"
 }
 alias bl.logging.get_level=bl_logging_get_level
 bl_logging_get_level() {
@@ -210,7 +211,6 @@ bl_logging_is_enabled() {
         return 1
     fi
     (( level_index <= bl_logging_level ))
-    return $?
 }
 alias bl.logging.plain_raw=bl_logging_plain_raw
 bl_logging_plain_raw() {
@@ -218,18 +218,17 @@ bl_logging_plain_raw() {
         This function prints at any log level and without prefix.
 
         >>> bl.logging.set_level critical
-        >>> bl.logging.set_commands_level debug
+        >>> bl.logging.set_command_level debug
         >>> bl.logging.plain_raw foo
         foo
 
         >>> bl.logging.set_level info
-        >>> bl.logging.set_commands_level debug
+        >>> bl.logging.set_command_level debug
         >>> bl.logging.debug "not shown"
         >>> echo "not shown"
         >>> bl.logging.plain_raw "shown"
         shown
     '
-    # NOTE: Hack to free call stack and flush pending tee buffer.
     echo "$@" 1>&3 2>&4
 }
 alias bl.logging.plain=bl_logging_plain
@@ -239,12 +238,12 @@ bl_logging_plain() {
         log level and without prefix.
 
         >>> bl.logging.set_level critical
-        >>> bl.logging.set_commands_level debug
+        >>> bl.logging.set_command_level debug
         >>> bl.logging.plain foo
         foo
 
         >>> bl.logging.set_level info
-        >>> bl.logging.set_commands_level debug
+        >>> bl.logging.set_command_level debug
         >>> bl.logging.debug "not shown"
         >>> echo "not shown"
         >>> bl.logging.plain "shown"
@@ -271,12 +270,12 @@ bl_logging_log() {
         +bl.doctest.contains
         Given logging level "not_existing_level" is not available
     '
-    local exception=false
+    local no_exception=true
     local level="$1"
     if [ "$level" = warn ]; then
         level=warning
     elif [ "$level" = error_exception ]; then
-        exception=true
+        no_exception=false
         level=error
     fi
     shift
@@ -303,9 +302,7 @@ bl_logging_log() {
                 "$@"
         fi
     fi
-    $exception && \
-        return 1
-    return 0
+    $no_exception
 }
 alias bl.logging.critical='bl_logging_log critical'
 alias bl.logging.debug='bl_logging_log debug'
@@ -339,7 +336,7 @@ bl_logging_set_file_descriptors() {
         foo
 
         >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=off
+        >>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file --logging-output-target=off
         >>> bl.logging.plain not shown
         >>> echo foo
         >>> bl.logging.info test
@@ -356,7 +353,7 @@ bl_logging_set_file_descriptors() {
         foo
 
         >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee
+        >>> bl.logging.set_file_descriptors "$test_file" --command-output-target=tee
         >>> echo test
         >>> bl.logging.set_file_descriptors
         >>> bl.logging.plain test
@@ -366,7 +363,7 @@ bl_logging_set_file_descriptors() {
         test
 
         >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file
+        >>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file
         >>> bl.logging.plain test
         >>> echo test
         >>> bl.logging.set_file_descriptors
@@ -375,7 +372,7 @@ bl_logging_set_file_descriptors() {
         test
 
         >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=file
+        >>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file --logging-output-target=file
         >>> bl.logging.plain test
         >>> echo test
         >>> bl.logging.set_file_descriptors
@@ -384,7 +381,7 @@ bl_logging_set_file_descriptors() {
         test
 
         >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=file
+        >>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file --logging-output-target=file
         >>> bl.logging.plain test
         >>> echo test
         >>> bl.logging.set_file_descriptors
@@ -393,7 +390,7 @@ bl_logging_set_file_descriptors() {
         test
 
         >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee --logging-output-target=file
+        >>> bl.logging.set_file_descriptors "$test_file" --command-output-target=tee --logging-output-target=file
         >>> echo test
         >>> bl.logging.plain test
         >>> bl.logging.set_file_descriptors
@@ -403,7 +400,7 @@ bl_logging_set_file_descriptors() {
         test
 
         >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=off --logging-output-target=file
+        >>> bl.logging.set_file_descriptors "$test_file" --command-output-target=off --logging-output-target=file
         >>> bl.logging.plain logging
         >>> echo echo
         >>> bl.logging.set_file_descriptors
@@ -411,7 +408,7 @@ bl_logging_set_file_descriptors() {
         logging
 
         >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
-        >>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee --logging-output-target=tee
+        >>> bl.logging.set_file_descriptors "$test_file" --command-output-target=tee --logging-output-target=tee
         >>> bl.logging.plain test
         >>> echo test
         >>> bl.logging.set_file_descriptors
@@ -424,7 +421,7 @@ bl_logging_set_file_descriptors() {
     bl.arguments.set "$@"
     # An output specification have to be one of "file", "std", "tee" or "off".
     local output command_output
-    bl.arguments.get_keyword --commands-output-target command_output
+    bl.arguments.get_keyword --command-output-target command_output
     bl.arguments.get_keyword --logging-output-target output
     bl_logging_command_output_target="$command_output"
     bl_logging_output_target="$output"
@@ -447,20 +444,43 @@ bl_logging_set_file_descriptors() {
     if [ "$bl_logging_error_file_path" = '' ]; then
         bl_logging_error_file_path="$bl_logging_file_path"
     fi
-    bl_logging_commands_file_path="$3"
-    if [ "$bl_logging_commands_file_path" = '' ]; then
-        bl_logging_commands_file_path="$bl_logging_file_path"
+    bl_logging_command_file_path="$3"
+    if [ "$bl_logging_command_file_path" = '' ]; then
+        bl_logging_command_file_path="$bl_logging_file_path"
     fi
-    bl_logging_commands_error_file_path="$4"
-    if [ "$bl_logging_commands_error_file_path" = '' ]; then
-        bl_logging_commands_error_file_path="$bl_logging_commands_file_path"
+    bl_logging_command_error_file_path="$4"
+    if [ "$bl_logging_command_error_file_path" = '' ]; then
+        bl_logging_command_error_file_path="$bl_logging_command_file_path"
     fi
-    # NOTE: Hack to free call stack and flush pending tee buffer.
+    # NOTE: This is only needed for "dash" compatibility where process
+    # substitution is not available.
+    if \
+        [ "$bl_logging_output_target" = tee ] || \
+        [ "$bl_logging_command_output_target" = tee ]
+    then
+        local -r output_fifo_directory_path="$(
+            mktemp --directory --suffix -bashlink-logging-output-fifo)"
+        # shellcheck disable=SC2064
+        trap "rm --force --recursive '$output_fifo_directory_path'" EXIT
+    fi
+    if [ "$bl_logging_command_output_target" = tee ]; then
+        local -r command_output_fifo_standard_file_path="$output_fifo_directory_path/command_standard"
+        local -r command_output_fifo_error_file_path="$output_fifo_directory_path/command_error"
+        mkfifo "$command_output_fifo_standard_file_path"
+        mkfifo "$command_output_fifo_error_file_path"
+    fi
+    if [ "$bl_logging_output_target" = tee ]; then
+        local -r output_fifo_standard_file_path="$output_fifo_directory_path/standard"
+        local -r output_fifo_error_file_path="$output_fifo_directory_path/error"
+        mkfifo "$output_fifo_standard_file_path"
+        mkfifo "$output_fifo_error_file_path"
+    fi
+    ##
     if [ "$bl_logging_output_target" = file ]; then
         if [ "$bl_logging_command_output_target" = file ]; then
             exec \
-                1>>"$bl_logging_commands_file_path" \
-                2>>"$bl_logging_commands_error_file_path" \
+                1>>"$bl_logging_command_file_path" \
+                2>>"$bl_logging_command_error_file_path" \
                 3>>"$bl_logging_file_path" \
                 4>>"$bl_logging_error_file_path"
         elif [ "$bl_logging_command_output_target" = std ]; then
@@ -470,9 +490,25 @@ bl_logging_set_file_descriptors() {
                 3>>"$bl_logging_file_path" \
                 4>>"$bl_logging_error_file_path"
         elif [ "$bl_logging_command_output_target" = tee ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1> >(tee --append "$bl_logging_command_file_path" 1>&5 2>&6) \
+            #    2> >(tee --append "$bl_logging_command_error_file_path" 1>&6 2>&6) \
+            #    3>>"$bl_logging_file_path" \
+            #    4>>"$bl_logging_error_file_path"
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$command_output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$command_output_fifo_error_file_path" &
             exec \
-                1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
-                2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+                1>"$command_output_fifo_standard_file_path" \
+                2>"$command_output_fifo_error_file_path" \
                 3>>"$bl_logging_file_path" \
                 4>>"$bl_logging_error_file_path"
         elif [ "$bl_logging_command_output_target" = off ]; then
@@ -485,8 +521,8 @@ bl_logging_set_file_descriptors() {
     elif [ "$bl_logging_output_target" = std ]; then
         if [ "$bl_logging_command_output_target" = file ]; then
             exec \
-                1>>"$bl_logging_commands_file_path" \
-                2>>"$bl_logging_commands_error_file_path" \
+                1>>"$bl_logging_command_file_path" \
+                2>>"$bl_logging_command_error_file_path" \
                 3>&5 \
                 4>&6
         elif [ "$bl_logging_command_output_target" = std ]; then
@@ -496,9 +532,25 @@ bl_logging_set_file_descriptors() {
                 3>&5 \
                 4>&6
         elif [ "$bl_logging_command_output_target" = tee ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1> >(tee --append "$bl_logging_command_file_path" 1>&5 2>&6) \
+            #    2> >(tee --append "$bl_logging_command_error_file_path" 1>&6 2>&6) \
+            #    3>&5 \
+            #    4>&6
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$command_output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$command_output_fifo_error_file_path" &
             exec \
-                1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
-                2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+                1>"$command_output_fifo_standard_file_path" \
+                2>"$command_output_fifo_error_file_path" \
                 3>&5 \
                 4>&6
         elif [ "$bl_logging_command_output_target" = off ]; then
@@ -510,29 +562,93 @@ bl_logging_set_file_descriptors() {
         fi
     elif [ "$bl_logging_output_target" = tee ]; then
         if [ "$bl_logging_command_output_target" = file ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1>>"$bl_logging_command_file_path" \
+            #    2>>"$bl_logging_command_error_file_path" \
+            #    3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
+            #    4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$output_fifo_error_file_path" &
             exec \
-                1>>"$bl_logging_commands_file_path" \
-                2>>"$bl_logging_commands_error_file_path" \
-                3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
-                4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+                1>>"$bl_logging_command_file_path" \
+                2>>"$bl_logging_command_error_file_path" \
+                3>"$output_fifo_standard_file_path" \
+                4>"$output_fifo_error_file_path"
         elif [ "$bl_logging_command_output_target" = std ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1>&5 \
+            #    2>&6 \
+            #    3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
+            #    4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$output_fifo_error_file_path" &
             exec \
                 1>&5 \
                 2>&6 \
-                3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
-                4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+                3>"$output_fifo_standard_file_path" \
+                4>"$output_fifo_error_file_path"
         elif [ "$bl_logging_command_output_target" = tee ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1> >(tee --append "$bl_logging_command_file_path" 1>&5 2>&6) \
+            #    2> >(tee --append "$bl_logging_command_error_file_path" 1>&6 2>&6) \
+            #    3>&1 \
+            #    4>&1
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$command_output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$command_output_fifo_error_file_path" &
             exec \
-                1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
-                2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+                1>"$command_output_fifo_standard_file_path" \
+                2>"$command_output_fifo_error_file_path" \
                 3>&1 \
                 4>&1
         elif [ "$bl_logging_command_output_target" = off ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1>/dev/null \
+            #    2>&1 \
+            #    3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
+            #    4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$output_fifo_error_file_path" &
             exec \
                 1>/dev/null \
                 2>&1 \
-                3> >(tee --append "$bl_logging_file_path" 1>&5 2>&6) \
-                4> >(tee --append "$bl_logging_error_file_path" 1>&6 2>&6)
+                3>"$output_fifo_standard_file_path" \
+                4>"$output_fifo_error_file_path"
         fi
     elif [ "$bl_logging_output_target" = off ]; then
         if [ "$bl_logging_command_output_target" = file ]; then
@@ -548,9 +664,25 @@ bl_logging_set_file_descriptors() {
                 3>/dev/null \
                 4>&3
         elif [ "$bl_logging_command_output_target" = tee ]; then
+            # NOTE: bash4+ version
+            #exec \
+            #    1> >(tee --append "$bl_logging_command_file_path" 1>&5 2>&6) \
+            #    2> >(tee --append "$bl_logging_command_error_file_path" 1>&6 2>&6) \
+            #    3>/dev/null \
+            #    4>&3
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&5 \
+                2>&6 \
+                <"$output_fifo_standard_file_path" &
+            tee \
+                --append "$bl_logging_command_file_path" \
+                1>&6 \
+                2>&6 \
+                <"$output_fifo_error_file_path" &
             exec \
-                1> >(tee --append "$bl_logging_commands_file_path" 1>&5 2>&6) \
-                2> >(tee --append "$bl_logging_commands_error_file_path" 1>&6 2>&6) \
+                1>"$output_fifo_standard_file_path" \
+                2>"$output_fifo_error_file_path" \
                 3>/dev/null \
                 4>&3
         elif [ "$bl_logging_command_output_target" = off ]; then
@@ -561,7 +693,10 @@ bl_logging_set_file_descriptors() {
                 4>&1
         fi
     fi
-    sync
+    # NOTE: Hack to free call stack and flush pending tee buffer.
+    hash sync &>/dev/null && \
+        sync
+    return 0
 }
 # NOTE: Depends on "bl.logging.set_file_descriptors"
 alias bl.logging.set_command_output_off=bl_logging_set_command_output_off
@@ -575,10 +710,10 @@ bl_logging_set_command_output_off() {
     bl.logging.set_file_descriptors \
         "$bl_logging_file_path" \
         "$bl_logging_error_file_path" \
-        "$bl_logging_commands_file_path" \
-        "$bl_logging_commands_error_file_path" \
+        "$bl_logging_command_file_path" \
+        "$bl_logging_command_error_file_path" \
         --logging-output-target="$bl_logging_output_target" \
-        --commands-output-target=off
+        --command-output-target=off
 }
 # NOTE: Depends on "bl.logging.set_file_descriptors"
 alias bl.logging.set_command_output_on=bl_logging_set_command_output_on
@@ -593,31 +728,31 @@ bl_logging_set_command_output_on() {
     bl.logging.set_file_descriptors \
         "$bl_logging_file_path" \
         "$bl_logging_error_file_path" \
-        "$bl_logging_commands_file_path" \
-        "$bl_logging_commands_error_file_path" \
+        "$bl_logging_command_file_path" \
+        "$bl_logging_command_error_file_path" \
         --logging-output-target="$bl_logging_output_target" \
-        --commands-output-target=std
+        --command-output-target=std
 }
 # NOTE: Depends on "bl.logging.set_command_output_on", bl.logging.set_command_output_off"
-alias bl.logging.set_commands_level=bl_logging_set_commands_level
-bl_logging_set_commands_level() {
+alias bl.logging.set_command_level=bl_logging_set_command_level
+bl_logging_set_command_level() {
     local -r __documentation__='
         Enables each command output.
 
-        >>> bl.logging.set_commands_level critical
+        >>> bl.logging.set_command_level critical
         >>> bl.logging.set_level critical
         >>> echo test
         test
-        >>> bl.logging.set_commands_level warning
+        >>> bl.logging.set_command_level warning
         >>> echo test
     '
     local level="$1"
     if [ "$level" = warn ]; then
         level=warning
     fi
-    bl_logging_commands_level=$(
+    bl_logging_command_level=$(
         bl.array.get_index "$level" "${bl_logging_levels[@]}")
-    if [ "$bl_logging_level" -ge "$bl_logging_commands_level" ]; then
+    if (( bl_logging_level >= bl_logging_command_level )); then
         bl.logging.set_command_output_on
     else
         bl.logging.set_command_output_off
@@ -626,10 +761,10 @@ bl_logging_set_commands_level() {
 alias bl.logging.set_level=bl_logging_set_level
 bl_logging_set_level() {
     local -r __documentation__='
-        >>> bl.logging.set_commands_level info
+        >>> bl.logging.set_command_level info
         >>> bl.logging.set_level info
         >>> echo $bl_logging_level
-        >>> echo $bl_logging_commands_level
+        >>> echo $bl_logging_command_level
         3
         3
     '
@@ -638,7 +773,7 @@ bl_logging_set_level() {
         level=warning
     fi
     bl_logging_level=$(bl.array.get_index "$level" "${bl_logging_levels[@]}")
-    if (( bl_logging_level >= bl_logging_commands_level )); then
+    if (( bl_logging_level >= bl_logging_command_level )); then
         bl.logging.set_command_output_on
     else
         bl.logging.set_command_output_off
@@ -660,7 +795,7 @@ bl_logging_set_file() {
     '
     bl.logging.set_file_descriptors \
         "$1" "$2" "$3" "$4" \
-        --commands-output-target=tee \
+        --command-output-target=tee \
         --logging-output-target=tee
 }
 # endregion

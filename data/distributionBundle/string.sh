@@ -118,7 +118,6 @@ bl_string_images_to_css_classes() {
             echo ".image-data-${image_class_name}{background-image: url(\"data:$(file --brief --mime-type "$image_file_path");base64,$(base64 --wrap 0 "$image_file_path")\")}"
         fi
     done
-    return $?
 }
 alias bl.string.make_command_promt_prefix=bl_string_make_command_promt_prefix
 bl_string_make_command_promt_prefix() {
@@ -170,7 +169,6 @@ bl_string_make_command_promt_prefix() {
         head --lines 1)"
     # shellcheck disable=SC1117
     export PS1="${title_bar}${error_promt} ${bl_cli_color_cyan}${user_name}${bl_cli_color_light_gray}@${bl_cli_color_cyan}\h${bl_cli_color_default} (${bl_cli_color_magenta}${system_load_average}${bl_cli_color_default}) ${bl_cli_color_light_gray}\w${bl_cli_color_default}\n${git_branch}${bl_cli_color_dark_gray}> ${bl_cli_color_default}"
-    return $?
 }
 alias bl.string.merge_text_files=bl_string_merge_text_files
 bl_string_merge_text_files() {
@@ -243,7 +241,6 @@ bl_string_merge_text_files() {
     done
     # shellcheck disable=SC2059
     printf "$append" "$file_path"
-    return $?
 }
 alias bl.string.translate=bl_string_translate
 bl_string_translate() {
@@ -396,7 +393,6 @@ bl_string_validate_argument() {
     else
         echo "'$(command sed "s/'/\\'/g" <<< "$1")'"
     fi
-    return $?
 }
 alias bl.string.validate_regular_expression_replacement=bl_string_validate_regular_expression_replacement
 bl_string_validate_regular_expression_replacement() {
@@ -413,7 +409,6 @@ bl_string_validate_regular_expression_replacement() {
             --expression 's/\\/\\\\/g' \
             --expression 's/\//\\\//g' \
             --expression 's/&/\\\&/g'
-    return $?
 }
 # endregion
 # region vim modline

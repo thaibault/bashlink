@@ -243,7 +243,6 @@ bl_exception_check_context() {
             exit 0
         exit 1
     )
-    return $?
 }
 # Depends on "bl.exception.check_context"
 alias bl.exception.activate=bl_exception_activate
@@ -257,7 +256,7 @@ bl_exception_activate() {
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
         >>> bl.exception.deactivate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-        bl_exception_error_handler || return $?
+        bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
         echo foo
     '
     if [[ "$1" != true ]]; then
@@ -284,7 +283,7 @@ bl_exception_activate() {
     bl_exception_errtrace_saved=$(set -o | awk '/errtrace/ {print $2}')
     bl_exception_pipefail_saved=$(set -o | awk '/pipefail/ {print $2}')
     bl_exception_functrace_saved=$(set -o | awk '/functrace/ {print $2}')
-    bl_exception_err_traps=$(trap -p ERR | cut --delimiter "'" --fields 2)
+    bl_exception_error_traps=$(trap -p ERR | cut --delimiter "'" --fields 2)
     bl_exception_ps4_saved="$PS4"
     # improve xtrace output (set -x)
     export PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
@@ -302,7 +301,7 @@ bl_exception_activate() {
     # default.
     set -o pipefail
     # Treat unset variables and parameters other than the special parameters
-    # ‘@’ or ‘*’ as an error when performing parameter expansion.
+    # "@" or "*" as an error when performing parameter expansion.
     # An error message will be written to the standard error, and a
     # non-interactive shell will exit.
     #set -o nounset
@@ -314,14 +313,29 @@ bl_exception_activate() {
     # ERR       executed each time a command's failure would cause the shell to exit when the '-e' option ('errexit') is enabled
 
     # ERR is not executed in following cases:
-    # >>> err() { return 1;}
+    # >>> err() { return 1; }
     # >>> ! err
     # >>> err || echo foo
     # >>> err && echo foo
 
-    trap 'bl_exception_error_handler || return $?' ERR
-    #trap bl_exception_debug_handler DEBUG
-    #trap bl_exception_exit_handler EXIT
+    # NOTE: We have to check whether we should jump out of a function context
+    # with "return $?" (e.g. in "...try { ... }" blocks) or in global scope
+    # where an "exit $?" call is more appreciate.
+    # NOTE: We can not check "FUNCNAME" or any other context during trap
+    # generation because the following code wouldn't be predictable:
+    #
+    # _() {
+    #     trap 'echo handle trap' ERR
+    #     if __random__; then
+    #         false
+    #     fi
+    # }
+    # _
+    # false
+    #
+    trap 'bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code' ERR
+    # trap bl_exception_debug_handler DEBUG
+    # trap bl_exception_exit_handler EXIT
     bl_exception_active=true
 }
 alias bl.exception.deactivate=bl_exception_deactivate
@@ -336,7 +350,7 @@ bl_exception_deactivate() {
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
         >>> bl.exception.deactivate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-        bl_exception_error_handler || return $?
+        bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
         echo $foo
     '
     $bl_exception_active || \
@@ -349,7 +363,7 @@ bl_exception_deactivate() {
         set +o functrace
     export PS4="$bl_exception_ps4_saved"
     # shellcheck disable=SC2064
-    trap "$bl_exception_err_traps" ERR
+    trap "$bl_exception_error_traps" ERR
     bl_exception_active=false
 }
 alias bl.exception.enter_try=bl_exception_enter_try
@@ -369,6 +383,11 @@ bl_exception_enter_try() {
             mktemp --suffix -bashlink-exception-last-traceback)"
         bl_exception_active_before_try=$bl_exception_active
     fi
+    # NOTE: We have to deactivate exceptions here to avoid calling the error
+    # trap a second time after running the catch wrapper function. The nested
+    # error trap would be triggered when the wrapper function returns a number
+    # other than 0. The nested error trap converts an error into such a
+    # `return !=0`.
     bl.exception.deactivate
     (( bl_exception_try_catch_level++ ))
 }
@@ -393,7 +412,7 @@ bl_exception_error_handler() {
         local subroutine=${trace[1]}
         local filename=${trace[2]}
         # shellcheck disable=SC1117
-        traceback="${traceback}\n[$index] ${filename}:${line}: ${subroutine}"
+        traceback+="\n[$index] ${filename}:${line}: ${subroutine}"
         (( index++ ))
     done
     if (( bl_exception_try_catch_level == 0 )) && [ "$do_not_throw" != true ]
@@ -430,7 +449,7 @@ bl_exception_exit_try() {
             rm "$bl_exception_last_traceback_file_path"
         else
             bl.logging.warn \
-                "Tracback file under \"$bl_exception_last_traceback_file_path\" is missing."
+                "Traceback file under \"$bl_exception_last_traceback_file_path\" is missing."
         fi
     else
         bl.exception.activate true
