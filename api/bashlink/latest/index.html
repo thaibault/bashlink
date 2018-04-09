@@ -1,5 +1,5 @@
 
-> bashlink@1.0.95 document:show /home/torben/cloud/data/public/project/repository/bashlink
+> bashlink@1.0.111 document:show /home/torben/cloud/data/public/project/repository/bashlink
 > ./documentation.sh
 
 # Package bashlink
@@ -1333,7 +1333,7 @@ Activates exception handling for following code.
 >>> trap -p ERR | cut --delimiter "'" --fields 2
 >>> bl.exception.deactivate
 >>> trap -p ERR | cut --delimiter "'" --fields 2
-bl_exception_error_handler || return $?
+bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
 echo foo
 ```
 ### Function bl_exception_check_context
@@ -1375,7 +1375,7 @@ previously.
 >>> trap -p ERR | cut --delimiter "'" --fields 2
 >>> bl.exception.deactivate
 >>> trap -p ERR | cut --delimiter "'" --fields 2
-bl_exception_error_handler || return $?
+bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
 echo $foo
 ```
 ### Function bl_exception_enter_try
@@ -1720,7 +1720,7 @@ The standard loglevel is critical
 
 ```bash
 >>> bl.logging.get_level
->>> bl.logging.get_commands_level
+>>> bl.logging.get_command_level
 critical
 critical
 ```
@@ -1743,12 +1743,12 @@ greater than or equal to the log_level.
 
 ```bash
 >>> bl.logging.set_level critical
->>> bl.logging.set_commands_level debug
+>>> bl.logging.set_command_level debug
 >>> echo foo
 ```
 ```bash
 >>> bl.logging.set_level info
->>> bl.logging.set_commands_level info
+>>> bl.logging.set_command_level info
 >>> echo foo
 foo
 ```
@@ -1771,12 +1771,12 @@ it also prints at any log level and without the prefix.
 >>> echo foo | bl.logging.cat
 foo
 ```
-### Function bl_logging_get_commands_level
+### Function bl_logging_get_command_level
 Retrieves current command output level.
 
 ```bash
->>> bl.logging.set_commands_level critical
->>> bl.logging.get_commands_level
+>>> bl.logging.set_command_level critical
+>>> bl.logging.get_command_level
 critical
 ```
 ### Function bl_logging_get_level
@@ -1830,13 +1830,13 @@ log level and without prefix.
 
 ```bash
 >>> bl.logging.set_level critical
->>> bl.logging.set_commands_level debug
+>>> bl.logging.set_command_level debug
 >>> bl.logging.plain foo
 foo
 ```
 ```bash
 >>> bl.logging.set_level info
->>> bl.logging.set_commands_level debug
+>>> bl.logging.set_command_level debug
 >>> bl.logging.debug "not shown"
 >>> echo "not shown"
 >>> bl.logging.plain "shown"
@@ -1847,17 +1847,30 @@ This function prints at any log level and without prefix.
 
 ```bash
 >>> bl.logging.set_level critical
->>> bl.logging.set_commands_level debug
+>>> bl.logging.set_command_level debug
 >>> bl.logging.plain_raw foo
 foo
 ```
 ```bash
 >>> bl.logging.set_level info
->>> bl.logging.set_commands_level debug
+>>> bl.logging.set_command_level debug
 >>> bl.logging.debug "not shown"
 >>> echo "not shown"
 >>> bl.logging.plain_raw "shown"
 shown
+```
+### Function bl_logging_set_command_level
+Enables each command output.
+
+```bash
+>>> bl.logging.set_command_level critical
+>>> bl.logging.set_level critical
+>>> echo test
+test
+```
+```bash
+>>> bl.logging.set_command_level warning
+>>> echo test
 ```
 ### Function bl_logging_set_command_output_off
 Disables each command output.
@@ -1873,19 +1886,6 @@ Enables each command output.
 >>> bl.logging.set_command_output_on
 >>> echo test
 test
-```
-### Function bl_logging_set_commands_level
-Enables each command output.
-
-```bash
->>> bl.logging.set_commands_level critical
->>> bl.logging.set_level critical
->>> echo test
-test
-```
-```bash
->>> bl.logging.set_commands_level warning
->>> echo test
 ```
 ### Function bl_logging_set_file
 ```bash
@@ -1925,7 +1925,7 @@ foo
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=off
+>>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file --logging-output-target=off
 >>> bl.logging.plain not shown
 >>> echo foo
 >>> bl.logging.info test
@@ -1944,7 +1944,7 @@ foo
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee
+>>> bl.logging.set_file_descriptors "$test_file" --command-output-target=tee
 >>> echo test
 >>> bl.logging.set_file_descriptors
 >>> bl.logging.plain test
@@ -1955,7 +1955,7 @@ test
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file
+>>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file
 >>> bl.logging.plain test
 >>> echo test
 >>> bl.logging.set_file_descriptors
@@ -1965,7 +1965,7 @@ test
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=file
+>>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file --logging-output-target=file
 >>> bl.logging.plain test
 >>> echo test
 >>> bl.logging.set_file_descriptors
@@ -1975,7 +1975,7 @@ test
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=file --logging-output-target=file
+>>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file --logging-output-target=file
 >>> bl.logging.plain test
 >>> echo test
 >>> bl.logging.set_file_descriptors
@@ -1985,7 +1985,7 @@ test
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee --logging-output-target=file
+>>> bl.logging.set_file_descriptors "$test_file" --command-output-target=tee --logging-output-target=file
 >>> echo test
 >>> bl.logging.plain test
 >>> bl.logging.set_file_descriptors
@@ -1996,7 +1996,7 @@ test
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=off --logging-output-target=file
+>>> bl.logging.set_file_descriptors "$test_file" --command-output-target=off --logging-output-target=file
 >>> bl.logging.plain logging
 >>> echo echo
 >>> bl.logging.set_file_descriptors
@@ -2005,7 +2005,7 @@ logging
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --commands-output-target=tee --logging-output-target=tee
+>>> bl.logging.set_file_descriptors "$test_file" --command-output-target=tee --logging-output-target=tee
 >>> bl.logging.plain test
 >>> echo test
 >>> bl.logging.set_file_descriptors
@@ -2017,10 +2017,10 @@ test
 ```
 ### Function bl_logging_set_level
 ```bash
->>> bl.logging.set_commands_level info
+>>> bl.logging.set_command_level info
 >>> bl.logging.set_level info
 >>> echo $bl_logging_level
->>> echo $bl_logging_commands_level
+>>> echo $bl_logging_command_level
 3
 3
 ```

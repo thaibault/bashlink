@@ -146,7 +146,6 @@ bl_path_open() {
             break
         fi
     done
-    return $?
 }
 alias bl.path.pack=bl_path_pack
 bl_path_pack() {
@@ -224,10 +223,8 @@ bl_path_run_in_programs_location() {
         cd "$(dirname "$1")" && \
         "./$(basename "$1")" "$@"
         return $?
-    else
-        echo Please insert a path to an executable file.
-        return $?
     fi
+    echo Please insert a path to an executable file.
 }
 alias bl.path.unpack=bl_path_unpack
 bl_path_unpack() {
