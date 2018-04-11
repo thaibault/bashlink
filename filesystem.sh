@@ -639,10 +639,10 @@ bl_filesystem_show_symbolic_links() {
         ```
     '
     local element
-    while IFS= read -r -d '' element; do
+    command find "$1" -type l -print0 | while IFS= read -r -d '' element; do
         bl.logging.plain "${element} -> "
         readlink "$element"
-    done < <(command find "$1" -type l -print0)
+    done
 }
 ## endregion
 alias bl.filesystem.make_crypt_blockdevice=bl_filesystem_make_crypt_blockdevice
