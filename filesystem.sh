@@ -556,6 +556,8 @@ bl_filesystem_find_block_device() {
         return 1
     bl_filesystem_find_block_device_simple() {
         local device_info
+        # NOTE: We should ensure that we do not set an argument if the variable
+        # "$device" is empty or not set.
         lsblk \
             --noheadings \
             --list \
@@ -567,14 +569,16 @@ bl_filesystem_find_block_device() {
                         local current_device
                         current_device="$(
                             echo "$device_info" | \
-                                cut -d' ' -f1)"
-                        if [[ "$device_info" = *"${partition_pattern}"* ]]; then
+                                cut --delimiter ' ' --fields 1)"
+                        if [[ "$device_info" = *"$partition_pattern"* ]]; then
                             echo "$current_device"
                         fi
                     done
     }
     bl_filesystem_find_block_device_deep() {
         local device_info
+        # NOTE: We should ensure that we do not set an argument if the variable
+        # "$device" is empty or not set.
         lsblk \
             --noheadings \
             --list \
@@ -582,9 +586,9 @@ bl_filesystem_find_block_device() {
             --output NAME \
             ${device:+"$device"} | \
                 sort --unique | \
-                    cut -d' ' -f1 | \
+                    cut --delimiter ' ' --fields 1 | \
                         while read -r current_device; do
-                            blkid -p -o value "$current_device" | \
+                            blkid --probe --output value "$current_device" | \
                                 while read -r device_info; do
                                     if [[ "$device_info" = *"${partition_pattern}"* ]]; then
                                         echo "$current_device"
@@ -592,17 +596,20 @@ bl_filesystem_find_block_device() {
                                 done
                         done
     }
-    local candidates
-    mapfile -t candidates < <(bl_filesystem_find_block_device_simple)
-    [ ${#candidates[@]} -eq 0 ] && \
-        mapfile -t candidates < <(bl_filesystem_find_block_device_deep)
-    unset -f bl_filesystem_find_block_device_simple
-    unset -f bl_filesystem_find_block_device_deep
-    [ ${#candidates[@]} -eq 0 ] && \
+    # NOTE: Using "mapfile -t" is not appreciate here, because needed process
+    # subsition wouldn't be supported by dash.
+    # shellcheck disable=SC2207
+    local -a candidates=($(bl_filesystem_find_block_device_simple))
+    if (( ${#candidates[@]} == 0 )); then
+        # shellcheck disable=SC2207
+        candidates=($(bl_filesystem_find_block_device_deep))
+    fi
+    (( ${#candidates[@]} == 0 )) && \
         return 1
-    [ ${#candidates[@]} -ne 1 ] && \
-        echo "${candidates[@]}" && \
+    if (( ${#candidates[@]} != 1 )); then
+        echo "${candidates[@]}"
         return 1
+    fi
     echo "${candidates[0]}"
 }
 ## region file  links
