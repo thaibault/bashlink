@@ -612,7 +612,7 @@ bl_filesystem_find_block_device() {
     fi
     echo "${candidates[0]}"
 }
-## region file  links
+## region file links
 alias bl.filesystem.find_hardlinks=bl_filesystem_find_hardlinks
 bl_filesystem_find_hardlinks() {
     local -r __documentation__='
