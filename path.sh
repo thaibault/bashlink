@@ -237,26 +237,26 @@ bl_path_unpack() {
     '
     if [ -f "$1" ]; then
         local command
-        case "$1" in # switch
+        case "$1" in
+            *.bz2)
+                command="bzip2 --decompress \"$1\""
+                ;;
+            *.gz)
+                command="gzip --decompress \"$1\""
+                ;;
+            *.rar)
+                command="unrar x \"$1\""
+                ;;
+            *.tar)
+                command="tar --extract --verbose --file \"$1\""
+                ;;
             *.tar.bz2|*.tbz2)
                 command="tar --extract --verbose --bzip2 --file \"$1\""
                 ;;
             *.tar.gz|*.tgz)
                 command="tar --extract --verbose --gzip --file \"$1\""
                 ;;
-            *.bz2)
-                command="bzip2 --decompress \"$1\""
-                ;;
-            *.rar)
-                command="unrar x \"$1\""
-                ;;
-            *.gz)
-                command="gzip --decompress \"$1\""
-                ;;
-            *.tar)
-                command="tar --extract --verbose --file \"$1\""
-                ;;
-            *.zip)
+            *.war|*.zip)
                 command="unzip -o \"$1\""
                 ;;
             *.Z)
