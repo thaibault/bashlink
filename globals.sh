@@ -14,7 +14,7 @@
 declare -gr bl_globals__documentation__='
     The globals module provides generic re-usable variables.
 '
-declare -g bl_globals_configuration_path=~/config/
+declare -g bl_globals_configuration_path=~/configuration/
 declare -g bl_globals_data_path=~/
 declare -g bl_globals_user_e_mail_address=example@domain.tld
 # endregion
