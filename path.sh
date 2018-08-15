@@ -60,6 +60,8 @@ bl_path_backup() {
         --preserve-permissions \
         --verbose \
         ./
+    # NOTE: For remote backups, remove "--file "$target_file_path"" and append:
+    # | ssh <backuphost> "( cat > "$target_file_path" )"
     popd
 }
 alias bl.path.restore=bl_path_restore
