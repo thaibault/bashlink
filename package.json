@@ -10,7 +10,7 @@
   "deprecated": false,
   "description": "a high reliable bash library",
   "devDependencies": {
-    "documentation-website": "^1.0.127",
+    "documentation-website": "^1.0.135",
     "shellcheck": "0.0.8"
   },
   "documentationWebsite": {
