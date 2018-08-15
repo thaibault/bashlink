@@ -18,6 +18,78 @@ declare -gr bl_path__documentation__='
 '
 # endregion
 # region functions
+alias bl.path.backup=bl_path_backup
+bl_path_backup() {
+    local -r __documentation__='
+        Backs up given location into given target file to be able to restore
+        given file structure including all rights and ownerships.
+
+        # TODO
+        #>>> bl.path.backup /mnt backup.tar.gz
+        #+bl.doctest.contains
+        #/
+    '
+    local source_path=/mnt
+    if [[ "$1" != '' ]]; then
+        source_path="$1"
+    fi
+    local target_file_path=backup.tar.gz
+    if [[ "$2" != '' ]]; then
+        target_file_path="$2"
+    fi
+    pushd "$source_path" && \
+    # NOTE: Could be useful for currently running system: "--one-file-system"
+    # when "source_file_path" equals "/".
+    tar \
+        --create \
+        --exclude=./backup.tar.gz \
+        --exclude=./dev \
+        --exclude=./home/*/.gvfs \
+        --exclude=./home/*/.cache \
+        --exclude=./home/*/.local/share/Trash \
+        --exclude=./media \
+        --exclude=./mnt \
+        --exclude=./proc \
+        --exclude=./run \
+        --exclude=./sys \
+        --exclude=./tmp \
+        --exclude=./var/cache \
+        --exclude=./var/log \
+        --file "$target_file_path" \
+        --gzip \
+        --preserve-permissions \
+        --verbose \
+        ./
+    popd
+}
+alias bl.path.restore=bl_path_restore
+bl_path_restore() {
+    local -r __documentation__='
+        Restores given backup file into given location.
+
+        # TODO
+        #>>> bl.path.restore backup.tar.gz /mnt
+        #+bl.doctest.contains
+        #/
+    '
+    local source_file_path=backup.tar.gz
+    if [[ "$1" != '' ]]; then
+        source_file_path="$1"
+    fi
+    local target_path=/mnt
+    if [[ "$2" != '' ]]; then
+        target_path="$2"
+    fi
+    pushd "$target_path" && \
+    tar \
+        --extract \
+        --file "$source_file_path" \
+        --gzip \
+        --numeric-owner \
+        --preserve-permissions \
+        --verbose
+    popd
+}
 alias bl.path.convert_to_absolute=bl_path_convert_to_absolute
 bl_path_convert_to_absolute() {
     local -r __documentation__='
