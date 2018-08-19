@@ -42,7 +42,7 @@ bl_path_backup() {
     # when "source_file_path" equals "/".
     tar \
         --create \
-        --exclude=./backup.tar.gz \
+        --exclude=./"$target_file_path" \
         --exclude=./dev \
         --exclude=./home/*/.gvfs \
         --exclude=./home/*/.cache \
@@ -315,9 +315,6 @@ bl_path_unpack() {
             *.bz2)
                 command="bzip2 --decompress \"$1\""
                 ;;
-            *.gz)
-                command="gzip --decompress \"$1\""
-                ;;
             *.rar)
                 command="unrar x \"$1\""
                 ;;
@@ -329,6 +326,11 @@ bl_path_unpack() {
                 ;;
             *.tar.gz|*.tgz)
                 command="tar --extract --verbose --gzip --file \"$1\""
+                ;;
+            # NOTE: Has to be after "*.tar.gz|*.tgz" to totally unwrap its
+            # archive in the case above.
+            *.gz)
+                command="gzip --decompress \"$1\""
                 ;;
             *.war|*.zip)
                 command="unzip -o \"$1\""
