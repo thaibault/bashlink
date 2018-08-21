@@ -37,7 +37,7 @@ bl_path_backup() {
     if [[ "$2" != '' ]]; then
         target_file_path="$2"
     fi
-    pushd "$source_path" && \
+    pushd "$source_path" &>/dev/null && \
     # NOTE: Could be useful for currently running system: "--one-file-system"
     # when "source_file_path" equals "/".
     tar \
@@ -74,7 +74,7 @@ bl_path_restore() {
         #+bl.doctest.contains
         #/
     '
-    local source_file_path=backup.tar.gz
+    local source_file_path="$(bl.path.convert_to_absolute backup.tar.gz)"
     if [[ "$1" != '' ]]; then
         source_file_path="$1"
     fi
@@ -82,7 +82,7 @@ bl_path_restore() {
     if [[ "$2" != '' ]]; then
         target_path="$2"
     fi
-    pushd "$target_path" && \
+    pushd "$target_path" &>/dev/null && \
     tar \
         --extract \
         --file "$source_file_path" \
@@ -90,7 +90,7 @@ bl_path_restore() {
         --numeric-owner \
         --preserve-permissions \
         --verbose
-    popd
+    popd &>/dev/null
 }
 alias bl.path.convert_to_absolute=bl_path_convert_to_absolute
 bl_path_convert_to_absolute() {
