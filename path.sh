@@ -281,6 +281,15 @@ bl_path_pack() {
             *.7z)
                 command="7z a \"$1\" \"$2\""
                 ;;
+            *.vdi)
+                VBoxManage convertdd "$1" "$1.vdi" --format VDI
+                ;;
+            *.vmdk)
+                qemu-img convert -O vmdk "$1" "$1.vmdk"
+                ;;
+            *.qcow|qcow2)
+                qemu-img convert -f raw -O qcow2 "$1" "$1.qcow2"
+                ;;
             *)
                 echo "Cannot pack \"$1\"."
                 return $?
@@ -363,6 +372,12 @@ bl_path_unpack() {
                             --srcformat VDI \
                             --dstformat RAW \
                             "${1%.vdi}"
+                ;;
+            *.vmdk)
+                qemu-img convert -p -O raw "$1" "${1%.vdi}"
+                ;;
+            *.qcow|qcow2)
+                qemu-img convert -p -O raw "$1" "${1%.vdi}"
                 ;;
             *)
                 echo  "Cannot extract \"$1\"."
