@@ -68,6 +68,18 @@ alias bl.path.restore=bl_path_restore
 bl_path_restore() {
     local -r __documentation__='
         Restores given backup file into given location.
+        NOTE: To restore on a valid sparse container convertible block file
+        use ("10000" is the desired virtual block size in Megabyte):
+
+        `
+            dd \
+                if=/dev/zero \
+                of=./backup.img \
+                bs=1M \
+                iflag=fullblock,count_bytes \
+                count=0 \
+                seek=10000
+        `
 
         # TODO
         #>>> bl.path.restore backup.tar.gz /mnt
@@ -340,6 +352,17 @@ bl_path_unpack() {
                 ;;
             *.7z)
                 7z x "$1"
+                ;;
+            *.vdi)
+                qemu-img convert -f vdi -O raw "$1" "${1%.vdi}" ||
+                    vboxmanage clonehd "$1" "${1%.vdi}" --format RAW ||
+                        vbox-img \
+                            convert \
+                            --srcfilename "$1" \
+                            --stdout \
+                            --srcformat VDI \
+                            --dstformat RAW \
+                            "${1%.vdi}"
                 ;;
             *)
                 echo  "Cannot extract \"$1\"."
