@@ -130,7 +130,7 @@ bl_dependency_determine_dependent_files() {
                 fi
             done
             for name in $(pacman --query --list --info "$name" | \
-                grep --extended-regexp '^(Hängt ab von)|(Depends on)' | \
+                grep --extended-regexp '^(Hängt ab von)|(Depends On)' | \
                     sed --regexp-extended 's/[^:]+: (.+)$/\1/'
             ); do
                 if [[ "$name" != Nichts ]]; then
