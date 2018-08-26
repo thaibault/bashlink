@@ -127,7 +127,7 @@ bl_dependency_determine_packages() {
             grep --extended-regexp '^(Depends On)|(Hängt ab von)' | \
                 sed --regexp-extended 's/[^:]+: (.+)$/\1/'
         ); do
-            if [[ "$name" =~ ^None|Nichts$ ]]; then
+            if ! [[ "$name" =~ ^(None)|(Nichts)$ ]]; then
                 echo "$name"
                 bl.dependency.determine_packages "$name"
             fi
