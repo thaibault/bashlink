@@ -96,7 +96,7 @@ bl_dependency_check_shared_library() {
     '
     if ! bl.dependency.check ldconfig &>/dev/null; then
         bl.logging.error \
-            'Missing dependency "ldconfig" to check for shared libraries.'
+            Missing dependency \"ldconfig\" to check for shared libraries.
         return 1
     fi
     local -i return_code=0
@@ -110,6 +110,39 @@ bl_dependency_check_shared_library() {
         fi
     done
     return $return_code
+}
+alias bl.dependency.determine_dependent_files=bl_dependency_determine_dependent_files
+bl_dependency_determine_dependent_files() {
+    local -r __documentation__='
+        Determines all needed files for given packages.
+
+        TODO
+    '
+    if hash pacman &>/dev/null; then
+        local name
+        for name in "$@"; do
+            local path
+            pacman --query --list "$name" | while read path; do
+                path="$(echo "$path" | \
+                    sed --regexp-extended 's:^[^/]+ (/.+):\1:')"
+                if ! [[ "$path" =~ .*/$ ]]; then
+                    echo "$path"
+                fi
+            done
+            for name in $(pacman --query --list --info "$name" | \
+                grep --extended-regexp '^(Hängt ab von)|(Depends on)' | \
+                    sed --regexp-extended 's/[^:]+: (.+)$/\1/'
+            ); do
+                if [[ "$name" != Nichts ]]; then
+                    bl.dependency.determine_dependent_files \
+                        "$(echo "$name" | \
+                            sed --regexp-extended 's/[>=<]+.+$//')"
+                fi
+            done
+        done
+    else
+        bl.logging.error No supported package manager found to determine files.
+    fi
 }
 # endregion
 # region vim modline
