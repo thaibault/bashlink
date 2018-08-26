@@ -111,8 +111,30 @@ bl_dependency_check_shared_library() {
     done
     return $return_code
 }
-alias bl.dependency.determine_dependent_files=bl_dependency_determine_dependent_files
-bl_dependency_determine_dependent_files() {
+alias bl.dependency_determine_packages=bl_dependency_determine_packages
+bl_dependency_determine_packages() {
+    local -r __documentation__='
+        Determines all needed packages for given packages.
+
+        TODO
+    '
+    local package_name
+    for package_name in "$@"; do
+        local name
+        for name in $(pacman --query --list --info "$package_name" | \
+            grep --extended-regexp '^(Hängt ab von)|(Depends On)' | \
+                sed --regexp-extended 's/[^:]+: (.+)$/\1/'
+        ); do
+            # TODO
+            if [[ "$name" != Nichts ]]; then
+                echo "$name"
+                bl.dependency_determine_packages "$name"
+            fi
+        done
+    done
+}
+alias bl.dependency.determine_files=bl_dependency_determine_files
+bl_dependency_determine_files() {
     local -r __documentation__='
         Determines all needed files for given packages.
 
@@ -129,15 +151,10 @@ bl_dependency_determine_dependent_files() {
                     echo "$path"
                 fi
             done
-            for name in $(pacman --query --list --info "$name" | \
-                grep --extended-regexp '^(Hängt ab von)|(Depends On)' | \
-                    sed --regexp-extended 's/[^:]+: (.+)$/\1/'
-            ); do
-                if [[ "$name" != Nichts ]]; then
-                    bl.dependency.determine_dependent_files \
-                        "$(echo "$name" | \
-                            sed --regexp-extended 's/[>=<]+.+$//')"
-                fi
+            for name in $(bl.dependency_determine_packages "$name"); do
+                bl.dependency.determine_files \
+                    "$(echo "$name" | \
+                        sed --regexp-extended 's/[>=<]+.+$//')"
             done
         done
     else
