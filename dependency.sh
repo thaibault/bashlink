@@ -111,12 +111,14 @@ bl_dependency_check_shared_library() {
     done
     return $return_code
 }
-alias bl.dependency_determine_packages=bl_dependency_determine_packages
+# TODO remove redundant artefacts.
+alias bl.dependency.determine_packages=bl_dependency_determine_packages
 bl_dependency_determine_packages() {
     local -r __documentation__='
         Determines all needed packages for given packages.
 
-        TODO
+        >>> bl.dependency.determine_packages glibc 1>/dev/null; echo $?
+        0
     '
     local package_name
     for package_name in "$@"; do
@@ -128,7 +130,7 @@ bl_dependency_determine_packages() {
             # TODO
             if [[ "$name" != Nichts ]]; then
                 echo "$name"
-                bl.dependency_determine_packages "$name"
+                bl.dependency.determine_packages "$name"
             fi
         done
     done
@@ -138,7 +140,8 @@ bl_dependency_determine_files() {
     local -r __documentation__='
         Determines all needed files for given packages.
 
-        TODO
+        >>> bl.dependency.determine_files glibc 1>/dev/null; echo $?
+        0
     '
     if hash pacman &>/dev/null; then
         local name
@@ -151,7 +154,7 @@ bl_dependency_determine_files() {
                     echo "$path"
                 fi
             done
-            for name in $(bl.dependency_determine_packages "$name"); do
+            for name in $(bl.dependency.determine_packages "$name"); do
                 bl.dependency.determine_files \
                     "$(echo "$name" | \
                         sed --regexp-extended 's/[>=<]+.+$//')"
