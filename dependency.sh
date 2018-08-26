@@ -124,11 +124,10 @@ bl_dependency_determine_packages() {
     for package_name in "$@"; do
         local name
         for name in $(pacman --query --list --info "$package_name" | \
-            grep --extended-regexp '^(Hängt ab von)|(Depends On)' | \
+            grep --extended-regexp '^(Depends On)|(Hängt ab von)' | \
                 sed --regexp-extended 's/[^:]+: (.+)$/\1/'
         ); do
-            # TODO
-            if [[ "$name" != Nichts ]]; then
+            if [[ "$name" =~ ^None|Nichts$ ]]; then
                 echo "$name"
                 bl.dependency.determine_packages "$name"
             fi
