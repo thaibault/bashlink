@@ -120,16 +120,27 @@ bl_dependency_determine_packages() {
         >>> bl.dependency.determine_packages glibc 1>/dev/null; echo $?
         0
     '
+    if [[ "$1" == /* ]]; then
+        local -r parsed_file_path="$1"
+        shift
+    else
+        local -r parsed_file_path="$(
+            mktemp --suffix -bashlink-dependency-determine-packages-ignore)"
+    fi
     local package_name
     for package_name in "$@"; do
         local name
-        for name in $(pacman --query --list --info "$package_name" | \
-            grep --extended-regexp '^(Depends On)|(Hängt ab von)' | \
-                sed --regexp-extended 's/[^:]+: (.+)$/\1/'
+        for name in $(command pacman --query --list --info "$package_name" | \
+            command grep --extended-regexp '^(Depends On)|(Hängt ab von)' | \
+                command sed --regexp-extended 's/[^:]+: (.+)$/\1/'
         ); do
-            if ! [[ "$name" =~ ^(None)|(Nichts)$ ]]; then
+            if \
+                ! [[ "$name" =~ ^(None)|(Nichts)$ ]] && \
+                ! command grep "$name" "$parsed_file_path" &>/dev/null
+            then
+                echo "$name" >>"$parsed_file_path"
                 echo "$name"
-                bl.dependency.determine_packages "$name"
+                bl.dependency.determine_packages "$parsed_file_path" "$name"
             fi
         done
     done
@@ -142,21 +153,33 @@ bl_dependency_determine_files() {
         >>> bl.dependency.determine_files glibc 1>/dev/null; echo $?
         0
     '
+    if [[ "$1" == /* ]]; then
+        local -r parsed_file_path="$1"
+        shift
+    else
+        local -r parsed_file_path="$(
+            mktemp \
+                --suffix \
+                -bashlink-dependency-determine-files-packages-ignore)"
+    fi
     if hash pacman &>/dev/null; then
         local name
         for name in "$@"; do
             local path
-            pacman --query --list "$name" | while read path; do
+            command pacman --query --list "$name" | while read path; do
                 path="$(echo "$path" | \
-                    sed --regexp-extended 's:^[^/]+ (/.+):\1:')"
+                    command sed --regexp-extended 's:^[^/]+ (/.+):\1:')"
                 if ! [[ "$path" =~ .*/$ ]]; then
                     echo "$path"
                 fi
             done
-            for name in $(bl.dependency.determine_packages "$name"); do
+            for name in $(
+                bl.dependency.determine_packages "$parsed_file_path" "$name"
+            ); do
                 bl.dependency.determine_files \
+                    "$parsed_file_path" \
                     "$(echo "$name" | \
-                        sed --regexp-extended 's/[>=<]+.+$//')"
+                        command sed --regexp-extended 's/[>=<]+.+$//')"
             done
         done
     else
