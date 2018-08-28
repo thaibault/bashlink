@@ -10,8 +10,8 @@
   "deprecated": false,
   "description": "a high reliable bash library",
   "devDependencies": {
-    "documentation-website": "^1.0.138",
-    "shellcheck": "0.0.8"
+    "documentation-website": "*",
+    "shellcheck": "*"
   },
   "documentationWebsite": {
     "languages": [
@@ -38,7 +38,6 @@
     "globals.sh",
     "logging.sh",
     "mockup",
-    "network.sh",
     "number.sh",
     "pacman.sh",
     "path.sh",
@@ -47,7 +46,7 @@
     "time.sh",
     "tools.sh"
   ],
-  "homepage": "http://torben.website/bashlink",
+  "homepage": "https://torben.website/bashlink",
   "keywords": [
     "bash",
     "framework",
