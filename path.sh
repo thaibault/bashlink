@@ -120,14 +120,16 @@ bl_path_convert_to_absolute() {
         pwd
         popd &>/dev/null || \
             return 1
-    else
+    elif [ -f "$path" ]; then
         local -r file_name="$(basename "$path")"
         pushd "$(dirname "$path")" &>/dev/null || \
             return 1
         local absolute_path="$(pwd)"
         popd &>/dev/null || \
             return 1
-        echo "${absolute_path}/${file_name}"
+        echo "$absolute_path/$file_name"
+    else
+        readlink --canonicalize-missing --no-newline "$path"
     fi
 }
 alias bl.path.convert_to_relative=bl_path_convert_to_relative
