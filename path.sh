@@ -297,13 +297,13 @@ bl_path_pack() {
                 command="7z a \"$1\" \"$2\""
                 ;;
             *.vdi)
-                VBoxManage convertdd "$1" "$1.vdi" --format VDI
+                VBoxManage convertdd "$2" "$1" --format VDI
                 ;;
             *.vmdk)
-                qemu-img convert -O vmdk "$1" "$1.vmdk"
+                qemu-img convert -O vmdk "$2" "$1"
                 ;;
             *.qcow|qcow2)
-                qemu-img convert -f raw -O qcow2 "$1" "$1.qcow2"
+                qemu-img convert -f raw -O qcow2 "$2" "$1"
                 ;;
             *)
                 echo "Cannot pack \"$1\"."
