@@ -66,6 +66,7 @@ bl_path_backup() {
         --exclude=./tmp \
         --exclude=./var/cache \
         --exclude=./var/log \
+        --exclude=./var/tmp \
         "${additional_excludes[@]}" \
         --file "$target_file_path" \
         --gzip \
