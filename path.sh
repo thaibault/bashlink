@@ -40,21 +40,33 @@ bl_path_backup() {
     pushd "$source_path" &>/dev/null && \
     # NOTE: Could be useful for currently running system: "--one-file-system"
     # when "source_file_path" equals "/".
+    local -a additional_excludes=()
+    local candidate
+    for candidate in \
+        './home/*/.cache' \
+        './home/*/.gvfs' \
+        './home/*/.local/share/Trash'
+    do
+        if [ -e "$candidate" ]; then
+            additional_excludes+=("--exclude=$candidate")
+        fi
+    done
     tar \
         --create \
         --exclude=./"$target_file_path" \
         --exclude=./dev \
-        --exclude=./home/*/.gvfs \
-        --exclude=./home/*/.cache \
-        --exclude=./home/*/.local/share/Trash \
         --exclude=./media \
         --exclude=./mnt \
         --exclude=./proc \
+        --exclude=./root/.cache \
+        --exclude=./root/.gvfs \
+        --exclude=./root/.local/share/Trash \
         --exclude=./run \
         --exclude=./sys \
         --exclude=./tmp \
         --exclude=./var/cache \
         --exclude=./var/log \
+        "${additional_excludes[@]}" \
         --file "$target_file_path" \
         --gzip \
         --preserve-permissions \
