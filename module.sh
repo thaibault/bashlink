@@ -73,6 +73,7 @@ declare -ag bl_module_file_names_to_ignore=(
     package-lock.json
     PKGBUILD
     readme.md
+    yarn.lock
 )
 declare -ig bl_module_import_level=0
 declare -ag bl_module_imported=(
@@ -102,6 +103,7 @@ declare -ag bl_module_scope_rewrites=(
     '^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/'
     '[^a-zA-Z0-9._]/./g'
 )
+declare -g bl_module_name_resolving_cache_file_path=/tmp/bashlink-module-name-resolve-cache
 # endregion
 # region functions
 alias bl.module.check_name=bl_module_check_name
@@ -252,14 +254,21 @@ bl_module_is_imported() {
         1
     '
     local caller_file_path="${BASH_SOURCE[1]}"
-    if (( $# == 2 )); then
-        caller_file_path="$2"
+    # NOTE: The second parameter is only used for internal performance
+    # optimisation (avoid to resolve one name twice).
+    local file_path
+    if (( $# == 3 )); then
+        file_path="$2"
+    else
+        if (( $# == 2 )); then
+            caller_file_path="$2"
+        fi
+        file_path="$(bl.module.resolve "$1" "$caller_file_path")"
     fi
-    local -r file_path="$(bl.module.resolve "$1" "$caller_file_path")"
     # Check if module already loaded.
     local loaded_module
     for loaded_module in "${bl_module_imported[@]}"; do
-        if [[ "$loaded_module" = "$file_path" ]]; then
+        if [ "$loaded_module" = "$file_path" ]; then
             return 0
         fi
     done
@@ -462,7 +471,7 @@ bl_module_import() {
         >>> (
         >>>     bl.module.import bashlink.logging
         >>>     bl_logging_set_level warn
-        >>>     bl.module.import bashlink.mockup.b false
+        >>>     bl.module.import bashlink.mockup.b
         >>> )
         +bl.doctest.multiline_contains
         imported module c
@@ -576,11 +585,11 @@ bl_module_import_without_namespace_check() {
     if (( $# == 2 )); then
         caller_file_path="$2"
     fi
-    if bl.module.is_imported "$1" "$caller_file_path"; then
-        return 0
-    fi
     local file_path
-    if file_path="$(bl.module.resolve "$1" "${BASH_SOURCE[1]}")"; then
+    if file_path="$(bl.module.resolve "$1" "$caller_file_path")"; then
+        if bl.module.is_imported "$1" "$file_path" "$caller_file_path"; then
+            return 0
+        fi
         bl_module_imported+=("$file_path")
         bl.module.import_raw "$file_path"
     fi
@@ -597,6 +606,23 @@ bl_module_resolve() {
         +bl.doctest.contains
         /bashlink/module.sh
     '
+    # NOTE: We have to declare variable first to avoid shadowing the return
+    # code coming from "grep".
+    local cached_result
+    if cached_result="$(
+        command grep \
+            --max-count 1 \
+            "$1##$2##$3##" \
+            "$bl_module_name_resolving_cache_file_path" \
+                2>/dev/null
+    )" && cached_result="$(
+        echo "$cached_result" | \
+            command sed --regexp-extended 's/^.+##.*##.*##(.+)$/\1/' \
+                2>/dev/null
+    )"; then
+        echo -n "$cached_result"
+        return 0
+    fi
     local name="$1"
     local caller_path
     bl_module_declared_function_names_after_source=''
@@ -719,6 +745,7 @@ bl_module_resolve() {
                 return $?
     fi
     file_path="$(bl.path.convert_to_absolute "$file_path")"
+    local result
     if [ "$2" = true ]; then
         local scope_name="$(basename "$1")"
         if \
@@ -728,11 +755,13 @@ bl_module_resolve() {
         then
             scope_name="bashlink.$scope_name"
         fi
-        echo "$(bl.path.convert_to_absolute "$file_path")/$(
+        result="$(bl.path.convert_to_absolute "$file_path")/$(
             bl_module_remove_known_file_extension "$scope_name")"
     else
-        bl.path.convert_to_absolute "$file_path"
+        result="$(bl.path.convert_to_absolute "$file_path")"
     fi
+    echo "$1##$2##$3##$result" >>"$bl_module_name_resolving_cache_file_path"
+    echo -n "$result"
 }
 alias bl.module.remove_known_file_extension=bl_module_remove_known_file_extension
 bl_module_remove_known_file_extension() {
