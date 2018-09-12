@@ -166,19 +166,20 @@ bl_dependency_determine_files() {
         local name
         for name in "$@"; do
             local path
-            command pacman --query --list "$name" | while read path; do
+            command pacman --query --list "$name" | while read -r path; do
                 path="$(echo "$path" | \
                     command sed --regexp-extended 's:^[^/]+ (/.+):\1:')"
                 if ! [[ "$path" =~ .*/$ ]]; then
                     echo "$path"
                 fi
             done
-            for name in $(
+            local file_name
+            for file_name in $(
                 bl.dependency.determine_packages "$parsed_file_path" "$name"
             ); do
                 bl.dependency.determine_files \
                     "$parsed_file_path" \
-                    "$(echo "$name" | \
+                    "$(echo "$file_name" | \
                         command sed --regexp-extended 's/[>=<]+.+$//')"
             done
         done

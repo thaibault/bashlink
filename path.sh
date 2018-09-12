@@ -24,10 +24,9 @@ bl_path_backup() {
         Backs up given location into given target file to be able to restore
         given file structure including all rights and ownerships.
 
-        # TODO
-        #>>> bl.path.backup /mnt backup.tar.gz
-        #+bl.doctest.contains
-        #/
+        ```bash
+            bl.path.backup /mnt backup.tar.gz
+        ```
     '
     local source_path=/mnt
     if [[ "$1" != '' ]]; then
@@ -75,7 +74,8 @@ bl_path_backup() {
         ./
     # NOTE: For remote backups, remove "--file "$target_file_path"" and append:
     # | ssh <backuphost> "( cat > "$target_file_path" )"
-    popd
+    popd &>/dev/null || \
+    return 1
 }
 alias bl.path.restore=bl_path_restore
 bl_path_restore() {
@@ -84,20 +84,19 @@ bl_path_restore() {
         NOTE: To restore on a valid sparse container convertible block file
         use ("10000" is the desired virtual block size in Megabyte):
 
-        `
-            dd \
-                if=/dev/zero \
-                of=./backup.img \
-                bs=1M \
-                iflag=fullblock,count_bytes \
-                count=0 \
+        ```bash
+            dd
+                if=/dev/zero
+                of=./backup.img
+                bs=1M
+                iflag=fullblock,count_bytes
+                count=0
                 seek=10000
-        `
+        ```
 
-        # TODO
-        #>>> bl.path.restore backup.tar.gz /mnt
-        #+bl.doctest.contains
-        #/
+        ```bash
+            bl.path.restore backup.tar.gz /mnt
+        ```
     '
     local source_file_path="$(bl.path.convert_to_absolute backup.tar.gz)"
     if [[ "$1" != '' ]]; then
@@ -115,7 +114,8 @@ bl_path_restore() {
         --numeric-owner \
         --preserve-permissions \
         --verbose
-    popd &>/dev/null
+    popd &>/dev/null || \
+    return 1
 }
 alias bl.path.convert_to_absolute=bl_path_convert_to_absolute
 bl_path_convert_to_absolute() {
@@ -327,7 +327,7 @@ bl_path_run_in_programs_location() {
 
         ```bash
             bl.path.run_in_programs_location /usr/bin/python3.2
-        `
+        ```
     '
     if [ "$1" ] && [ -f "$1" ]; then
         cd "$(dirname "$1")" && \
@@ -348,9 +348,6 @@ bl_path_unpack() {
     if [ -f "$1" ]; then
         local command
         case "$1" in
-            *.bz2)
-                command="bzip2 --decompress \"$1\""
-                ;;
             *.rar)
                 command="unrar x \"$1\""
                 ;;
@@ -359,6 +356,11 @@ bl_path_unpack() {
                 ;;
             *.tar.bz2|*.tbz2)
                 command="tar --extract --verbose --bzip2 --file \"$1\""
+                ;;
+            # NOTE: Has to be after "*.tar.bz2|*.tbz2" to totally unwrap its
+            # archive in the case above.
+            *.bz2)
+                command="bzip2 --decompress \"$1\""
                 ;;
             *.tar.gz|*.tgz)
                 command="tar --extract --verbose --gzip --file \"$1\""
