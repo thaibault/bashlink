@@ -130,33 +130,33 @@ bl_string_make_command_promt_prefix() {
             bl.string.make_command_promt_prefix
         ```
     '
-    local error_promt="(${bl_cli_color_red}${return_code}${bl_cli_color_default})"
+    local error_promt="(${bl_cli_color_masked_red}${return_code}${bl_cli_color_masked_default})"
     if  (( return_code == 0 )); then
-        error_promt="${bl_cli_color_green}>${bl_cli_color_default}"
+        error_promt="${bl_cli_color_masked_green}>${bl_cli_color_masked_default}"
     fi
     # shellcheck disable=SC1117
     local git_branch="$(
         git branch 2>/dev/null | \
         command sed --regexp-extended "s/^\* (.*)$/ $(
             bl.string.validate_regular_expression_replacement \
-                "$bl_cli_color_red"
+                "$bl_cli_color_masked_red"
         )\1$(
             bl.string.validate_regular_expression_replacement \
-                "$bl_cli_color_cyan"
+                "$bl_cli_color_masked_cyan"
         )/g" | \
             tr --delete "\n" | \
                 command sed 's/  / /g' | \
                     command sed 's/^ *//g' | \
                         command sed 's/ *$//g')"
     if [ "$git_branch" ]; then
-        git_branch="(${bl_cli_color_light_gray}git${bl_cli_color_default})-(${bl_cli_color_cyan}${git_branch}${bl_cli_color_default})"
+        git_branch="(${bl_cli_color_masked_light_gray}git${bl_cli_color_masked_default})-(${bl_cli_color_masked_cyan}${git_branch}${bl_cli_color_masked_default})"
     fi
     local user_name
-    if [ "$(id --user)" = 0 ]; then
-        user_name="${bl_cli_color_red}"
+    if (( "$(id --user)" == 0 )); then
+        user_name="${bl_cli_color_masked_red}"
     fi
     # shellcheck disable=SC1117
-    user_name+="\u$bl_cli_color_default"
+    user_name+="\u$bl_cli_color_masked_default"
     local title_bar=''
     if [[ "$TERM" != linux ]]; then
         # shellcheck disable=SC1117
@@ -164,11 +164,11 @@ bl_string_make_command_promt_prefix() {
     fi
     local system_load_average="$(
         uptime | \
-        command grep --extended-regexp --only-matching \
-            '[0-9]{1,2}[.,][0-9]{1,2}' | \
-        head --lines 1)"
+            command grep --extended-regexp --only-matching \
+                '[0-9]{1,2}[.,][0-9]{1,2}' | \
+                    head --lines 1)"
     # shellcheck disable=SC1117
-    export PS1="${title_bar}${error_promt} ${bl_cli_color_cyan}${user_name}${bl_cli_color_light_gray}@${bl_cli_color_cyan}\h${bl_cli_color_default} (${bl_cli_color_magenta}${system_load_average}${bl_cli_color_default}) ${bl_cli_color_light_gray}\w${bl_cli_color_default}\n${git_branch}${bl_cli_color_dark_gray}> ${bl_cli_color_default}"
+    export PS1="${title_bar}${error_promt} ${bl_cli_color_masked_cyan}${user_name}${bl_cli_color_masked_light_gray}@${bl_cli_color_masked_cyan}\h${bl_cli_color_masked_default} (${bl_cli_color_masked_magenta}${system_load_average}${bl_cli_color_masked_default}) ${bl_cli_color_masked_light_gray}\w${bl_cli_color_masked_default}\n${git_branch}${bl_cli_color_masked_dark_gray}> ${bl_cli_color_masked_default}"
 }
 alias bl.string.merge_text_files=bl_string_merge_text_files
 bl_string_merge_text_files() {
