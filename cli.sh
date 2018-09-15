@@ -54,6 +54,37 @@ declare -g bl_cli_color_red=''
 declare -g bl_cli_color_underline=''
 declare -g bl_cli_color_white=''
 declare -g bl_cli_color_yellow=''
+### region masked
+declare -g bl_cli_color_masked_black=''
+declare -g bl_cli_color_masked_blink=''
+declare -g bl_cli_color_masked_blue=''
+declare -g bl_cli_color_masked_bold=''
+declare -g bl_cli_color_masked_cyan=''
+declare -g bl_cli_color_masked_dark_gray=''
+declare -g bl_cli_color_masked_default=''
+declare -g bl_cli_color_masked_dim=''
+declare -g bl_cli_color_masked_green=''
+declare -g bl_cli_color_masked_invert=''
+declare -g bl_cli_color_masked_invisible=''
+declare -g bl_cli_color_masked_light_blue=''
+declare -g bl_cli_color_masked_light_cyan=''
+declare -g bl_cli_color_masked_light_gray=''
+declare -g bl_cli_color_masked_light_green=''
+declare -g bl_cli_color_masked_light_magenta=''
+declare -g bl_cli_color_masked_light_red=''
+declare -g bl_cli_color_masked_light_yellow=''
+declare -g bl_cli_color_masked_magenta=''
+declare -g bl_cli_color_masked_nodim=''
+declare -g bl_cli_color_masked_noblink=''
+declare -g bl_cli_color_masked_nobold=''
+declare -g bl_cli_color_masked_noinvert=''
+declare -g bl_cli_color_masked_noinvisible=''
+declare -g bl_cli_color_masked_nounderline=''
+declare -g bl_cli_color_masked_red=''
+declare -g bl_cli_color_masked_underline=''
+declare -g bl_cli_color_masked_white=''
+declare -g bl_cli_color_masked_yellow=''
+### endregion
 ## endregion
 ## region unicode glyphs
 # NOTE: Each fall-back symbol should only consist of one character. To allow
@@ -158,6 +189,7 @@ bl_cli_disable_color() {
         yellow
     do
         eval "bl_cli_color_${name}=''"
+        eval "bl_cli_color_masked_${name}=''"
     done
 }
 alias bl.cli.enable_color=bl_cli_enable_color
@@ -171,39 +203,41 @@ bl_cli_enable_color() {
         \033[0;31m red \033[0m
     '
     bl_cli_color_enabled=true
-    local suffix
-    for suffix in \
-        "black='\\033[0;30m'" \
-        "blink='\\033[5m'" \
-        "blue='\\033[0;34m'" \
-        "bold='\\033[1m'" \
-        "cyan='\\033[0;36m'" \
-        "dark_gray='\\033[0;90m'" \
-        "default='\\033[0m'" \
-        "dim='\\033[2m'" \
-        "green='\\033[0;32m'" \
-        "invert='\\033[7m'" \
-        "invisible='\\033[8m'" \
-        "light_blue='\\033[0;94m'" \
-        "light_cyan='\\033[0;96m'" \
-        "light_gray='\\033[0;37m'" \
-        "light_green='\\033[0;92m'" \
-        "light_magenta='\\033[0;95m'" \
-        "light_red='\\033[0;91m'" \
-        "light_yellow='\\033[0;93m'" \
-        "magenta='\\033[0;35m'" \
-        "nodim='\\033[22m'" \
-        "noblink='\\033[25m'" \
-        "nobold='\\033[21m'" \
-        "noinvert='\\033[27m'" \
-        "noinvisible='\\033[28m'" \
-        "nounderline='\\033[24m'" \
-        "red='\\033[0;31m'" \
-        "underline='\\033[4m'" \
-        "white='\\033[0;97m'" \
-        "yellow='\\033[0;33m'"
+    local color
+    for color in \
+        "black \\033[0;30m" \
+        "blink \\033[5m" \
+        "blue \\033[0;34m" \
+        "bold \\033[1m" \
+        "cyan \\033[0;36m" \
+        "dark_gray \\033[0;90m" \
+        "default \\033[0m" \
+        "dim \\033[2m" \
+        "green \\033[0;32m" \
+        "invert \\033[7m" \
+        "invisible \\033[8m" \
+        "light_blue \\033[0;94m" \
+        "light_cyan \\033[0;96m" \
+        "light_gray \\033[0;37m" \
+        "light_green \\033[0;92m" \
+        "light_magenta \\033[0;95m" \
+        "light_red \\033[0;91m" \
+        "light_yellow \\033[0;93m" \
+        "magenta \\033[0;35m" \
+        "nodim \\033[22m" \
+        "noblink \\033[25m" \
+        "nobold \\033[21m" \
+        "noinvert \\033[27m" \
+        "noinvisible \\033[28m" \
+        "nounderline \\033[24m" \
+        "red \\033[0;31m" \
+        "underline \\033[4m" \
+        "white \\033[0;97m" \
+        "yellow \\033[0;33m"
     do
-        eval "bl_cli_color_${suffix}"
+        IFS=' ' read -r -a color <<< "$color"
+        eval "bl_cli_color_${color[0]}='${color[1]}'"
+        eval "bl_cli_color_masked_${color[0]}='\\[${color[1]}\\]'"
     done
 }
 ## region glyphs
@@ -237,7 +271,8 @@ bl_cli_disable_unicode_glyphs() {
         saxophone \
         thumbsup
     do
-        if [[ "$(eval "echo \"\$bl_cli_powerline_${name}_backup\"")" != '' ]]; then
+        if [[ "$(eval "echo \"\$bl_cli_powerline_${name}_backup\"")" != '' ]]
+        then
             eval \
                 "bl_cli_powerline_${name}=\"\$bl_cli_powerline_${name}_backup\""
         fi
