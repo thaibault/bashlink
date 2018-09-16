@@ -11,7 +11,7 @@
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # Ensure to load module "module" once.
-[[ "${#bl_module_imported[@]}" != 0 ]] && \
+(( ${#bl_module_imported[@]} > 0 )) && \
     return 0
 # Expand aliases in non interactive shells.
 shopt -s expand_aliases
@@ -761,6 +761,11 @@ bl_module_resolve() {
         result="$(bl.path.convert_to_absolute "$file_path")"
     fi
     echo "$1##$2##$3##$result" >>"$bl_module_name_resolving_cache_file_path"
+    sort \
+        --output \
+        "$bl_module_name_resolving_cache_file_path" \
+        "$bl_module_name_resolving_cache_file_path"
+    sync
     echo -n "$result"
 }
 alias bl.module.remove_known_file_extension=bl_module_remove_known_file_extension
