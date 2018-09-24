@@ -150,7 +150,7 @@ bl_dependency_determine_files() {
     local -r __documentation__='
         Determines all needed files for given packages.
 
-        >>> bl.dependency.determine_files glibc 1>/dev/null; echo $?
+        >>> hash pacman || bl.dependency.determine_files glibc 1>/dev/null; echo $?
         0
     '
     if [[ "$1" == /* ]]; then
