@@ -117,7 +117,7 @@ bl_dependency_determine_packages() {
     local -r __documentation__='
         Determines all needed packages for given packages.
 
-        >>> bl.dependency.determine_packages glibc 1>/dev/null; echo $?
+        >>> ! hash pacman &>/dev/null || bl.dependency.determine_packages glibc 1>/dev/null; echo $?
         0
     '
     if [[ "$1" == /* ]]; then
