@@ -11,7 +11,8 @@
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # NOTE: This module is the only dependency of `bashlink.module` and so can not
-# import any other modules to avoid a cyclic dependency graph.
+# import any other modules (like "bashlink.logging") to avoid a cyclic
+# dependency graph.
 # region variables
 declare -gr bl_path__documentation__='
     The path module implements utility functions concerning path.
@@ -263,7 +264,6 @@ bl_path_pack() {
     '
     local source_path
     for source_path; do true; done
-    echo $source_path
     if [ -d "$source_path" ] || [ -f "$source_path" ]; then
         local command
         case "$1" in
@@ -284,20 +284,20 @@ bl_path_pack() {
                 fi
                 ;;
             *.tar)
-                command="tar --dereference --create --verbose --file \"$1\" \"$source_path\""
+                command='tar --dereference --create --verbose --file "$@"'
                 ;;
             *.zip)
                 if [ -d "$2" ]; then
-                    command="zip --recurse-paths \"$1\" \"$source_path\""
+                    command='zip --recurse-paths "$@1"'
                 else
-                    command="zip \"$1\" \"$source_path\""
+                    command='zip "$@"'
                 fi
                 ;;
             *.Z)
                 command="compress --stdout \"$source_path\" 1>\"$1\""
                 ;;
             *.7z)
-                command="7z a \"$1\" \"$source_path\""
+                command='7z a "$@"'
                 ;;
             *.vdi)
                 command="VBoxManage convertdd \"$source_path\" \"$1\" --format VDI"
@@ -347,39 +347,41 @@ bl_path_unpack() {
             unpack path/to/archiv.zip`
         ```
     '
-    if [ -f "$1" ]; then
+    local source_path
+    for source_path; do true; done
+    if [ -f "$source_path" ]; then
         local command
-        case "$1" in
+        case "$source_path" in
             *.rar)
-                command="unrar x \"$1\""
+                command='unrar x "$@"'
                 ;;
             *.tar)
-                command="tar --extract --verbose --file \"$1\""
+                command='tar --extract --verbose --file "$@"'
                 ;;
             *.tar.bz2|*.tbz2)
-                command="tar --extract --verbose --bzip2 --file \"$1\""
+                command='tar --extract --verbose --bzip2 --file "$@"'
                 ;;
             # NOTE: Has to be after "*.tar.bz2|*.tbz2" to totally unwrap its
             # archive in the case above.
             *.bz2)
-                command="bzip2 --decompress \"$1\""
+                command='bzip2 --decompress "$@"'
                 ;;
             *.tar.gz|*.tgz)
-                command="tar --extract --verbose --gzip --file \"$1\""
+                command='tar --extract --verbose --gzip --file "$@"'
                 ;;
             # NOTE: Has to be after "*.tar.gz|*.tgz" to totally unwrap its
             # archive in the case above.
             *.gz)
-                command="gzip --decompress \"$1\""
+                command='gzip --decompress "$@"'
                 ;;
             *.war|*.zip)
-                command="unzip -o \"$1\""
+                command='unzip -o "$@"'
                 ;;
             *.Z)
-                command="compress -d \"$1\""
+                command='compress -d "$@"'
                 ;;
             *.7z)
-                7z x "$1"
+                command='7z x "$@"'
                 ;;
             *.vdi)
                 qemu-img convert -f vdi -O raw "$1" "${1%.vdi}" ||
@@ -393,13 +395,13 @@ bl_path_unpack() {
                             "${1%.vdi}"
                 ;;
             *.vmdk)
-                qemu-img convert -p -O raw "$1" "${1%.vdi}"
+                command="qemu-img convert -p -O raw \"$source_path\" \"${source_path%.vdi}\""
                 ;;
             *.qcow|qcow2)
-                qemu-img convert -p -O raw "$1" "${1%.vdi}"
+                command="qemu-img convert -p -O raw \"$source_path\" \"${source_path%.vdi}\""
                 ;;
             *)
-                echo  "Cannot extract \"$1\"."
+                echo Cannot extract \"$source_path\".
                 ;;
         esac
         if [ "$command" ]; then
@@ -408,8 +410,7 @@ bl_path_unpack() {
             return $?
         fi
     else
-        echo "\"$1\" is not a valid file."
-        return $?
+        echo \"$source_path\" is not a valid file.
     fi
 }
 # endregion
