@@ -261,52 +261,55 @@ bl_path_pack() {
             bl.path.pack archiv.zip /path/to/directory
         ```
     '
-    if [ -d "$2" ] || [ -f "$2" ]; then
+    local source_path
+    for source_path; do true; done
+    echo $source_path
+    if [ -d "$source_path" ] || [ -f "$source_path" ]; then
         local command
         case "$1" in
             *.tar.bz2|*.tbz2)
-                command="tar --dereference --create --verbose --bzip2 --file \"$1\" \"$2\""
+                command='tar --dereference --create --verbose --bzip2 --file "$@"'
                 ;;
             *.tar.gz|.*tgz)
-                command="tar --dereference --create --verbose --gzip --file \"$1\" \"$2\""
+                command='tar --dereference --create --verbose --gzip --file "$@"'
                 ;;
             *.bz2)
-                command="bzip2 --stdout \"$2\" 1>\"$1\""
+                command="bzip2 --stdout \"$source_path\" 1>\"$1\""
                 ;;
             *.gz)
                 if [ -d "$2" ]; then
-                    command="gzip --recursive --stdout \"$2\" 1>\"$1\""
+                    command="gzip --recursive --stdout \"$source_path\" 1>\"$1\""
                 else
-                    command="gzip --stdout \"$2\" 1>\"$1\""
+                    command="gzip --stdout \"$source_path\" 1>\"$1\""
                 fi
                 ;;
             *.tar)
-                command="tar --dereference --create --verbose --file \"$1\" \"$2\""
+                command="tar --dereference --create --verbose --file \"$1\" \"$source_path\""
                 ;;
             *.zip)
                 if [ -d "$2" ]; then
-                    command="zip --recurse-paths \"$1\" \"$2\""
+                    command="zip --recurse-paths \"$1\" \"$source_path\""
                 else
-                    command="zip \"$1\" \"$2\""
+                    command="zip \"$1\" \"$source_path\""
                 fi
                 ;;
             *.Z)
-                command="compress --stdout \"$2\" 1>\"$1\""
+                command="compress --stdout \"$source_path\" 1>\"$1\""
                 ;;
             *.7z)
-                command="7z a \"$1\" \"$2\""
+                command="7z a \"$1\" \"$source_path\""
                 ;;
             *.vdi)
-                VBoxManage convertdd "$2" "$1" --format VDI
+                command="VBoxManage convertdd \"$source_path\" \"$1\" --format VDI"
                 ;;
             *.vmdk)
-                qemu-img convert -O vmdk "$2" "$1"
+                command="qemu-img convert -O vmdk \"$source_path\" \"$1\""
                 ;;
             *.qcow|qcow2)
-                qemu-img convert -f raw -O qcow2 "$2" "$1"
+                command="qemu-img convert -f raw -O qcow2 \"$source_path\" \"$1\""
                 ;;
             *)
-                echo "Cannot pack \"$1\"."
+                echo "Cannot pack \"$1\" (to \"$source_path\")."
                 return $?
         esac
         if [ "$command" ]; then
@@ -315,8 +318,7 @@ bl_path_pack() {
             return $?
         fi
     else
-        echo "\"$2\" is not a valid file or directory."
-        return $?
+        echo "\"$source_path\" is not a valid file or directory."
     fi
 }
 alias bl.path.run_in_programs_location=bl_path_run_in_programs_location
