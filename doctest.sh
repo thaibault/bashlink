@@ -700,11 +700,11 @@ bl_doctest_parse_docstring() {
             TEXT)
                 next_state=TEXT
                 if [ "$line" = '' ]; then
-                    [ ! -z "$text_buffer" ] && \
+                    [ -n "$text_buffer" ] && \
                         text_buffer+=$'\n'"$line"
                 elif [[ "$line" = "$prompt"* ]]; then
                     next_state=TEST
-                    [ ! -z "$text_buffer" ] && \
+                    [ -n "$text_buffer" ] && \
                         bl_doctest_eval_buffers
                     $preserve_prompt && temp_prompt="$prompt" && prompt=""
                     test_buffer="${line#$prompt}"

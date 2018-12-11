@@ -62,7 +62,7 @@ bl_dictionary_get() {
     local store
     if \
         [[ ${BASH_VERSINFO[0]} -lt 4 ]] || \
-        ! [ -z "${bl_dictionary_bash_version_test:-}" ]
+        [ -n "${bl_dictionary_bash_version_test:-}" ]
     then
         store="bl_dictionary_store_${name}_${key}"
     else
@@ -103,10 +103,16 @@ bl_dictionary_get_keys() {
     local -r name="$1"
     local keys
     local store="bl_dictionary_store_${name}"
-    if [[ ${BASH_VERSINFO[0]} -lt 4 ]] || ! [ -z "${bl_dictionary_bash_version_test:-}" ]; then
-        for key in $(declare -p | cut -d' ' -f3 | command grep -E "^${store}" | \
-            cut -d '=' -f1)
-        do
+    if \
+        (( BASH_VERSINFO[0] < 4 )) || \
+        [ -n "${bl_dictionary_bash_version_test:-}" ]
+    then
+        for key in $(
+            declare -p | \
+                cut --delimiter ' ' --fields 3 | \
+                    command grep --extended-regexp "^$store" | \
+                        cut --delimiter '=' --fields 1
+        ); do
             echo "${key#${store}_}"
         done
     else
@@ -152,8 +158,8 @@ bl_dictionary_set() {
         (( $# % 2 )) || \
             return 1
         if \
-            [[ ${BASH_VERSINFO[0]} -lt 4 ]] || \
-            ! [ -z "${bl_dictionary_bash_version_test:-}" ]
+            (( BASH_VERSINFO[0] < 4 )) || \
+            [ -n "${bl_dictionary_bash_version_test:-}" ]
         then
             eval "bl_dictionary_store_${name}_${key}=$value"
         else
