@@ -274,13 +274,13 @@ bl_path_pack() {
                 command='tar --create --dereference --verbose --gzip --file "$@"'
                 ;;
             *.bz2)
-                command="bzip2 --stdout \"$source_path\" 1>\"$1\""
+                command="bzip2 --stdout '$source_path' 1>'$1'"
                 ;;
             *.gz)
                 if [ -d "$2" ]; then
-                    command="gzip --recursive --stdout \"$source_path\" 1>\"$1\""
+                    command="gzip --recursive --stdout '$source_path' 1>'$1'"
                 else
-                    command="gzip --stdout \"$source_path\" 1>\"$1\""
+                    command="gzip --stdout '$source_path' 1>'$1'"
                 fi
                 ;;
             *.tar)
@@ -294,19 +294,19 @@ bl_path_pack() {
                 fi
                 ;;
             *.Z)
-                command="compress --stdout \"$source_path\" 1>\"$1\""
+                command="compress --stdout '$source_path' 1>'$1'"
                 ;;
             *.7z)
                 command='7z a "$@"'
                 ;;
             *.vdi)
-                command="VBoxManage convertdd \"$source_path\" \"$1\" --format VDI"
+                command="VBoxManage convertdd '$source_path' '$1' --format VDI"
                 ;;
             *.vmdk)
-                command="qemu-img convert -O vmdk \"$source_path\" \"$1\""
+                command="qemu-img convert -O vmdk '$source_path' '$1'"
                 ;;
             *.qcow|qcow2)
-                command="qemu-img convert -f raw -O qcow2 \"$source_path\" \"$1\""
+                command="qemu-img convert -f raw -O qcow2 '$source_path' '$1'"
                 ;;
             *)
                 echo "Cannot pack \"$1\" (to \"$source_path\")."
@@ -387,10 +387,10 @@ bl_path_unpack() {
                 command="qemu-img convert -f vdi -O raw '$1' '${1%.vdi}' || vboxmanage clonehd '$1' '${1%.vdi}' --format RAW || vbox-img convert --srcfilename '$1' --stdout --srcformat VDI --dstformat RAW '${1%.vdi}'"
                 ;;
             *.vmdk)
-                command="qemu-img convert -p -O raw \"$source_path\" \"${source_path%.vdi}\""
+                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
                 ;;
             *.qcow|qcow2)
-                command="qemu-img convert -p -O raw \"$source_path\" \"${source_path%.vdi}\""
+                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
                 ;;
             *)
                 echo Cannot extract \""$source_path"\".
