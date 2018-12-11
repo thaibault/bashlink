@@ -268,10 +268,10 @@ bl_path_pack() {
         local command
         case "$1" in
             *.tar.bz2|*.tbz2)
-                command='tar --dereference --create --verbose --bzip2 --file "$@"'
+                command='tar --create --dereference --verbose --bzip2 --file "$@"'
                 ;;
             *.tar.gz|.*tgz)
-                command='tar --dereference --create --verbose --gzip --file "$@"'
+                command='tar --create --dereference --verbose --gzip --file "$@"'
                 ;;
             *.bz2)
                 command="bzip2 --stdout \"$source_path\" 1>\"$1\""
@@ -284,7 +284,7 @@ bl_path_pack() {
                 fi
                 ;;
             *.tar)
-                command='tar --dereference --create --verbose --file "$@"'
+                command='tar --create --dereference --verbose --file "$@"'
                 ;;
             *.zip)
                 if [ -d "$2" ]; then
@@ -313,7 +313,7 @@ bl_path_pack() {
                 return $?
         esac
         if [ "$command" ]; then
-            echo "Running: [$command]."
+            echo Running: \""$command"\".
             eval "$command"
             return $?
         fi
@@ -384,15 +384,7 @@ bl_path_unpack() {
                 command='7z x "$@"'
                 ;;
             *.vdi)
-                qemu-img convert -f vdi -O raw "$1" "${1%.vdi}" ||
-                    vboxmanage clonehd "$1" "${1%.vdi}" --format RAW ||
-                        vbox-img \
-                            convert \
-                            --srcfilename "$1" \
-                            --stdout \
-                            --srcformat VDI \
-                            --dstformat RAW \
-                            "${1%.vdi}"
+                command="qemu-img convert -f vdi -O raw '$1' '${1%.vdi}' || vboxmanage clonehd '$1' '${1%.vdi}' --format RAW || vbox-img convert --srcfilename '$1' --stdout --srcformat VDI --dstformat RAW '${1%.vdi}'"
                 ;;
             *.vmdk)
                 command="qemu-img convert -p -O raw \"$source_path\" \"${source_path%.vdi}\""
@@ -401,16 +393,16 @@ bl_path_unpack() {
                 command="qemu-img convert -p -O raw \"$source_path\" \"${source_path%.vdi}\""
                 ;;
             *)
-                echo Cannot extract \"$source_path\".
+                echo Cannot extract \""$source_path"\".
                 ;;
         esac
         if [ "$command" ]; then
-            echo "Running: [$command]."
+            echo Running: \""$command\"".
             eval "$command"
             return $?
         fi
     else
-        echo \"$source_path\" is not a valid file.
+        echo \""$source_path"\" is not a valid file.
     fi
 }
 # endregion
