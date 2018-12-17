@@ -43,9 +43,12 @@ bl_path_backup() {
     local -a additional_excludes=()
     local candidate
     for candidate in \
-        './home/*/.cache' \
-        './home/*/.gvfs' \
-        './home/*/.local/share/Trash'
+        './root/.cache' \
+        './root/.gvfs' \
+        './root/.local/share/Trash' \
+        './home/**/.cache' \
+        './home/**/.gvfs' \
+        './home/**/.local/share/Trash'
     do
         if [ -e "$candidate" ]; then
             additional_excludes+=("--exclude=$candidate")
