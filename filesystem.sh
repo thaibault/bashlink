@@ -654,8 +654,14 @@ bl_filesystem_make_crypt_blockdevice() {
             bl.filesystem.make_crypt_blockdevice /dev/sda
         ```
     '
-    sudo cryptsetup -v --cipher aes-xts-plain64 --key-size 512 --hash sha512 \
-        --iter-time 5000 --use-random luksFormat "$1"
+    sudo cryptsetup \
+        -v \
+        --cipher aes-xts-plain64 \
+        --key-size 512 \
+        --hash sha512 \
+        --iter-time 5000 \
+        --use-random luksFormat \
+        "$@"
 }
 alias bl.filesystem.make_uefi_boot_entry=bl_filesystem_make_uefi_boot_entry
 bl_filesystem_make_uefi_boot_entry() {
