@@ -706,7 +706,7 @@ bl_filesystem_open_crypt_blockdevice() {
             bl.filesystem.open_crypt_blockdevice /dev/sdb test
         ```
     '
-    sudo cryptsetup luksOpen "$1" "$2"
+    sudo cryptsetup luksOpen "$@"
 }
 alias bl.filesystem.overlay_location=bl_filesystem_overlay_location
 bl_filesystem_overlay_location() {
