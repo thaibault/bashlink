@@ -13,9 +13,9 @@ bootstrap@^3.3.7:
   integrity sha512-F1yTDO9OHKH0xjl03DsOe8Nu1OWBIeAugGMhy3UTIYDdbbIPesQIhCEbj+HEr6wqlwweGAlP8F3OBC6kEuhFuw==
 
 clientnode@*:
-  version "3.0.205"
-  resolved "https://registry.yarnpkg.com/clientnode/-/clientnode-3.0.205.tgz#ecc7e4fe1155d20981eb8b98bcc38e87e4cc862e"
-  integrity sha512-klyCrVW0D/+3w3r12bOvEl2YMunfqKIPOvkrFSLsDjLsqMXhnOoJ4YYV6u1OftYqlrlx2UTTsxMIEJ5C5uIAlQ==
+  version "3.0.206"
+  resolved "https://registry.yarnpkg.com/clientnode/-/clientnode-3.0.206.tgz#cf2c53bc241dfb32282fa50b99638fb855f7ff36"
+  integrity sha512-AWU9dbhz0yB1Esau6EyeWsOIT4w94CvMIDl1f/IFqQMeUzjwiWTiu2wgJuhU+4qD16/HjQs3hmFDzfc8rt/Ydw==
   dependencies:
     colors "*"
 
@@ -25,18 +25,18 @@ colors@*:
   integrity sha512-mmGt/1pZqYRjMxB1axhTo16/snVZ5krrKkcmMeVKxzECMMXoCgnvTPp10QgHfcbQZw8Dq2jMNG6je4JlWU0gWg==
 
 documentation-website@*:
-  version "1.0.204"
-  resolved "https://registry.yarnpkg.com/documentation-website/-/documentation-website-1.0.204.tgz#a40c71cf1e70b4a9482c06cbc2a08fe935bfe655"
-  integrity sha512-21UQJJ1KjpmQLj24KF+1PSZg5IIQGXsJOjWWrlZPlsNvsZXexNPQWr/QMy8cd+EdFh/X+ZN97l+sW8zbpFv4nQ==
+  version "1.0.205"
+  resolved "https://registry.yarnpkg.com/documentation-website/-/documentation-website-1.0.205.tgz#059a381d1d9bdfdfde253772ec4d40e9ff1c781f"
+  integrity sha512-eLsYXNHCzb6MQ33nGYoUycox3+ihKL90zU8wCbWbmu1p/6O1+9gi4i2whM0cl1lLEC49VqLp9WG2PJgGLzRElA==
   dependencies:
     boostnode "*"
     bootstrap "^3.3.7"
     website-utilities "*"
 
 internationalisation@*:
-  version "1.0.165"
-  resolved "https://registry.yarnpkg.com/internationalisation/-/internationalisation-1.0.165.tgz#a22e8832edc53db81bfc990f4e9c402949b518a6"
-  integrity sha512-hhS6rWBrxnOCpGTp6XdLtZsPMSjctKXNTC9rLywBawzhXY/7BPrNw9YdJaSJvSEpJZELWKrwFw0i9Mh0fULskw==
+  version "1.0.166"
+  resolved "https://registry.yarnpkg.com/internationalisation/-/internationalisation-1.0.166.tgz#1997d7782d164790dc21683aaa50451e7db7ac9a"
+  integrity sha512-wbIh+f6rJ5yfWXR3TG7FN52cpBcv3fl+F55/U7S2i3jSYX8c4Rb5pIuXJs2GX984MxyJnrKDHdq5llIkAK2osA==
 
 jquery.scrollto@*:
   version "2.1.2"
@@ -61,9 +61,9 @@ spin.js@*:
   integrity sha512-uJN9Q4/I4I7PRZAp1c5reoY89thAfvFB5thbJncAwkPjPhqCfUrCooJc8GMN8q8WKFGIMy+JMf477RW7deCInA==
 
 website-utilities@*:
-  version "1.0.187"
-  resolved "https://registry.yarnpkg.com/website-utilities/-/website-utilities-1.0.187.tgz#3f59afc8b1ac1d8757e9262eed2f07472b7cec69"
-  integrity sha512-HA4pjXXsRjTiv9KaD/R1zx1Vo8h1kr+vZF+VBkHjgesbQ+pcAJwouBnmw9gYtVqD07KHsK/7Dl1ToXzVuGK5tw==
+  version "1.0.188"
+  resolved "https://registry.yarnpkg.com/website-utilities/-/website-utilities-1.0.188.tgz#af1ed22eb0dac072bb249c1c4f7f5c17723187b3"
+  integrity sha512-2eB/Fu/KAh2Wgf/Dy/1CJaFDwoYe8aO2DLlBVlg71IwJOB2ukvszqMkWaV7ljjnZinWD3p10J0QT9n8uT1U0pw==
   dependencies:
     clientnode "*"
     internationalisation "*"
