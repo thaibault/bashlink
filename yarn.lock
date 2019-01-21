@@ -13,9 +13,9 @@ bootstrap@^3.3.7:
   integrity sha512-F1yTDO9OHKH0xjl03DsOe8Nu1OWBIeAugGMhy3UTIYDdbbIPesQIhCEbj+HEr6wqlwweGAlP8F3OBC6kEuhFuw==
 
 clientnode@*:
-  version "3.0.202"
-  resolved "https://registry.yarnpkg.com/clientnode/-/clientnode-3.0.202.tgz#a9e2f4e23726083c07e1c113dde460ed8b930500"
-  integrity sha512-n4U5pwIWuZoOfA7mLvqgwQ3NJCTxvMLflwrPtwu84DSx/jmLhWjnuGBZCaWN666pJFUoEgsl38RabPTApXDCSw==
+  version "3.0.205"
+  resolved "https://registry.yarnpkg.com/clientnode/-/clientnode-3.0.205.tgz#ecc7e4fe1155d20981eb8b98bcc38e87e4cc862e"
+  integrity sha512-klyCrVW0D/+3w3r12bOvEl2YMunfqKIPOvkrFSLsDjLsqMXhnOoJ4YYV6u1OftYqlrlx2UTTsxMIEJ5C5uIAlQ==
   dependencies:
     colors "*"
 
@@ -25,9 +25,9 @@ colors@*:
   integrity sha512-mmGt/1pZqYRjMxB1axhTo16/snVZ5krrKkcmMeVKxzECMMXoCgnvTPp10QgHfcbQZw8Dq2jMNG6je4JlWU0gWg==
 
 documentation-website@*:
-  version "1.0.203"
-  resolved "https://registry.yarnpkg.com/documentation-website/-/documentation-website-1.0.203.tgz#7f8ef45ea2345b214d8b0cfc23420188f7bbb2de"
-  integrity sha512-D8B4TvHSn3eYLCEzVgWuGAFUCpmK65yYj/y+j+gv87DmPmS65J4ojNd+21moJyhzkegai9sqvoTTlIQeNkPF9A==
+  version "1.0.204"
+  resolved "https://registry.yarnpkg.com/documentation-website/-/documentation-website-1.0.204.tgz#a40c71cf1e70b4a9482c06cbc2a08fe935bfe655"
+  integrity sha512-21UQJJ1KjpmQLj24KF+1PSZg5IIQGXsJOjWWrlZPlsNvsZXexNPQWr/QMy8cd+EdFh/X+ZN97l+sW8zbpFv4nQ==
   dependencies:
     boostnode "*"
     bootstrap "^3.3.7"
@@ -61,9 +61,9 @@ spin.js@*:
   integrity sha512-uJN9Q4/I4I7PRZAp1c5reoY89thAfvFB5thbJncAwkPjPhqCfUrCooJc8GMN8q8WKFGIMy+JMf477RW7deCInA==
 
 website-utilities@*:
-  version "1.0.186"
-  resolved "https://registry.yarnpkg.com/website-utilities/-/website-utilities-1.0.186.tgz#d34dea3adf3ba99df23f2414cf541492e11e9152"
-  integrity sha512-HrEROhaowY075apNRZPqZwOkBGIb5GuY0PnZaMrlqR/sMnmUz2vutSlYAVhSIDRERJgnF8EgnV6K57NKRAeHrA==
+  version "1.0.187"
+  resolved "https://registry.yarnpkg.com/website-utilities/-/website-utilities-1.0.187.tgz#3f59afc8b1ac1d8757e9262eed2f07472b7cec69"
+  integrity sha512-HA4pjXXsRjTiv9KaD/R1zx1Vo8h1kr+vZF+VBkHjgesbQ+pcAJwouBnmw9gYtVqD07KHsK/7Dl1ToXzVuGK5tw==
   dependencies:
     clientnode "*"
     internationalisation "*"
