@@ -7,7 +7,7 @@
 # -------
 
 # This library written by Torben Sickert stand under a creative commons naming
-# 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
+# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # NOTE: This module is the only dependency of `bashlink.module` and so can not
@@ -222,7 +222,7 @@ bl_path_open() {
         Opens a given path with a useful program.
 
         ```bash
-            bl.path.open http://www.google.de
+            bl.path.open https://www.google.de
         ```
 
         ```bash

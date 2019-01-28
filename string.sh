@@ -7,7 +7,7 @@
 # -------
 
 # This library written by Torben Sickert stand under a creative commons naming
-# 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
+# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region import
@@ -247,7 +247,7 @@ bl_string_translate() {
     local -r __documentation__='
         Translates a given string in a given (or automatic detected) language
         and gives a translation in given language (German by default) back.
-        Accesses "http://translate.google.com" from terminal.
+        Accesses "https://translate.google.com" from terminal.
 
         ```bash
             bl.string.translate hello
@@ -361,7 +361,7 @@ EOF
         fi
         local -r result="$(curl -s -i --user-agent '' -d "sl=$source" -d \
             "tl=$target" --data-urlencode "text=$1" \
-            http://translate.google.com)"
+            https://translate.google.com)"
         # NOTE Temporary outcomment to have right code highlighting.
         # local encoding=$(awk '/Content-Type: .* charset=/ {sub(/^.*charset=["'\'']?/,""); sub(/[ "'\''].*$/,""); print}' <<<"$result")
         # NOTE Alternatively use:

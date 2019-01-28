@@ -7,7 +7,7 @@
 # -------
 
 # This library written by Torben Sickert stand under a creative commons naming
-# 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
+# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # Ensure to load module "module" once.
@@ -19,7 +19,7 @@ if [ "${bl_module_retrieve_remote_modules:-}" = '' ]; then
     declare -g bl_module_retrieve_remote_modules=false
 fi
 declare -g bl_module_known_remote_urls=(
-    http://torben.website/bashlink/data/distributionBundle
+    https://torben.website/bashlink/data/distributionBundle
 )
 # region import
 declare -g bl_module_tidy_up_path=false
