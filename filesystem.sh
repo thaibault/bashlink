@@ -657,9 +657,9 @@ bl_filesystem_make_crypt_blockdevice() {
     sudo cryptsetup \
         -v \
         --cipher aes-xts-plain64 \
-        --key-size 512 \
         --hash sha512 \
         --iter-time 5000 \
+        --key-size 512 \
         --use-random luksFormat \
         "$@"
 }
