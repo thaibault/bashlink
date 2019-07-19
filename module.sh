@@ -763,6 +763,7 @@ bl_module_resolve() {
         result="$(bl.path.convert_to_absolute "$file_path")"
     fi
     echo "$1##$2##$3##$result" >>"$bl_module_name_resolving_cache_file_path"
+    chmod o+rw "$bl_module_name_resolving_cache_file_path"
     sort \
         --output \
         "$bl_module_name_resolving_cache_file_path" \
