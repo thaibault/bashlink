@@ -37,6 +37,28 @@ bl_ui_dialog() {
                 --title Password \
                 --passwordbox "" 0 0
         ```
+
+        Example systemd service file configuration for inputs during boot:
+
+        ```
+            [Unit]
+            ...
+
+            [Service]
+            ...
+            Type=oneshot
+            ExecStart=/usr/bon/ask_for_something
+            IgnoreSIGPIPE=no
+            KillMode=process
+            StandardInput=tty-force
+            StandardOutput=inherit
+            StandardError=inherit
+            TasksMax=infinity
+            ...
+
+            [Install]
+            ...
+        ```
     '
     local -i return_code
     local -r output_buffer_file_path="$(mktemp --suffix -bashlink-ui-input)"
