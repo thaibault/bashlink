@@ -771,7 +771,7 @@ bl_filesystem_write_blockdevice_to_image() {
     if [[ "$2" ]]; then
         target="$2"
     fi
-    sudo dd bs=4M conv=fdadasync if="$source" of="$target" status=progress
+    sudo dd bs=4M conv=fdatasync if="$source" of="$target" status=progress
 }
 alias bl.filesystem.write_image_to_blockdevice=bl_filesystem_write_image_to_blockdevice
 bl_filesystem_write_image_to_blockdevice() {
@@ -794,7 +794,7 @@ bl_filesystem_write_image_to_blockdevice() {
     if [[ "$2" ]]; then
         target="$2"
     fi
-    sudo dd bs=4M conv=fdadasync if="$source" of="$target" status=progress
+    sudo dd bs=4M conv=fdatasync if="$source" of="$target" status=progress
 }
 # endregion
 # region vim modline
