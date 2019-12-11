@@ -13,9 +13,9 @@ bootstrap@^3.3.7:
   integrity sha512-yN5oZVmRCwe5aKwzRj6736nSmKDX7pLYwsXiCj/EYmo16hODaBiT4En5btW/jhBF/seV+XMx3aYwukYC3A49DA==
 
 clientnode@*:
-  version "3.0.375"
-  resolved "https://registry.yarnpkg.com/clientnode/-/clientnode-3.0.375.tgz#9ebe9eda9a05930151c841ef86d48be5d92f39ac"
-  integrity sha512-yKEh+ng1S/2bNXapdrtpdcl+CByBE3wlRZD05WVqyfd95EU2oZhDKRc3wQdXFGthv3MPyTsc+LiukWYb8bw+iw==
+  version "3.0.376"
+  resolved "https://registry.yarnpkg.com/clientnode/-/clientnode-3.0.376.tgz#d6bef9ed6c54dd5a6183d3fe595be464599a2bfb"
+  integrity sha512-AWkbft0GCFKxOlemAADxAau39eYR6CIE+5VeBU8DuAfFbxFUFxVVwVqEUuq04EpgaYT5eAccGHQMnzCGYhdxkw==
 
 documentation-website@*:
   version "1.0.234"
@@ -44,9 +44,9 @@ jquery@*, jquery@>=1.8:
   integrity sha512-36+AdBzCL+y6qjw5Tx7HgzeGCzC81MDDgaUP8ld2zhx58HdqXGoBd+tHdrBMiyjGQs0Hxs/MLZTu/eHNJJuWPw==
 
 shellcheck@*:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/shellcheck/-/shellcheck-0.3.0.tgz#e5d36f7cf09dfc48bc16e641eac025686c7205d2"
-  integrity sha512-6I/5hSgP433kUNYL0HLNm3wu/w89Em5mYqfPEut/NIfyd9Wv8R3Y+Uupu1iTdzxwomMqJIR+DzH9NIGskpkRoA==
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/shellcheck/-/shellcheck-0.4.1.tgz#83b431a84c18df6bc24f78624b8275cdeca67bfb"
+  integrity sha512-tUQ/ccl9jYG8K3v/im94pk8hRkwk7AIgg8iXy7bJ4y5DGJRqtJTFYUWKy88HN9X+Ggxl371rvw0FqXfCRfLSSw==
 
 spin.js@*:
   version "4.1.0"
