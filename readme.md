@@ -52,10 +52,9 @@ Integrate bashlink into your standalone bash script:
         mktemp --directory --suffix -module-name-bashlink
     )/bashlink/"
     mkdir "$moduleName_bashlink_path"
-    if wget \
-        https://goo.gl/UKF5JG \
-        --output-document "${moduleName_bashlink_path}module.sh" \
-        --quiet
+    if curl \
+        https://raw.githubusercontent.com/thaibault/bashlink/master/module.sh \
+            >"${moduleName_bashlink_path}module.sh"
     then
         declare -gr bl_module_retrieve_remote_modules=true
         # shellcheck disable=SC1091
@@ -82,10 +81,9 @@ Or combine both to implement a very agnostic script.
             mktemp --directory --suffix -module-name-bashlink
         )/bashlink/"
         mkdir "$moduleName_bashlink_path"
-        if wget \
-            https://goo.gl/UKF5JG \
-            --output-document "${moduleName_bashlink_path}module.sh" \
-            --quiet
+        if curl \
+            https://raw.githubusercontent.com/thaibault/bashlink/master/module.sh \
+                >"${moduleName_bashlink_path}module.sh"
         then
             declare -gr bl_module_retrieve_remote_modules=true
             # shellcheck disable=SC1090
@@ -113,10 +111,9 @@ Best practise (entry) module pattern:
             mktemp --directory --suffix -module-name-bashlink
         )/bashlink/"
         mkdir "$moduleName_bashlink_path"
-        if wget \
-            https://goo.gl/UKF5JG \
-            --output-document "${moduleName_bashlink_path}module.sh" \
-            --quiet
+        if curl \
+            https://raw.githubusercontent.com/thaibault/bashlink/master/module.sh \
+                >"${moduleName_bashlink_path}module.sh"
         then
             declare -gr bl_module_retrieve_remote_modules=true
             # shellcheck disable=SC1090

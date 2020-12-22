@@ -281,23 +281,21 @@ bl_logging_log() {
     shift
     if bl.logging.is_enabled "$level"; then
         bl.arguments.set "$@"
-        local no_new_line
+        local no_new_line=''
         bl.arguments.get_flag -n --no-new-line no_new_line
         if $no_new_line; then
             no_new_line='-n'
-        else
-            no_new_line=''
         fi
         bl.arguments.apply_new
         if [ "$level" = error ]; then
             bl.logging.plain \
-                $no_new_line \
+                "$no_new_line" \
                 "$(bl_logging_get_prefix "$level")" \
                 "$@" \
                     3>&4
         else
             bl.logging.plain \
-                $no_new_line \
+                "$no_new_line" \
                 "$(bl_logging_get_prefix "$level")" \
                 "$@"
         fi
