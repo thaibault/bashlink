@@ -25,9 +25,10 @@ declare -g bl_module_known_remote_urls=(
 )
 # region import
 declare -g bl_module_tidy_up_path=false
-if $bl_module_retrieve_remote_modules && ! [[
-    -f "$(dirname "${BASH_SOURCE[0]}")/path.sh"
-]]; then
+if \
+    $bl_module_retrieve_remote_modules && \
+    ! [ -f "$(dirname "${BASH_SOURCE[0]}")/path.sh" ]
+then
     for bl_module_url in "${bl_module_known_remote_urls[@]}"; do
         if curl "${bl_module_url}/path.sh" \
             >"$(dirname "${BASH_SOURCE[0]}")/path.sh"
