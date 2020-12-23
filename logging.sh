@@ -112,9 +112,11 @@ declare -ag bl_logging_levels_color=(
     "$bl_cli_color_blue"
 )
 declare -g bl_logging_command_level=$(
-    bl.array.get_index critical "${bl_logging_levels[@]}")
+    bl.array.get_index critical "${bl_logging_levels[@]}"
+)
 declare -g bl_logging_level=$(
-    bl.array.get_index critical "${bl_logging_levels[@]}")
+    bl.array.get_index critical "${bl_logging_levels[@]}"
+)
 declare -g bl_logging_output_target=std
 declare -g bl_logging_command_output_target=std
 # endregion
@@ -174,9 +176,12 @@ bl_logging_get_prefix() {
     '
     local -r level=$1
     local -r level_index=$(
-        bl.array.get_index "$level" "${bl_logging_levels[@]}")
+        bl.array.get_index "$level" "${bl_logging_levels[@]}"
+    )
     if (( level_index <= -1 )); then
-        bl.logging.critical \
+        # NOTE: `bl.logging.critical` is not defined yet.
+        bl_logging_log \
+            critical \
             "Given logging level \"$level\" is not available, use one of:" \
             "${bl_logging_levels[*]} or warn."
         return 1
@@ -281,21 +286,22 @@ bl_logging_log() {
     shift
     if bl.logging.is_enabled "$level"; then
         bl.arguments.set "$@"
-        local no_new_line=''
-        bl.arguments.get_flag -n --no-new-line no_new_line
-        if $no_new_line; then
-            no_new_line='-n'
+        local no_new_line_parameter=''
+        local no_new_line_indicator
+        bl.arguments.get_flag -n --no-new-line no_new_line_indicator
+        if $no_new_line_indicator; then
+            no_new_line_parameter='-n'
         fi
         bl.arguments.apply_new
         if [ "$level" = error ]; then
             bl.logging.plain \
-                "$no_new_line" \
+                "$no_new_line_parameter" \
                 "$(bl_logging_get_prefix "$level")" \
                 "$@" \
                     3>&4
         else
             bl.logging.plain \
-                "$no_new_line" \
+                "$no_new_line_parameter" \
                 "$(bl_logging_get_prefix "$level")" \
                 "$@"
         fi
