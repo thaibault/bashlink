@@ -286,24 +286,27 @@ bl_logging_log() {
     shift
     if bl.logging.is_enabled "$level"; then
         bl.arguments.set "$@"
-        local no_new_line_parameter=''
         local no_new_line_indicator
         bl.arguments.get_flag -n --no-new-line no_new_line_indicator
-        if $no_new_line_indicator; then
-            no_new_line_parameter='-n'
-        fi
         bl.arguments.apply_new
-        if [ "$level" = error ]; then
-            bl.logging.plain \
-                "$no_new_line_parameter" \
-                "$(bl_logging_get_prefix "$level")" \
-                "$@" \
-                    3>&4
+        if $no_new_line_indicator; then
+            if [ "$level" = error ]; then
+                bl.logging.plain \
+                    "$no_new_line_parameter" \
+                    "$(bl_logging_get_prefix "$level")" \
+                    "$@" \
+                        3>&4
+            else
+                bl.logging.plain \
+                    "$no_new_line_parameter" \
+                    "$(bl_logging_get_prefix "$level")" \
+                    "$@"
+            fi
+        elif [ "$level" = error ]; then
+            bl.logging.plain "$(bl_logging_get_prefix "$level")" "$@" \
+                3>&4
         else
-            bl.logging.plain \
-                "$no_new_line_parameter" \
-                "$(bl_logging_get_prefix "$level")" \
-                "$@"
+            bl.logging.plain "$(bl_logging_get_prefix "$level")" "$@"
         fi
     fi
     $no_exception
