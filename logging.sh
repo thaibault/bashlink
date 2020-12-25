@@ -291,16 +291,10 @@ bl_logging_log() {
         bl.arguments.apply_new
         if $no_new_line_indicator; then
             if [ "$level" = error ]; then
-                bl.logging.plain \
-                    "$no_new_line_parameter" \
-                    "$(bl_logging_get_prefix "$level")" \
-                    "$@" \
-                        3>&4
+                bl.logging.plain -n "$(bl_logging_get_prefix "$level")" "$@" \
+                    3>&4
             else
-                bl.logging.plain \
-                    "$no_new_line_parameter" \
-                    "$(bl_logging_get_prefix "$level")" \
-                    "$@"
+                bl.logging.plain -n "$(bl_logging_get_prefix "$level")" "$@"
             fi
         elif [ "$level" = error ]; then
             bl.logging.plain "$(bl_logging_get_prefix "$level")" "$@" \
