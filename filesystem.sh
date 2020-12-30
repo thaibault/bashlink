@@ -417,7 +417,19 @@ bl_filesystem_btrfs_subvolume_backup() {
         Create, delete or list system backups.
 
         ```bash
+            bl.filesystem.btrfs_subvolume_backup
+        ```
+
+        ```bash
+            bl.filesystem.btrfs_subvolume_backup help
+        ```
+
+        ```bash
             bl.filesystem.btrfs_subvolume_backup list
+        ```
+
+        ```bash
+            bl.filesystem.btrfs_subvolume_backup list /
         ```
 
         ```bash
@@ -425,27 +437,54 @@ bl_filesystem_btrfs_subvolume_backup() {
         ```
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup delete rootBackup
+            bl.filesystem.btrfs_subvolume_backup create /dev/sda
+        ```
+
+        ```bash
+            bl.filesystem.btrfs_subvolume_backup create PARTLABEL=system
+        ```
+
+        ```bash
+            bl.filesystem.btrfs_subvolume_backup delete /dev/sda rootBackup
         ```
     '
+    local action=list
+    local target=PARTLABEL=system
+    if [ "$1" = create ]; then
+        action=create
+        shift
+    elif [ "$1" = delete ]; then
+        action=delete
+        shift
+    elif [ "$1" = list ]; then
+        target=/
+        shift
+    fi
+    if [[ "$1" != '' ]]; then
+        target="$1"
+        shift
+    fi
+
     sudo umount /mnt &>/dev/null
-    if [[ "$1" == create ]]; then
-        sudo mount PARTLABEL=system /mnt
+    if [ "$action" = create ]; then
+        sudo mount "$target" /mnt
         local -r timestamp="$(date +"%d:%m:%y:%T")"
-        sudo btrfs subvolume snapshot /mnt/root \
-            "/mnt/rootBackup${timestamp}"
+        sudo btrfs subvolume snapshot /mnt/root "/mnt/rootBackup${timestamp}"
         # NOTE: Autocompletion should be done by sudo. Not bash as user.
         sudo bash -c "cp --recursive /boot/* \"/mnt/rootBackup${timestamp}/boot/\""
         sudo umount /mnt
-    elif [ "$1" = delete ] && [[ "$2" ]]; then
-        sudo mount PARTLABEL=system /mnt
-        sudo btrfs subvolume delete "/mnt/$(basename "$2")"
+    elif [ "$action" = delete ]; then
+        if [ "$1" = '' ]; then
+            bl.logging.error Missing given subvolume name to delete.
+        fi
+        sudo mount "$target" /mnt
+        sudo btrfs subvolume delete "/mnt/$(basename "$1")"
         sudo umount /mnt
-    elif [ "$1" = list ]; then
-        sudo btrfs subvolume list /
+    elif [ "$action" = list ]; then
+        sudo btrfs subvolume list "$target"
     else
         bl.logging.cat << EOF
-bl.filesystem.btrfs_subvolume_backup create|delete|list [backupName]
+bl.filesystem.btrfs_subvolume_backup create|delete|help|list [DEVICE|LOCATION] [SUBVOLUME_NAME]
 EOF
     fi
 }
