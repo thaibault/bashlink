@@ -118,6 +118,7 @@ bl_dictionary_get_keys() {
     else
         eval 'keys="${!'"$store"'[@]}"'
     fi
+
     local key
     for key in ${keys:-}; do
         echo "$key"
