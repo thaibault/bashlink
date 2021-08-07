@@ -527,7 +527,8 @@ bl_module_import() {
             for sub_file_path in "${file_path}"/*; do
                 local excluded=false
                 local excluded_name
-                for excluded_name in "${bl_module_directory_names_to_ignore[@]}"; do
+                for excluded_name in "${bl_module_directory_names_to_ignore[@]}"
+                do
                     if \
                         [ -d "$sub_file_path" ] && \
                         [ "$excluded_name" = "$(basename "$sub_file_path")" ]
@@ -537,7 +538,8 @@ bl_module_import() {
                     fi
                 done
                 if ! $excluded; then
-                    for excluded_name in "${bl_module_file_names_to_ignore[@]}"; do
+                    for excluded_name in "${bl_module_file_names_to_ignore[@]}"
+                    do
                         if \
                             [ -f "$sub_file_path" ] && \
                             [ "$excluded_name" = "$(basename "$sub_file_path")" ]
@@ -553,7 +555,8 @@ bl_module_import() {
                         echo "$sub_file_path" | \
                             command sed \
                                 --regexp-extended \
-                                "s:${scope_name}/([^/]+):${scope_name}.\1:")"
+                                "s:${scope_name}/([^/]+):${scope_name}.\1:"
+                    )"
                     bl.module.import "$name" "$caller_file_path"
                 fi
             done
@@ -563,7 +566,8 @@ bl_module_import() {
                 bl.module.import_raw "$file_path"
             else
                 scope_name="$(
-                    bl.module.remove_known_file_extension "$scope_name")"
+                    bl.module.remove_known_file_extension "$scope_name"
+                )"
                 bl.module.import_with_namespace_check \
                     "$file_path" \
                     "$(bl.module.rewrite_scope_name "$scope_name")" \
@@ -612,17 +616,20 @@ bl_module_resolve() {
     # NOTE: We have to declare variable first to avoid shadowing the return
     # code coming from "grep".
     local cached_result
-    if cached_result="$(
-        command grep \
-            --max-count 1 \
-            "$1##$2##$3##" \
-            "$bl_module_name_resolving_cache_file_path" \
-                2>/dev/null
-    )" && cached_result="$(
-        echo "$cached_result" | \
-            command sed --regexp-extended 's/^.+##.*##.*##(.+)$/\1/' \
-                2>/dev/null
-    )"; then
+    if \
+        cached_result="$(
+            command grep \
+                --max-count 1 \
+                "$1##$2##$3##" \
+                "$bl_module_name_resolving_cache_file_path" \
+                    2>/dev/null
+        )" && \
+        cached_result="$(
+            echo "$cached_result" | \
+                command sed --regexp-extended 's/^.+##.*##.*##(.+)$/\1/' \
+                    2>/dev/null
+        )"
+    then
         echo -n "$cached_result"
         return 0
     fi
@@ -630,15 +637,18 @@ bl_module_resolve() {
     local caller_path
     bl_module_declared_function_names_after_source=''
     local -r current_path="$(dirname "$(dirname "$(
-        bl.path.convert_to_absolute "${BASH_SOURCE[0]}")")")"
+        bl.path.convert_to_absolute "${BASH_SOURCE[0]}"
+    )")")"
     if (( $# == 1 )) || [ "${!#}" = true ] || [ "${!#}" = false ]; then
         caller_path="$(dirname "$(
-            bl.path.convert_to_absolute "${BASH_SOURCE[1]}")")"
+            bl.path.convert_to_absolute "${BASH_SOURCE[1]}"
+        )")"
     else
         caller_path="$(dirname "$(bl.path.convert_to_absolute "${!#}")")"
     fi
     local -r initial_caller_path="$(dirname "$(
-        bl.path.convert_to_absolute "${BASH_SOURCE[-1]}")")"
+        bl.path.convert_to_absolute "${BASH_SOURCE[-1]}"
+    )")"
     local -r execution_path="$(pwd)"
     local file_path=''
     while true; do
