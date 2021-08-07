@@ -1,26 +1,28 @@
 {
-  "bin": {
-    "bashlink-doctest": "doctest.sh",
-    "bashlink-document": "documentation.sh"
-  },
+  "name": "bashlink",
+  "version": "1.0.219",
+  "description": "Testable, predictable and scoped code in bash.",
+  "keywords": [
+    "bash",
+    "framework",
+    "scoped",
+    "shell",
+    "test",
+    "testing",
+    "tool",
+    "modules",
+    "utility"
+  ],
+  "homepage": "https://torben.website/bashlink",
   "bugs": {
+    "email": "info@torben.website",
     "url": "https://github.com/thaibault/bashlink/issues"
   },
-  "bundleDependencies": false,
-  "deprecated": false,
-  "description": "a high reliable bash library",
-  "devDependencies": {
-    "documentation-website": "*",
-    "shellcheck": "*"
-  },
-  "documentationWebsite": {
-    "languages": [
-      "deDE",
-      "enUS"
-    ],
-    "name": "bashlink",
-    "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
-    "trackingCode": "UA-40192634-14"
+  "license": "CC-BY-3.0",
+  "author": {
+    "name": "Torben Sickert",
+    "email": "info@torben.website",
+    "url": "https://torben.website"
   },
   "files": [
     "arguments.sh",
@@ -46,17 +48,7 @@
     "time.sh",
     "tools.sh"
   ],
-  "homepage": "https://torben.website/bashlink",
-  "keywords": [
-    "bash",
-    "framework",
-    "utility",
-    "tool",
-    "testing"
-  ],
-  "license": "CC-BY-3.0",
   "main": "module.sh",
-  "name": "bashlink",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/thaibault/bashlink.git"
@@ -73,5 +65,17 @@
     "update": "yarn version --patch && yarn publish",
     "update:documentation": "documentationWebsite --log-level info"
   },
-  "version": "1.0.219"
+  "devDependencies": {
+    "documentation-website": "*",
+    "shellcheck": "*"
+  },
+  "documentationWebsite": {
+    "languages": [
+      "deDE",
+      "enUS"
+    ],
+    "name": "bashlink",
+    "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
+    "trackingCode": "UA-40192634-14"
+  }
 }
