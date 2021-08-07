@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@types/webpack@https://registry.yarnpkg.com/@favware/skip-dependency/-/skip-dependency-1.1.0.tgz":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@favware/skip-dependency/-/skip-dependency-1.1.0.tgz#7ff0adb2a0e32b1a0a48f432cf31c16b53f7f4ea"
+
 boostnode@*:
   version "1.0.26"
   resolved "https://registry.yarnpkg.com/boostnode/-/boostnode-1.0.26.tgz#8917c83e2f41d627dc9a9973d291d47bb0cf2f23"
@@ -13,20 +17,23 @@ bootstrap@^3.3.7:
   integrity sha512-yN5oZVmRCwe5aKwzRj6736nSmKDX7pLYwsXiCj/EYmo16hODaBiT4En5btW/jhBF/seV+XMx3aYwukYC3A49DA==
 
 documentation-website@*:
-  version "1.0.234"
-  resolved "https://registry.yarnpkg.com/documentation-website/-/documentation-website-1.0.234.tgz#bc90958f5c416b676a68c26544cfba91cc28b7d9"
-  integrity sha512-o7EzV0SnbfYFTvcJ+jbH9mOOaGnzDMKRmsZQBsKwiaQa/msysV9kJiDj20jtBuNnFdU0LJr8a1XcXTYYeOBNCg==
+  version "1.0.237"
+  resolved "https://registry.yarnpkg.com/documentation-website/-/documentation-website-1.0.237.tgz#bd8a685bef8e8ad7949af583a7dab13f3f0c0589"
+  integrity sha512-wq1Zsp06tRaEnk1EOgbIUxhuH92PkplX6+DTNra6kDJ3J3mzRTj0VRw4PVBuIXpoxKr19dXljq1rwGZMKaehLA==
   dependencies:
+    "@types/webpack" "https://registry.yarnpkg.com/@favware/skip-dependency/-/skip-dependency-1.1.0.tgz"
     boostnode "*"
     bootstrap "^3.3.7"
     website-utilities "*"
 
 shellcheck@*:
-  version "0.4.4"
-  resolved "https://registry.yarnpkg.com/shellcheck/-/shellcheck-0.4.4.tgz#4512714db803a0bcf300adc40e16dc12ffcf8303"
-  integrity sha512-d7LfrgEcGZes825x5Yehm6MkpfSQaDg4nP0VZEv7E2qX84zQXDbCdDvYJg9V9OByG2+h98Ol7nndixgGOj8cRQ==
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/shellcheck/-/shellcheck-1.0.0.tgz#263479d92c3708d63d98883f896481461cf17cd0"
+  integrity sha512-CdKbWXOknBwE1wNQzAnwfLf7QNOu/yqyLSGBKoq2WuChEqfg7dnZJ1pHR2P463PbVpBRz3KGkYnXJCoQrPwtYA==
 
 website-utilities@*:
-  version "1.0.223"
-  resolved "https://registry.yarnpkg.com/website-utilities/-/website-utilities-1.0.223.tgz#741a9023d8316606df00737821a7ddbc01be3199"
-  integrity sha512-xYi68qGcTcTJSXq85/ARCh02suspBi2Uvk32C3rIBcVp/M5YcWSdlP3KyD1Q7IHNT7jgwkBIybcARKADxOr2vQ==
+  version "1.0.240"
+  resolved "https://registry.yarnpkg.com/website-utilities/-/website-utilities-1.0.240.tgz#eeb2d65975d9d48341614d501e81eb94b3dfd5d8"
+  integrity sha512-ed9VT5u2iIXJi/qx8IrgAcXEALwjeKZsE1H200LsAdyROBGYCfXx5qR6i+tvPtsQ3c5dp1tQRtgYzqw+MDx7TA==
+  dependencies:
+    "@types/webpack" "https://registry.yarnpkg.com/@favware/skip-dependency/-/skip-dependency-1.1.0.tgz"
