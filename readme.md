@@ -13,9 +13,11 @@ endregion -->
 Project status
 --------------
 
-[![npm version](https://badge.fury.io/js/bashlink.svg)](https://www.npmjs.com/package/bashlink)
-[![downloads](https://img.shields.io/npm/dy/bashlink.svg)](https://www.npmjs.com/package/bashlink)
-[![build status](https://travis-ci.org/thaibault/bashlink.svg?branch=master)](https://travis-ci.org/thaibault/bashlink)
+[![npm](https://img.shields.io/npm/v/bashlink?color=%23d55e5d&label=npm%20package%20version&logoColor=%23d55e5d)](https://www.npmjs.com/package/bashlink)
+[![npm downloads](https://img.shields.io/npm/dy/bashlink.svg)](https://www.npmjs.com/package/bashlink)
+
+[![<LABEL>](https://github.com/thaibault/bashlink/actions/workflows/test.yaml/badge.svg)](https://github.com/thaibault/bashlink/actions/workflows/test.yaml)
+
 [![dependencies](https://img.shields.io/david/thaibault/bashlink.svg)](https://david-dm.org/thaibault/bashlink)
 [![development dependencies](https://img.shields.io/david/dev/thaibault/bashlink.svg)](https://david-dm.org/thaibault/bashlink?type=dev)
 [![peer dependencies](https://img.shields.io/david/peer/thaibault/bashlink.svg)](https://david-dm.org/thaibault/bashlink?type=peer)
