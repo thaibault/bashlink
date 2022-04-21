@@ -63,7 +63,7 @@
     "report:coverage": "true",
     "test": "./doctest.sh --verbose",
     "update": "yarn version --patch && yarn publish",
-    "update:documentation": "documentationWebsite --log-level info"
+    "update:documentation": "documentation-website"
   },
   "devDependencies": {
     "documentation-website": "*",
