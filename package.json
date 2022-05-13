@@ -50,8 +50,8 @@
   ],
   "main": "module.sh",
   "bin": {
-    "document": "documentation.sh",
-    "test": "doctest.sh"
+    "bashlink-document": "documentation.sh",
+    "bashlink-doctest": "doctest.sh"
   },
   "repository": {
     "type": "git",
