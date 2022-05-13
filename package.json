@@ -49,6 +49,10 @@
     "tools.sh"
   ],
   "main": "module.sh",
+  "bin": {
+    "document": "documentation.sh",
+    "test": "doctest.sh"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/thaibault/bashlink.git"
