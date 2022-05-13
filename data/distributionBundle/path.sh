@@ -7,17 +7,120 @@
 # -------
 
 # This library written by Torben Sickert stand under a creative commons naming
-# 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
+# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # NOTE: This module is the only dependency of `bashlink.module` and so can not
-# import any other modules to avoid a cyclic dependency graph.
+# import any other modules (like "bashlink.logging") to avoid a cyclic
+# dependency graph.
 # region variables
 declare -gr bl_path__documentation__='
     The path module implements utility functions concerning path.
 '
 # endregion
 # region functions
+alias bl.path.backup=bl_path_backup
+bl_path_backup() {
+    local -r __documentation__='
+        Backs up given location into given target file to be able to restore
+        given file structure including all rights and ownerships.
+
+        ```bash
+            bl.path.backup /mnt backup.tar.gz
+        ```
+    '
+    local source_path=/mnt
+    if [[ "$1" != '' ]]; then
+        source_path="$1"
+    fi
+    local target_file_path=backup.tar.gz
+    if [[ "$2" != '' ]]; then
+        target_file_path="$2"
+    fi
+    pushd "$source_path" &>/dev/null && \
+    # NOTE: Could be useful for currently running system: "--one-file-system"
+    # when "source_file_path" equals "/".
+    local -a additional_excludes=()
+    local candidate
+    for candidate in \
+        './root/.cache' \
+        './root/.gvfs' \
+        './root/.local/share/Trash' \
+        './home/**/.cache' \
+        './home/**/.gvfs' \
+        './home/**/.local/share/Trash'
+    do
+        if [ -e "$candidate" ]; then
+            additional_excludes+=("--exclude=$candidate")
+        fi
+    done
+    tar \
+        --create \
+        --exclude=./"$target_file_path" \
+        --exclude=./dev \
+        --exclude=./media \
+        --exclude=./mnt \
+        --exclude=./proc \
+        --exclude=./root/.cache \
+        --exclude=./root/.gvfs \
+        --exclude=./root/.local/share/Trash \
+        --exclude=./run \
+        --exclude=./sys \
+        --exclude=./tmp \
+        --exclude=./var/cache \
+        --exclude=./var/log \
+        --exclude=./var/tmp \
+        "${additional_excludes[@]}" \
+        --file "$target_file_path" \
+        --gzip \
+        --preserve-permissions \
+        --verbose \
+        ./
+    # NOTE: For remote backups, remove "--file "$target_file_path"" and append:
+    # | ssh <backuphost> "( cat > "$target_file_path" )"
+    popd &>/dev/null || \
+    return 1
+}
+alias bl.path.restore=bl_path_restore
+bl_path_restore() {
+    local -r __documentation__='
+        Restores given backup file into given location.
+        NOTE: To restore on a valid sparse container convertible block file
+        use ("10000" is the desired virtual block size in Megabyte):
+
+        ```bash
+            dd
+                if=/dev/zero
+                of=./backup.img
+                bs=1M
+                iflag=fullblock,count_bytes
+                count=0
+                seek=10000
+        ```
+
+        ```bash
+            bl.path.restore backup.tar.gz /mnt
+        ```
+    '
+    local source_file_path="$(bl.path.convert_to_absolute backup.tar.gz)"
+    if [[ "$1" != '' ]]; then
+        source_file_path="$1"
+    fi
+    local target_path=/mnt
+    if [[ "$2" != '' ]]; then
+        target_path="$2"
+    fi
+    pushd "$target_path" &>/dev/null && \
+    tar \
+        --extract \
+        --file "$source_file_path" \
+        --gzip \
+        --numeric-owner \
+        --preserve-permissions \
+        --verbose
+    popd &>/dev/null || \
+    return 1
+}
 alias bl.path.convert_to_absolute=bl_path_convert_to_absolute
 bl_path_convert_to_absolute() {
     local -r __documentation__='
@@ -34,14 +137,16 @@ bl_path_convert_to_absolute() {
         pwd
         popd &>/dev/null || \
             return 1
-    else
+    elif [ -f "$path" ]; then
         local -r file_name="$(basename "$path")"
         pushd "$(dirname "$path")" &>/dev/null || \
             return 1
         local absolute_path="$(pwd)"
         popd &>/dev/null || \
             return 1
-        echo "${absolute_path}/${file_name}"
+        echo "$absolute_path/$file_name"
+    else
+        readlink --canonicalize-missing --no-newline "$path"
     fi
 }
 alias bl.path.convert_to_relative=bl_path_convert_to_relative
@@ -117,7 +222,7 @@ bl_path_open() {
         Opens a given path with a useful program.
 
         ```bash
-            bl.path.open http://www.google.de
+            bl.path.open https://www.google.de
         ```
 
         ```bash
@@ -160,53 +265,63 @@ bl_path_pack() {
             bl.path.pack archiv.zip /path/to/directory
         ```
     '
-    if [ -d "$2" ] || [ -f "$2" ]; then
+    local source_path
+    for source_path; do true; done
+    if [ -d "$source_path" ] || [ -f "$source_path" ]; then
         local command
         case "$1" in
             *.tar.bz2|*.tbz2)
-                command="tar --dereference --create --verbose --bzip2 --file \"$1\" \"$2\""
+                command='tar --create --dereference --verbose --bzip2 --file "$@"'
                 ;;
             *.tar.gz|.*tgz)
-                command="tar --dereference --create --verbose --gzip --file \"$1\" \"$2\""
+                command='tar --create --dereference --verbose --gzip --file "$@"'
                 ;;
             *.bz2)
-                command="bzip2 --stdout \"$2\" 1>\"$1\""
+                command="bzip2 --stdout '$source_path' 1>'$1'"
                 ;;
             *.gz)
                 if [ -d "$2" ]; then
-                    command="gzip --recursive --stdout \"$2\" 1>\"$1\""
+                    command="gzip --recursive --stdout '$source_path' 1>'$1'"
                 else
-                    command="gzip --stdout \"$2\" 1>\"$1\""
+                    command="gzip --stdout '$source_path' 1>'$1'"
                 fi
                 ;;
             *.tar)
-                command="tar --dereference --create --verbose --file \"$1\" \"$2\""
+                command='tar --create --dereference --verbose --file "$@"'
                 ;;
             *.zip)
                 if [ -d "$2" ]; then
-                    command="zip --recurse-paths \"$1\" \"$2\""
+                    command='zip --recurse-paths "$@1"'
                 else
-                    command="zip \"$1\" \"$2\""
+                    command='zip "$@"'
                 fi
                 ;;
             *.Z)
-                command="compress --stdout \"$2\" 1>\"$1\""
+                command="compress --stdout '$source_path' 1>'$1'"
                 ;;
             *.7z)
-                command="7z a \"$1\" \"$2\""
+                command='7z a "$@"'
+                ;;
+            *.vdi)
+                command="VBoxManage convertdd '$source_path' '$1' --format VDI"
+                ;;
+            *.vmdk)
+                command="qemu-img convert -O vmdk '$source_path' '$1'"
+                ;;
+            *.qcow|qcow2)
+                command="qemu-img convert -f raw -O qcow2 '$source_path' '$1'"
                 ;;
             *)
-                echo "Cannot pack \"$1\"."
+                echo "Cannot pack \"$1\" (to \"$source_path\")."
                 return $?
         esac
         if [ "$command" ]; then
-            echo "Running: [$command]."
+            echo Running: \""$command"\".
             eval "$command"
             return $?
         fi
     else
-        echo "\"$2\" is not a valid file or directory."
-        return $?
+        echo "\"$source_path\" is not a valid file or directory."
     fi
 }
 alias bl.path.run_in_programs_location=bl_path_run_in_programs_location
@@ -217,7 +332,7 @@ bl_path_run_in_programs_location() {
 
         ```bash
             bl.path.run_in_programs_location /usr/bin/python3.2
-        `
+        ```
     '
     if [ "$1" ] && [ -f "$1" ]; then
         cd "$(dirname "$1")" && \
@@ -235,48 +350,62 @@ bl_path_unpack() {
             unpack path/to/archiv.zip`
         ```
     '
-    if [ -f "$1" ]; then
+    local source_path
+    for source_path; do true; done
+    if [ -f "$source_path" ]; then
         local command
-        case "$1" in # switch
-            *.tar.bz2|*.tbz2)
-                command="tar --extract --verbose --bzip2 --file \"$1\""
-                ;;
-            *.tar.gz|*.tgz)
-                command="tar --extract --verbose --gzip --file \"$1\""
-                ;;
-            *.bz2)
-                command="bzip2 --decompress \"$1\""
-                ;;
+        case "$source_path" in
             *.rar)
-                command="unrar x \"$1\""
-                ;;
-            *.gz)
-                command="gzip --decompress \"$1\""
+                command='unrar x "$@"'
                 ;;
             *.tar)
-                command="tar --extract --verbose --file \"$1\""
+                command='tar --extract --verbose --file "$@"'
                 ;;
-            *.zip)
-                command="unzip -o \"$1\""
+            *.tar.bz2|*.tbz2)
+                command='tar --extract --verbose --bzip2 --file "$@"'
+                ;;
+            # NOTE: Has to be after "*.tar.bz2|*.tbz2" to totally unwrap its
+            # archive in the case above.
+            *.bz2)
+                command='bzip2 --decompress "$@"'
+                ;;
+            *.tar.gz|*.tgz)
+                command='tar --extract --verbose --gzip --file "$@"'
+                ;;
+            # NOTE: Has to be after "*.tar.gz|*.tgz" to totally unwrap its
+            # archive in the case above.
+            *.gz)
+                command='gzip --decompress "$@"'
+                ;;
+            *.war|*.zip)
+                command='unzip -o "$@"'
                 ;;
             *.Z)
-                command="compress -d \"$1\""
+                command='compress -d "$@"'
                 ;;
             *.7z)
-                7z x "$1"
+                command='7z x "$@"'
+                ;;
+            *.vdi)
+                command="qemu-img convert -f vdi -O raw '$1' '${1%.vdi}' || vboxmanage clonehd '$1' '${1%.vdi}' --format RAW || vbox-img convert --srcfilename '$1' --stdout --srcformat VDI --dstformat RAW '${1%.vdi}'"
+                ;;
+            *.vmdk)
+                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
+                ;;
+            *.qcow|qcow2)
+                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
                 ;;
             *)
-                echo  "Cannot extract \"$1\"."
+                echo Cannot extract \""$source_path"\".
                 ;;
         esac
         if [ "$command" ]; then
-            echo "Running: [$command]."
+            echo Running: \""$command\"".
             eval "$command"
             return $?
         fi
     else
-        echo "\"$1\" is not a valid file."
-        return $?
+        echo \""$source_path"\" is not a valid file.
     fi
 }
 # endregion

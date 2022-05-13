@@ -7,7 +7,7 @@
 # -------
 
 # This library written by Torben Sickert stand under a creative commons naming
-# 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
+# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region import
@@ -417,7 +417,19 @@ bl_filesystem_btrfs_subvolume_backup() {
         Create, delete or list system backups.
 
         ```bash
+            bl.filesystem.btrfs_subvolume_backup
+        ```
+
+        ```bash
+            bl.filesystem.btrfs_subvolume_backup help
+        ```
+
+        ```bash
             bl.filesystem.btrfs_subvolume_backup list
+        ```
+
+        ```bash
+            bl.filesystem.btrfs_subvolume_backup list /
         ```
 
         ```bash
@@ -425,27 +437,54 @@ bl_filesystem_btrfs_subvolume_backup() {
         ```
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup delete rootBackup
+            bl.filesystem.btrfs_subvolume_backup create /dev/sda
+        ```
+
+        ```bash
+            bl.filesystem.btrfs_subvolume_backup create PARTLABEL=system
+        ```
+
+        ```bash
+            bl.filesystem.btrfs_subvolume_backup delete /dev/sda rootBackup
         ```
     '
+    local action=list
+    local target=PARTLABEL=system
+    if [ "$1" = create ]; then
+        action=create
+        shift
+    elif [ "$1" = delete ]; then
+        action=delete
+        shift
+    elif [ "$1" = list ]; then
+        target=/
+        shift
+    fi
+    if [[ "$1" != '' ]]; then
+        target="$1"
+        shift
+    fi
+
     sudo umount /mnt &>/dev/null
-    if [[ "$1" == create ]]; then
-        sudo mount PARTLABEL=system /mnt
+    if [ "$action" = create ]; then
+        sudo mount "$target" /mnt
         local -r timestamp="$(date +"%d:%m:%y:%T")"
-        sudo btrfs subvolume snapshot /mnt/root \
-            "/mnt/rootBackup${timestamp}"
+        sudo btrfs subvolume snapshot /mnt/root "/mnt/rootBackup${timestamp}"
         # NOTE: Autocompletion should be done by sudo. Not bash as user.
         sudo bash -c "cp --recursive /boot/* \"/mnt/rootBackup${timestamp}/boot/\""
         sudo umount /mnt
-    elif [ "$1" = delete ] && [[ "$2" ]]; then
-        sudo mount PARTLABEL=system /mnt
-        sudo btrfs subvolume delete "/mnt/$(basename "$2")"
+    elif [ "$action" = delete ]; then
+        if [ "$1" = '' ]; then
+            bl.logging.error Missing given subvolume name to delete.
+        fi
+        sudo mount "$target" /mnt
+        sudo btrfs subvolume delete "/mnt/$(basename "$1")"
         sudo umount /mnt
-    elif [ "$1" = list ]; then
-        sudo btrfs subvolume list /
+    elif [ "$action" = list ]; then
+        sudo btrfs subvolume list "$target"
     else
         bl.logging.cat << EOF
-bl.filesystem.btrfs_subvolume_backup create|delete|list [backupName]
+bl.filesystem.btrfs_subvolume_backup create|delete|help|list [DEVICE|LOCATION] [SUBVOLUME_NAME]
 EOF
     fi
 }
@@ -556,6 +595,8 @@ bl_filesystem_find_block_device() {
         return 1
     bl_filesystem_find_block_device_simple() {
         local device_info
+        # NOTE: We should ensure that we do not set an argument if the variable
+        # "$device" is empty or not set.
         lsblk \
             --noheadings \
             --list \
@@ -567,14 +608,16 @@ bl_filesystem_find_block_device() {
                         local current_device
                         current_device="$(
                             echo "$device_info" | \
-                                cut -d' ' -f1)"
-                        if [[ "$device_info" = *"${partition_pattern}"* ]]; then
+                                cut --delimiter ' ' --fields 1)"
+                        if [[ "$device_info" = *"$partition_pattern"* ]]; then
                             echo "$current_device"
                         fi
                     done
     }
     bl_filesystem_find_block_device_deep() {
         local device_info
+        # NOTE: We should ensure that we do not set an argument if the variable
+        # "$device" is empty or not set.
         lsblk \
             --noheadings \
             --list \
@@ -582,9 +625,9 @@ bl_filesystem_find_block_device() {
             --output NAME \
             ${device:+"$device"} | \
                 sort --unique | \
-                    cut -d' ' -f1 | \
+                    cut --delimiter ' ' --fields 1 | \
                         while read -r current_device; do
-                            blkid -p -o value "$current_device" | \
+                            blkid --probe --output value "$current_device" | \
                                 while read -r device_info; do
                                     if [[ "$device_info" = *"${partition_pattern}"* ]]; then
                                         echo "$current_device"
@@ -592,20 +635,23 @@ bl_filesystem_find_block_device() {
                                 done
                         done
     }
-    local candidates
-    mapfile -t candidates < <(bl_filesystem_find_block_device_simple)
-    [ ${#candidates[@]} -eq 0 ] && \
-        mapfile -t candidates < <(bl_filesystem_find_block_device_deep)
-    unset -f bl_filesystem_find_block_device_simple
-    unset -f bl_filesystem_find_block_device_deep
-    [ ${#candidates[@]} -eq 0 ] && \
+    # NOTE: Using "mapfile -t" is not appreciate here, because needed process
+    # subsition wouldn't be supported by dash.
+    # shellcheck disable=SC2207
+    local -a candidates=($(bl_filesystem_find_block_device_simple))
+    if (( ${#candidates[@]} == 0 )); then
+        # shellcheck disable=SC2207
+        candidates=($(bl_filesystem_find_block_device_deep))
+    fi
+    (( ${#candidates[@]} == 0 )) && \
         return 1
-    [ ${#candidates[@]} -ne 1 ] && \
-        echo "${candidates[@]}" && \
+    if (( ${#candidates[@]} != 1 )); then
+        echo "${candidates[@]}"
         return 1
+    fi
     echo "${candidates[0]}"
 }
-## region file  links
+## region file links
 alias bl.filesystem.find_hardlinks=bl_filesystem_find_hardlinks
 bl_filesystem_find_hardlinks() {
     local -r __documentation__='
@@ -632,10 +678,10 @@ bl_filesystem_show_symbolic_links() {
         ```
     '
     local element
-    while IFS= read -r -d '' element; do
+    command find "$1" -type l -print0 | while IFS= read -r -d '' element; do
         bl.logging.plain "${element} -> "
         readlink "$element"
-    done < <(command find "$1" -type l -print0)
+    done
 }
 ## endregion
 alias bl.filesystem.make_crypt_blockdevice=bl_filesystem_make_crypt_blockdevice
@@ -647,8 +693,14 @@ bl_filesystem_make_crypt_blockdevice() {
             bl.filesystem.make_crypt_blockdevice /dev/sda
         ```
     '
-    sudo cryptsetup -v --cipher aes-xts-plain64 --key-size 512 --hash sha512 \
-        --iter-time 5000 --use-random luksFormat "$1"
+    sudo cryptsetup \
+        -v \
+        --cipher aes-xts-plain64 \
+        --hash sha512 \
+        --iter-time 5000 \
+        --key-size 512 \
+        --use-random luksFormat \
+        "$@"
 }
 alias bl.filesystem.make_uefi_boot_entry=bl_filesystem_make_uefi_boot_entry
 bl_filesystem_make_uefi_boot_entry() {
@@ -693,7 +745,7 @@ bl_filesystem_open_crypt_blockdevice() {
             bl.filesystem.open_crypt_blockdevice /dev/sdb test
         ```
     '
-    sudo cryptsetup luksOpen "$1" "$2"
+    sudo cryptsetup luksOpen "$@"
 }
 alias bl.filesystem.overlay_location=bl_filesystem_overlay_location
 bl_filesystem_overlay_location() {
@@ -758,7 +810,7 @@ bl_filesystem_write_blockdevice_to_image() {
     if [[ "$2" ]]; then
         target="$2"
     fi
-    sudo dd bs=4M if="$source" of="$target"
+    sudo dd bs=4M conv=fdatasync if="$source" of="$target" status=progress
 }
 alias bl.filesystem.write_image_to_blockdevice=bl_filesystem_write_image_to_blockdevice
 bl_filesystem_write_image_to_blockdevice() {
@@ -781,7 +833,7 @@ bl_filesystem_write_image_to_blockdevice() {
     if [[ "$2" ]]; then
         target="$2"
     fi
-    sudo dd bs=4M if="$source" of="$target"
+    sudo dd bs=4M conv=fdatasync if="$source" of="$target" status=progress
 }
 # endregion
 # region vim modline
