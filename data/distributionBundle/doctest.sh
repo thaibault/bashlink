@@ -7,7 +7,7 @@
 # -------
 
 # This library written by Torben Sickert stand under a creative commons naming
-# 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
+# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region executable header
@@ -700,11 +700,11 @@ bl_doctest_parse_docstring() {
             TEXT)
                 next_state=TEXT
                 if [ "$line" = '' ]; then
-                    [ ! -z "$text_buffer" ] && \
+                    [ -n "$text_buffer" ] && \
                         text_buffer+=$'\n'"$line"
                 elif [[ "$line" = "$prompt"* ]]; then
                     next_state=TEST
-                    [ ! -z "$text_buffer" ] && \
+                    [ -n "$text_buffer" ] && \
                         bl_doctest_eval_buffers
                     $preserve_prompt && temp_prompt="$prompt" && prompt=""
                     test_buffer="${line#$prompt}"

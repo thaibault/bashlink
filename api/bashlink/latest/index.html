@@ -1,7 +1,4 @@
-
-> bashlink@1.0.111 document:show /home/torben/cloud/data/public/project/repository/bashlink
-> ./documentation.sh
-
+$ ./documentation.sh
 # Package bashlink
 ## Module bashlink.arguments
 The arguments module provides an argument parser that can be used in
@@ -560,6 +557,20 @@ This function check if all given shared libraries can be found.
 ```bash
 >>> bl.dependency.check_shared_library __not_existing__ 1>/dev/null; echo $?
 2
+```
+### Function bl_dependency_determine_files
+Determines all needed files for given packages.
+
+```bash
+>>> ! hash pacman &>/dev/null || bl.dependency.determine_files glibc 1>/dev/null; echo $?
+0
+```
+### Function bl_dependency_determine_packages
+Determines all needed packages for given packages.
+
+```bash
+>>> ! hash pacman &>/dev/null || bl.dependency.determine_packages glibc 1>/dev/null; echo $?
+0
 ```
 ## Module bashlink.dictionary
 The dictionary module implements utility functions concerning dictionary
@@ -1533,7 +1544,19 @@ btrfs subvolume snapshot /broot/__active/home /backup/__active_backup/home
 Create, delete or list system backups.
 
 ```bash
+bl.filesystem.btrfs_subvolume_backup
+```
+
+```bash
+bl.filesystem.btrfs_subvolume_backup help
+```
+
+```bash
 bl.filesystem.btrfs_subvolume_backup list
+```
+
+```bash
+bl.filesystem.btrfs_subvolume_backup list /
 ```
 
 ```bash
@@ -1541,7 +1564,15 @@ bl.filesystem.btrfs_subvolume_backup create
 ```
 
 ```bash
-bl.filesystem.btrfs_subvolume_backup delete rootBackup
+bl.filesystem.btrfs_subvolume_backup create /dev/sda
+```
+
+```bash
+bl.filesystem.btrfs_subvolume_backup create PARTLABEL=system
+```
+
+```bash
+bl.filesystem.btrfs_subvolume_backup delete /dev/sda rootBackup
 ```
 ### Function bl_filesystem_btrfs_subvolume_backup_autocomplete
 Autocompletion function for `bl.filesystem.subvolume_backup`.
@@ -2061,7 +2092,7 @@ work.
 >>> (
 >>>     bl.module.import bashlink.logging
 >>>     bl_logging_set_level warn
->>>     bl.module.import bashlink.mockup.b false
+>>>     bl.module.import bashlink.mockup.b
 >>> )
 +bl.doctest.multiline_contains
 imported module c
@@ -2229,27 +2260,6 @@ bl.module
 >>> bl.module.rewrite_scope_name a-b+a
 a.b.a
 ```
-## Module bashlink.network
-The network module implements utility functions concerning network
-confgurations.
-### Function bl_network_wlan_restart
-Restart wlan functionality.
-
-```bash
-bl.network.wlan_restart
-```
-### Function bl_network_wlan_start
-Starts wlan functionality.
-
-```bash
-bl.network.wlan_start
-```
-### Function bl_network_wlan_stop
-Stops wlan functionality.
-
-```bash
-bl.network.wlan_stop
-```
 ## Module bashlink.number
 The number module implements utility functions concerning numbers.
 ### Function bl_number_calculate_percent
@@ -2317,6 +2327,13 @@ bl.pacman.show_not_maintained_by_pacman_system_file
 ```
 ## Module bashlink.path
 The path module implements utility functions concerning path.
+### Function bl_path_backup
+Backs up given location into given target file to be able to restore
+given file structure including all rights and ownerships.
+
+```bash
+bl.path.backup /mnt backup.tar.gz
+```
 ### Function bl_path_convert_to_absolute
 Converts given path into an absolute one.
 
@@ -2380,7 +2397,7 @@ D/E
 Opens a given path with a useful program.
 
 ```bash
-bl.path.open http://www.google.de
+bl.path.open https://www.google.de
 ```
 
 ```bash
@@ -2396,13 +2413,31 @@ bl.path.pack archiv.zip /path/to/file.ext
 ```bash
 bl.path.pack archiv.zip /path/to/directory
 ```
+### Function bl_path_restore
+Restores given backup file into given location.
+NOTE: To restore on a valid sparse container convertible block file
+use ("10000" is the desired virtual block size in Megabyte):
+
+```bash
+dd
+if=/dev/zero
+of=./backup.img
+bs=1M
+iflag=fullblock,count_bytes
+count=0
+seek=10000
+```
+
+```bash
+bl.path.restore backup.tar.gz /mnt
+```
 ### Function bl_path_run_in_programs_location
 Changes current working directory to given program path and runs the
 program.
 
 ```bash
 bl.path.run_in_programs_location /usr/bin/python3.2
-`
+```
 ### Function bl_path_unpack
 Unpack archives in various formats.
 
@@ -2513,7 +2548,7 @@ c.txt \
 ### Function bl_string_translate
 Translates a given string in a given (or automatic detected) language
 and gives a translation in given language (German by default) back.
-Accesses "http://translate.google.com" from terminal.
+Accesses "https://translate.google.com" from terminal.
 
 ```bash
 bl.string.translate hello
@@ -2681,4 +2716,43 @@ bl.ui.dialog \
 --insecure \
 --title Password \
 --passwordbox "" 0 0
+```
+
+Example systemd service file configuration for inputs during boot:
+
+```
+[Unit]
+...
+
+[Service]
+...
+Type=oneshot
+ExecStart=/usr/bon/ask_for_something
+IgnoreSIGPIPE=no
+KillMode=process
+StandardInput=tty-force
+StandardOutput=inherit
+StandardError=inherit
+TasksMax=infinity
+...
+
+[Install]
+...
+```
+### Function bl_ui_input_password
+Shows a password input dialog box. Forwards all given parameter to
+dialog.
+
+```
+bl.ui.input_password >/plain_password.txt
+```
+
+```
+bl.ui.input_password "Give me a password" >/plain_password.txt
+```
+### Function bl_ui_input_text
+Shows a text input dialog box. Forwards all given parameter to dialog.
+
+```
+bl.ui.input_text "Give me a your name" >/input.txt
 ```

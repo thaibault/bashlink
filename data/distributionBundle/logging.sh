@@ -7,7 +7,7 @@
 # -------
 
 # This library written by Torben Sickert stand under a creative commons naming
-# 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
+# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region import
@@ -112,9 +112,11 @@ declare -ag bl_logging_levels_color=(
     "$bl_cli_color_blue"
 )
 declare -g bl_logging_command_level=$(
-    bl.array.get_index critical "${bl_logging_levels[@]}")
+    bl.array.get_index critical "${bl_logging_levels[@]}"
+)
 declare -g bl_logging_level=$(
-    bl.array.get_index critical "${bl_logging_levels[@]}")
+    bl.array.get_index critical "${bl_logging_levels[@]}"
+)
 declare -g bl_logging_output_target=std
 declare -g bl_logging_command_output_target=std
 # endregion
@@ -174,9 +176,12 @@ bl_logging_get_prefix() {
     '
     local -r level=$1
     local -r level_index=$(
-        bl.array.get_index "$level" "${bl_logging_levels[@]}")
+        bl.array.get_index "$level" "${bl_logging_levels[@]}"
+    )
     if (( level_index <= -1 )); then
-        bl.logging.critical \
+        # NOTE: `bl.logging.critical` is not defined yet.
+        bl_logging_log \
+            critical \
             "Given logging level \"$level\" is not available, use one of:" \
             "${bl_logging_levels[*]} or warn."
         return 1
@@ -281,25 +286,21 @@ bl_logging_log() {
     shift
     if bl.logging.is_enabled "$level"; then
         bl.arguments.set "$@"
-        local no_new_line
-        bl.arguments.get_flag -n --no-new-line no_new_line
-        if $no_new_line; then
-            no_new_line='-n'
-        else
-            no_new_line=''
-        fi
+        local no_new_line_indicator
+        bl.arguments.get_flag -n --no-new-line no_new_line_indicator
         bl.arguments.apply_new
-        if [ "$level" = error ]; then
-            bl.logging.plain \
-                $no_new_line \
-                "$(bl_logging_get_prefix "$level")" \
-                "$@" \
+        if $no_new_line_indicator; then
+            if [ "$level" = error ]; then
+                bl.logging.plain -n "$(bl_logging_get_prefix "$level")" "$@" \
                     3>&4
+            else
+                bl.logging.plain -n "$(bl_logging_get_prefix "$level")" "$@"
+            fi
+        elif [ "$level" = error ]; then
+            bl.logging.plain "$(bl_logging_get_prefix "$level")" "$@" \
+                3>&4
         else
-            bl.logging.plain \
-                $no_new_line \
-                "$(bl_logging_get_prefix "$level")" \
-                "$@"
+            bl.logging.plain "$(bl_logging_get_prefix "$level")" "$@"
         fi
     fi
     $no_exception

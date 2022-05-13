@@ -7,7 +7,7 @@
 # -------
 
 # This library written by Torben Sickert stand under a creative commons naming
-# 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
+# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region import
@@ -202,6 +202,7 @@ declare -g bl_exception_active=false
 declare -g bl_exception_active_before_try=false
 declare -g bl_exception_last_traceback=''
 declare -g bl_exception_last_traceback_file_path=''
+declare -g bl_exception_supported=true
 declare -ig bl_exception_try_catch_level=0
 # endregion
 # region functions
@@ -238,9 +239,11 @@ bl_exception_check_context() {
         local test_context_pass=false
         set -o errtrace
         trap 'test_context_pass=true' ERR
+        # Trigger exception.
         false
-        $test_context_pass && \
+        if $test_context_pass; then
             exit 0
+        fi
         exit 1
     )
 }
@@ -265,14 +268,17 @@ bl_exception_activate() {
             # NOTE: We should call exception trap logic by hand in this case.
             bl_exception_error_handler true
             local -r message='Error: Context does not allow error traps.'
+            bl_exception_supported=false
             if [ -f "$bl_exception_last_traceback_file_path" ]; then
                 bl_exception_last_traceback="$(
                     cat "$bl_exception_last_traceback_file_path")"
                 rm "$bl_exception_last_traceback_file_path"
-                bl.logging.error_exception \
-                    "$message" \
-                    $'\n' \
-                    "$bl_exception_last_traceback"
+                bl.logging.warn "$message"
+                # NOTE: This would show where failing try catch error is.
+                # bl.logging.error_exception \
+                #     "$message" \
+                #     $'\n' \
+                #     "$bl_exception_last_traceback"
             else
                 bl.logging.error_exception "$message"
             fi
@@ -447,7 +453,7 @@ bl_exception_exit_try() {
             bl_exception_last_traceback="$(
                 cat "$bl_exception_last_traceback_file_path")"
             rm "$bl_exception_last_traceback_file_path"
-        else
+        elif $bl_exception_supported; then
             bl.logging.warn \
                 "Traceback file under \"$bl_exception_last_traceback_file_path\" is missing."
         fi
