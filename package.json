@@ -64,7 +64,7 @@
     "document:show:error": "./documentation.sh 1>/dev/null",
     "lint": "hash shellcheck && shellcheck -x *.sh || echo Please install \"shellcheck\". || true",
     "lint:given": "shellcheck -x",
-    "postversion": "yarn publish --non-interactive && git push --tags && git push",
+    "postversion": "yarn publish --non-interactive; git push --tags && git push",
     "report:coverage": "true",
     "test": "./doctest.sh --verbose",
     "update": "yarn version --patch",
