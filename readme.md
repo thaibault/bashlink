@@ -53,7 +53,7 @@ declare -gr moduleName_bashlink_path="$(
 )/bashlink/"
 mkdir "$moduleName_bashlink_path"
 if curl \
-    https://raw.githubusercontent.com/thaibault/bashlink/master/module.sh \
+    https://raw.githubusercontent.com/thaibault/bashlink/main/module.sh \
         >"${moduleName_bashlink_path}module.sh"
 then
     declare -gr bl_module_retrieve_remote_modules=true
@@ -82,7 +82,7 @@ else
     )/bashlink/"
     mkdir "$moduleName_bashlink_path"
     if curl \
-        https://raw.githubusercontent.com/thaibault/bashlink/master/module.sh \
+        https://raw.githubusercontent.com/thaibault/bashlink/main/module.sh \
             >"${moduleName_bashlink_path}module.sh"
     then
         declare -gr bl_module_retrieve_remote_modules=true
@@ -112,7 +112,7 @@ else
     )/bashlink/"
     mkdir "$moduleName_bashlink_path"
     if curl \
-        https://raw.githubusercontent.com/thaibault/bashlink/master/module.sh \
+        https://raw.githubusercontent.com/thaibault/bashlink/main/module.sh \
             >"${moduleName_bashlink_path}module.sh"
     then
         declare -gr bl_module_retrieve_remote_modules=true
