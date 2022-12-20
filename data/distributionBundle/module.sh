@@ -94,6 +94,7 @@ declare -ag bl_module_known_extensions=(
     .shell
 )
 declare -g bl_module_tidy_up=false
+declare -g bl_module_sync_before_resolve=false
 if $bl_module_retrieve_remote_modules && [[
     "${bl_module_remote_module_cache_path:-}" = ''
 ]]; then
@@ -633,6 +634,7 @@ bl_module_resolve() {
         echo -n "$cached_result"
         return 0
     fi
+
     local name="$1"
     local caller_path
     bl_module_declared_function_names_after_source=''
@@ -649,6 +651,7 @@ bl_module_resolve() {
     local -r initial_caller_path="$(dirname "$(
         bl.path.convert_to_absolute "${BASH_SOURCE[-1]}"
     )")"
+
     local -r execution_path="$(pwd)"
     local file_path=''
     while true; do
@@ -693,21 +696,25 @@ bl_module_resolve() {
                     break
                 fi
             fi
+
             # Try to find module in this library or this whole library itself.
             if [ -e "${current_path}/${name}${extension}" ]; then
                 file_path="${current_path}/${name}${extension}"
                 break
             fi
+
             if $bl_module_retrieve_remote_modules; then
                 local path_candidate="$(dirname "${BASH_SOURCE[0]}")/${name#bashlink.}${extension}"
                 if [ "${name#bashlink.}" = "$name" ]; then
                     path_candidate="${bl_module_remote_module_cache_path}/${name}${extension}"
                 fi
+
                 # Try if already downloaded remote module exists.
                 if [ -e "$path_candidate" ]; then
                     file_path="$path_candidate"
                     break
                 fi
+
                 # Try to download needed module.
                 local url
                 for url in "${bl_module_known_remote_urls[@]}"; do
@@ -733,6 +740,7 @@ bl_module_resolve() {
                 extension_pattern+="$extension|"
             done
             extension_pattern+=')'
+
             # shellcheck disable=SC1117
             local new_name="$(
                 echo "$name" | \
@@ -748,6 +756,7 @@ bl_module_resolve() {
             break
         fi
     done
+
     if [ "$file_path" = '' ]; then
         bl.module.log \
             error_exception \
@@ -758,6 +767,7 @@ bl_module_resolve() {
                 return $?
     fi
     file_path="$(bl.path.convert_to_absolute "$file_path")"
+
     local result
     if [ "$2" = true ]; then
         local scope_name="$(basename "$1")"
@@ -773,13 +783,18 @@ bl_module_resolve() {
     else
         result="$(bl.path.convert_to_absolute "$file_path")"
     fi
+
     echo "$1##$2##$3##$result" >>"$bl_module_name_resolving_cache_file_path"
     chmod o+rw "$bl_module_name_resolving_cache_file_path" &>/dev/null
     sort \
         --output \
         "$bl_module_name_resolving_cache_file_path" \
         "$bl_module_name_resolving_cache_file_path"
-    sync
+
+    if $bl_module_sync_before_resolve; then
+        sync
+    fi
+
     echo -n "$result"
 }
 alias bl.module.remove_known_file_extension=bl_module_remove_known_file_extension
