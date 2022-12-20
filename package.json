@@ -39,7 +39,6 @@
     "filesystem.sh",
     "globals.sh",
     "logging.sh",
-    "mockup",
     "number.sh",
     "pacman.sh",
     "path.sh",
