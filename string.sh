@@ -158,9 +158,9 @@ bl_string_make_command_promt_prefix() {
         git_branch="(${bl_cli_color_masked_light_gray}git${bl_cli_color_masked_default})-(${bl_cli_color_masked_cyan}${git_branch}${bl_cli_color_masked_default})"
     fi
 
-    local user_name
+    local user_name="$bl_cli_color_masked_blue"
     if (( "$(id --user)" == 0 )); then
-        user_name="${bl_cli_color_masked_red}"
+        user_name="$bl_cli_color_masked_red"
     fi
     # shellcheck disable=SC1117
     user_name+="\u$bl_cli_color_masked_default"
