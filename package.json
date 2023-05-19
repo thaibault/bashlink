@@ -61,7 +61,7 @@
     "document": "mkdir --parents apiDocumentation/bashlink/latest && yarn document:show 1>apiDocumentation/bashlink/latest/index.html",
     "document:show": "./documentation.sh",
     "document:show:error": "./documentation.sh 1>/dev/null",
-    "lint": "hash shellcheck && shellcheck -x *.sh || echo Please install \"shellcheck\". || true",
+    "lint": "! hash shellcheck && echo Please install \"shellcheck\". || shellcheck -x *.sh",
     "lint:given": "shellcheck -x",
     "postversion": "yarn publish --non-interactive; git push --tags && git push",
     "report:coverage": "true",

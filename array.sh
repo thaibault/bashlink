@@ -210,18 +210,18 @@ bl_array_slice() {
         [ -z "$end" ] && end=$array_length
         [ -z "$start" ] && start=0
         (( start < 0 )) && \
-            (( start = (( array_length + start )) ))
+            (( start = array_length + start ))
         (( end < 0 )) && \
-            (( end = (( array_length + end )) ))
+            (( end = array_length + end ))
     else
         start="$1"
         shift
         array_length="$#"
         (( start < 0 )) && \
-            (( start = (( array_length + start )) ))
-        (( end = (( start + 1 )) ))
+            (( start = array_length + start ))
+        (( end = start + 1 ))
     fi
-    (( length = (( end - start )) ))
+    (( length = end - start ))
     (( start < 0 )) && \
         return 1
     # check bounds
@@ -232,7 +232,7 @@ bl_array_slice() {
     (( start >= array_length )) && \
         return 1
     # parameters start with $1, so add 1 to $start
-    (( start = (( start + 1 )) ))
+    (( start = start + 1 ))
     echo "${@: $start:$length}"
 }
 alias bl.array.unique=bl_array_unique

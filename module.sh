@@ -808,7 +808,7 @@ bl_module_remove_known_file_extension() {
     local -r name="$1"
     local extension
     for extension in "${bl_module_known_extensions[@]}"; do
-        local result="${name%$extension}"
+        local result="${name%"$extension"}"
         if [[ "$name" != "$result" ]]; then
             echo "$result"
             return 0

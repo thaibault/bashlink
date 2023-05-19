@@ -241,7 +241,7 @@ bl_string_merge_text_files() {
                 --only-matching)"
     local -i index=0
     local file_path
-    for file_path in ${file_paths[*]}; do
+    for file_path in "${file_paths[@]}"; do
         if (( index > 0 )); then
             # shellcheck disable=SC2059
             printf "$between" "$file_path"

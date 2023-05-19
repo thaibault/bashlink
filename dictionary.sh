@@ -113,7 +113,7 @@ bl_dictionary_get_keys() {
                     command grep --extended-regexp "^$store" | \
                         cut --delimiter '=' --fields 1
         ); do
-            echo "${key#${store}_}"
+            echo "${key#"${store}_"}"
         done
     else
         eval 'keys="${!'"$store"'[@]}"'
