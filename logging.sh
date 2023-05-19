@@ -788,9 +788,12 @@ bl_logging_set_file() {
         >>> bl.logging.plain test
         >>> echo test
         >>> bl.logging.set_file_descriptors
+        >>> echo "$test_file_path"
         >>> bl.logging.cat "$test_file_path"
+        +bl.doctest.ellipsis
         test
         test
+        ...
         test
         test
     '
