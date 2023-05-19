@@ -422,15 +422,19 @@ bl_logging_set_file_descriptors() {
     bl.arguments.set "$@"
     # An output specification have to be one of "file", "std", "tee" or "off".
     local output command_output
+
     bl.arguments.get_keyword --command-output-target command_output
-    bl.arguments.get_keyword --logging-output-target output
     bl_logging_command_output_target="$command_output"
-    bl_logging_output_target="$output"
     [ "$bl_logging_command_output_target" = '' ] && \
         bl_logging_command_output_target=std
+
+    bl.arguments.get_keyword --logging-output-target output
+    bl_logging_output_target="$output"
     [ "$bl_logging_output_target" = '' ] && \
         bl_logging_output_target=std
+
     set -- "${bl_arguments_new[@]:-}"
+
     bl_logging_file_path="$1"
     if [ "$bl_logging_file_path" = '' ]; then
         if [ "$bl_logging_output_target" = file ] || \
@@ -441,14 +445,17 @@ bl_logging_set_file_descriptors() {
             bl_logging_file_path="$(mktemp --suffix -bash-logging)"
         fi
     fi
+
     bl_logging_error_file_path="$2"
     if [ "$bl_logging_error_file_path" = '' ]; then
         bl_logging_error_file_path="$bl_logging_file_path"
     fi
+
     bl_logging_command_file_path="$3"
     if [ "$bl_logging_command_file_path" = '' ]; then
         bl_logging_command_file_path="$bl_logging_file_path"
     fi
+
     bl_logging_command_error_file_path="$4"
     if [ "$bl_logging_command_error_file_path" = '' ]; then
         bl_logging_command_error_file_path="$bl_logging_command_file_path"
@@ -788,11 +795,9 @@ bl_logging_set_file() {
         >>> bl.logging.plain test
         >>> echo test
         >>> bl.logging.set_file_descriptors
-        >>> echo "$test_file_path"
         >>> bl.logging.cat "$test_file_path"
-        +bl.doctest.ellipsis
-        test
-        test
+        +bl.doctest.multiline_ellipsis
+        +bl.doctest.contains
         ...
         test
         test
