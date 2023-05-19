@@ -74,8 +74,10 @@ bl_ui_dialog() {
         # shellcheck disable=SC2086,SC2154
         return $bl_exception_return_code
     }
+    # shellcheck disable=SC2317
     rm --force "$output_buffer_file_path"
-    return $return_code
+    # shellcheck disable=SC2317
+    return "$return_code"
 }
 alias bl.ui.input_password=bl_ui_input_password
 bl_ui_input_password() {
