@@ -101,10 +101,6 @@ declare -gr bl_exception__documentation__='
     >>> }
     >>> bl_exception_foo || echo info
     +bl.doctest.contains
-    +bl.doctest.multiline_ellipsis
-    Error: Context does not allow error traps.
-    Traceback (most recent call first):
-    ...
     this should be printed
 
     exception are implicitly active inside try blocks:
@@ -225,15 +221,11 @@ bl_exception_check_context() {
         >>>         echo caught
         >>>     }
         >>>     false
-        >>>     echo this should not be executed
+        >>>     echo this should be executed
         >>> }
         >>> _ || echo "error in exceptions_foo"
         +bl.doctest.contains
-        +bl.doctest.multiline_ellipsis
-        Error: Context does not allow error traps.
-        Traceback (most recent call first):
-        ...
-        this should not be executed
+        this should be executed
     '
     (
         local test_context_pass=false

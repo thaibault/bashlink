@@ -82,13 +82,13 @@ bl_dictionary_get_keys() {
         ```
 
         >>> bl.dictionary.set map foo "a b c" bar 5
-        >>> bl.dictionary.get_keys map
+        >>> bl.dictionary.get_keys map | sort --unique
         bar
         foo
 
         >>> bl.dictionary.set map foo "a b c" bar 5
         >>> local key
-        >>> for key in $(bl.dictionary.get_keys map); do
+        >>> for key in $(bl.dictionary.get_keys map | sort --unique); do
         >>>     echo "$key": "$(bl.dictionary.get map "$key")"
         >>> done
         bar: 5
@@ -96,7 +96,7 @@ bl_dictionary_get_keys() {
 
         >>> bl_dictionary_bash_version_test=true
         >>> bl.dictionary.set map foo "a b c" bar 5
-        >>> bl.dictionary.get_keys map | sort -u
+        >>> bl.dictionary.get_keys map | sort --unique
         bar
         foo
     '
