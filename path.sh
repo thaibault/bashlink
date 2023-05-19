@@ -189,7 +189,7 @@ bl_path_convert_to_relative() {
     fi
     local common_part="$source"
     local result=''
-    while [ "${target#$common_part}" = "${target}" ]; do
+    while [ "${target#"$common_part"}" = "${target}" ]; do
         # no match, means that candidate common part is not correct
         # go up one level (reduce common part)
         common_part="$(dirname "$common_part")"
@@ -206,7 +206,7 @@ bl_path_convert_to_relative() {
     fi
     # since we now have identified the common part,
     # compute the non-common part
-    local -r forward_part="${target#$common_part}"
+    local -r forward_part="${target#"$common_part"}"
     # and now stick all parts together
     if [[ "$result" != '' ]] && [[ "$forward_part" != '' ]]; then
         result="${result}${forward_part}"
@@ -312,8 +312,9 @@ bl_path_pack() {
                 command="qemu-img convert -f raw -O qcow2 '$source_path' '$1'"
                 ;;
             *)
+                local -r result=$?
                 echo "Cannot pack \"$1\" (to \"$source_path\")."
-                return $?
+                return $result
         esac
         if [ "$command" ]; then
             echo Running: \""$command"\".

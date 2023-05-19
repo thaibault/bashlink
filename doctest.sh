@@ -707,7 +707,7 @@ bl_doctest_parse_docstring() {
                     [ -n "$text_buffer" ] && \
                         bl_doctest_eval_buffers
                     $preserve_prompt && temp_prompt="$prompt" && prompt=""
-                    test_buffer="${line#$prompt}"
+                    test_buffer="${line#"$prompt"}"
                     $preserve_prompt && prompt="$temp_prompt"
                 # check if start of text
                 elif [ -z "$text_buffer" ]; then
@@ -727,9 +727,9 @@ bl_doctest_parse_docstring() {
                     $preserve_prompt && temp_prompt="$prompt" && prompt=""
                     # check if start of test
                     if [ -z "$test_buffer" ]; then
-                        test_buffer="${line#$prompt}"
+                        test_buffer="${line#"$prompt"}"
                     else
-                        test_buffer+=$'\n'"${line#$prompt}"
+                        test_buffer+=$'\n'"${line#"$prompt"}"
                     fi
                     $preserve_prompt && prompt="$temp_prompt"
                 else
@@ -750,9 +750,9 @@ bl_doctest_parse_docstring() {
                         return 1
                     $preserve_prompt && temp_prompt="$prompt" && prompt=""
                     if [ "$test_buffer" = '' ]; then
-                        test_buffer="${line#$prompt}"
+                        test_buffer="${line#"$prompt"}"
                     else
-                        test_buffer+=$'\n'"${line#$prompt}"
+                        test_buffer+=$'\n'"${line#"$prompt"}"
                     fi
                     $preserve_prompt && \
                         prompt="$temp_prompt"

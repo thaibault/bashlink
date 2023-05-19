@@ -291,15 +291,15 @@ bl_filesystem_btrfs_subvolume_set_read_only() {
         read_only=true
     # if setting to writable set top volume first
     $read_only || \
-        btrfs property set -ts "$volume" ro $read_only
+        btrfs property set -ts "$volume" ro "$read_only"
     local child
     bl.filesystem.btrfs_get_child_volumes "$volume" | \
         while read -r child; do
-            btrfs property set -ts "$child" ro $read_only
+            btrfs property set -ts "$child" ro "$read_only"
         done
     # if setting to read_only set top volume last
     if $read_only; then
-        btrfs property set -ts "$volume" ro $read_only
+        btrfs property set -ts "$volume" ro "$read_only"
     fi
 }
 # NOTE: Depends on "bl.filesystem.btrfs_subvolume_set_read_only"

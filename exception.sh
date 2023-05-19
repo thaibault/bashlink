@@ -391,6 +391,7 @@ bl_exception_enter_try() {
 }
 alias bl.exception.error_handler=bl_exception_error_handler
 bl_exception_error_handler() {
+    # shellcheck disable=SC2319
     local -ir error_code=$?
     local -r __documentation__='
         Error handler for captured exceptions.
