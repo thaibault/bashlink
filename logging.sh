@@ -800,7 +800,6 @@ bl_logging_set_file() {
         +bl.doctest.contains
         ...
         test
-        test
     '
     bl.logging.set_file_descriptors \
         "$1" "$2" "$3" "$4" \
