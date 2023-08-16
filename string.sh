@@ -140,6 +140,12 @@ bl_string_make_command_promt_prefix() {
         error_promt="${bl_cli_color_masked_green}>${bl_cli_color_masked_default}"
     fi
 
+    local system_load_average="$(
+        uptime | \
+            command grep --extended-regexp --only-matching \
+                '[0-9]{1,2}[.,][0-9]{1,2}' | \
+                    head --lines 1)"
+
     # shellcheck disable=SC1117
     local git_branch="$(
         git branch 2>/dev/null | \
@@ -171,14 +177,14 @@ bl_string_make_command_promt_prefix() {
         title_bar="\[\e]0;\u@\h:$(pwd)\a\]"
     fi
 
-    local system_load_average="$(
-        uptime | \
-            command grep --extended-regexp --only-matching \
-                '[0-9]{1,2}[.,][0-9]{1,2}' | \
-                    head --lines 1)"
+    local -r username="${bl_cli_color_masked_cyan}${user_name}${bl_cli_color_masked_light_gray}"
+    local -r usergroupname="${bl_cli_color_masked_cyan}\h${bl_cli_color_masked_default}"
+    local -r systemload="${bl_cli_color_masked_magenta}${system_load_average}${bl_cli_color_masked_default}"
+    local -r working_path="${bl_cli_color_masked_light_gray}\w${bl_cli_color_masked_default}"
+    local -r suffix="${bl_cli_color_masked_dark_gray}> ${bl_cli_color_masked_default}"
 
     # shellcheck disable=SC1117
-    export PS1="${title_bar}${error_promt} ${bl_cli_color_masked_cyan}${user_name}${bl_cli_color_masked_light_gray}@${bl_cli_color_masked_cyan}\h${bl_cli_color_masked_default} (${bl_cli_color_masked_magenta}${system_load_average}${bl_cli_color_masked_default}) ${bl_cli_color_masked_light_gray}\w${bl_cli_color_masked_default}\n${git_branch}${bl_cli_color_masked_dark_gray}> ${bl_cli_color_masked_default}"
+    export PS1="${title_bar}${error_promt} ${username}@${usergroupname} (${systemload}) ${working_path}\n${git_branch}${suffix}"
 }
 alias bl.string.merge_text_files=bl_string_merge_text_files
 bl_string_merge_text_files() {
