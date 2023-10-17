@@ -13,13 +13,13 @@ endregion -->
 Project status
 --------------
 
-[![npm](https://img.shields.io/npm/v/bashlink?color=%23d55e5d&label=npm%20package%20version&logoColor=%23d55e5d)](https://www.npmjs.com/package/bashlink)
-[![npm downloads](https://img.shields.io/npm/dy/bashlink.svg)](https://www.npmjs.com/package/bashlink)
+[![npm](https://img.shields.io/npm/v/bashlink?color=%23d55e5d&label=npm%20package%20version&logoColor=%23d55e5d&style=for-the-badge)](https://www.npmjs.com/package/bashlink)
+[![npm downloads](https://img.shields.io/npm/dy/bashlink.svg?style=for-the-badge)](https://www.npmjs.com/package/bashlink)
 
-[![<LABEL>](https://github.com/thaibault/bashlink/actions/workflows/lint.yaml/badge.svg)](https://github.com/thaibault/bashlink/actions/workflows/lint.yaml)
-[![<LABEL>](https://github.com/thaibault/bashlink/actions/workflows/test.yaml/badge.svg)](https://github.com/thaibault/bashlink/actions/workflows/test.yaml)
+[![lint](https://img.shields.io/github/actions/workflow/status/thaibault/bashlink/lint.yaml?label=lint&style=for-the-badge)](https://github.com/thaibault/bashlink/actions/workflows/lint.yaml)
+[![test](https://img.shields.io/github/actions/workflow/status/thaibault/bashlink/test-coverage-report.yaml?label=test&style=for-the-badge)](https://github.com/thaibault/bashlink/actions/workflows/test-coverage-report.yaml)
 
-[![documentation website](https://img.shields.io/website-up-down-green-red/http/torben.website/bashlink.svg?label=documentation-website)](https://torben.website/bashlink)
+[![documentation website](https://img.shields.io/website-up-down-green-red/https/torben.website/bashlink.svg?label=documentation-website&style=for-the-badge)](https://torben.website/bashlink)
 
 Use case
 --------
