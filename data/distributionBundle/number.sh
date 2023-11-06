@@ -88,7 +88,7 @@ bl_number_normalize_version() {
             bl.logging.warn \
                 "Loosing information due to small number representation in version normalizing of \"$1\" with \"$initial_point\"."
         else
-            (( result += (( item * (( 10 ** point )) )) ))
+            (( result += item * 10 ** point ))
             (( point -= 1 ))
         fi
     done

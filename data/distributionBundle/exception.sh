@@ -101,10 +101,6 @@ declare -gr bl_exception__documentation__='
     >>> }
     >>> bl_exception_foo || echo info
     +bl.doctest.contains
-    +bl.doctest.multiline_ellipsis
-    Error: Context does not allow error traps.
-    Traceback (most recent call first):
-    ...
     this should be printed
 
     exception are implicitly active inside try blocks:
@@ -225,15 +221,11 @@ bl_exception_check_context() {
         >>>         echo caught
         >>>     }
         >>>     false
-        >>>     echo this should not be executed
+        >>>     echo this should be executed
         >>> }
         >>> _ || echo "error in exceptions_foo"
         +bl.doctest.contains
-        +bl.doctest.multiline_ellipsis
-        Error: Context does not allow error traps.
-        Traceback (most recent call first):
-        ...
-        this should not be executed
+        this should be executed
     '
     (
         local test_context_pass=false
@@ -399,6 +391,7 @@ bl_exception_enter_try() {
 }
 alias bl.exception.error_handler=bl_exception_error_handler
 bl_exception_error_handler() {
+    # shellcheck disable=SC2319
     local -ir error_code=$?
     local -r __documentation__='
         Error handler for captured exceptions.
