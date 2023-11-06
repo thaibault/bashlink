@@ -84,7 +84,7 @@ bl_pacman_show_not_maintained_by_pacman_system_files() {
     rm "$paths_file_path"
     rm "$maintained_paths_file_path"
     local -i number_of_not_maintained_files
-    (( number_of_not_maintained_files=(( number_of_files - number_of_maintained_files )) ))
+    (( number_of_not_maintained_files = number_of_files - number_of_maintained_files ))
     # shellcheck disable=SC2086
     bl.logging.cat << EOF
 

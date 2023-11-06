@@ -24,27 +24,31 @@ declare -gr bl_dependency__documentation__='
 # region functions
 alias bl.dependency.check=bl_dependency_check
 bl_dependency_check() {
-    local -r __documentation__='
+    local __documentation__='
         This function check if all given dependencies are present.
-
-        >>> bl.dependency.check mkdir ls; echo $?
-        0
-        >>> bl.dependency.check mkdir __not_existing__ 1>/dev/null; echo $?
-        2
-        >>> bl.dependency.check __not_existing__ 1>/dev/null; echo $?
-        2
-        >>> bl.dependency.check ls __not_existing__; echo $?
-        __not_existing__
-        2
-        >>> bl.dependency.check "ls __not_existing__"; echo $?
-        ls __not_existing__
-        2
     '
-    if ! hash &>/dev/null; then
+    if hash &>/dev/null; then
+        __documentation__+='
+            >>> bl.dependency.check mkdir ls; echo $?
+            0
+            >>> bl.dependency.check mkdir __not_existing__ 1>/dev/null; echo $?
+            2
+            >>> bl.dependency.check __not_existing__ 1>/dev/null; echo $?
+            2
+            >>> bl.dependency.check ls __not_existing__; echo $?
+            __not_existing__
+            2
+            >>> bl.dependency.check "ls __not_existing__"; echo $?
+            ls __not_existing__
+            2
+        '
+    else
         bl.logging.error \
             'Missing dependency "hash" to check for available executables.'
+
         return 1
     fi
+
     local -i return_code=0
     local dependency
     for dependency in "$@"; do
@@ -53,25 +57,30 @@ bl_dependency_check() {
             echo "$dependency"
         fi
     done
+
     return $return_code
 }
 alias bl.dependency.check_pkgconfig=bl_dependency_check_pkgconfig
 bl_dependency_check_pkgconfig() {
-    local -r __documentation__='
+    local __documentation__='
         This function check if all given libraries can be found.
-
-        >>> bl.dependency.check_shared_library libc.so; echo $?
-        0
-        >>> bl.dependency.check_shared_library libc.so __not_existing__ 1>/dev/null; echo $?
-        2
-        >>> bl.dependency.check_shared_library __not_existing__ 1>/dev/null; echo $?
-        2
     '
-    if ! bl.dependency.check pkg-config &>/dev/null; then
+    if bl.dependency.check pkg-config &>/dev/null; then
+        __documentation__+='
+            >>> bl.dependency.check_shared_library libc.so; echo $?
+            0
+            >>> bl.dependency.check_shared_library libc.so __not_existing__ 1>/dev/null; echo $?
+            2
+            >>> bl.dependency.check_shared_library __not_existing__ 1>/dev/null; echo $?
+            2
+        '
+    else
         bl.logging.error \
             'Missing dependency "pkg-config" to check for packages.'
+
         return 1
     fi
+
     local -i return_code=0
     local library
     for library in "$@"; do
@@ -80,25 +89,30 @@ bl_dependency_check_pkgconfig() {
             echo "$library"
         fi
     done
+
     return $return_code
 }
 alias bl.dependency.check_shared_library=bl_dependency_check_shared_library
 bl_dependency_check_shared_library() {
-    local -r __documentation__='
+    local __documentation__='
         This function check if all given shared libraries can be found.
-
-        >>> bl.dependency.check_shared_library libc.so; echo $?
-        0
-        >>> bl.dependency.check_shared_library libc.so __not_existing__ 1>/dev/null; echo $?
-        2
-        >>> bl.dependency.check_shared_library __not_existing__ 1>/dev/null; echo $?
-        2
     '
-    if ! bl.dependency.check ldconfig &>/dev/null; then
+    if bl.dependency.check ldconfig &>/dev/null; then
+        __documentation__+='
+            >>> bl.dependency.check_shared_library libc.so; echo $?
+            0
+            >>> bl.dependency.check_shared_library libc.so __not_existing__ 1>/dev/null; echo $?
+            2
+            >>> bl.dependency.check_shared_library __not_existing__ 1>/dev/null; echo $?
+            2
+        '
+    else
         bl.logging.error \
             Missing dependency \"ldconfig\" to check for shared libraries.
+
         return 1
     fi
+
     local -i return_code=0
     local pattern
     for pattern in "$@"; do
@@ -109,6 +123,7 @@ bl_dependency_check_shared_library() {
             echo "$pattern"
         fi
     done
+
     return $return_code
 }
 # TODO remove redundant artefacts.

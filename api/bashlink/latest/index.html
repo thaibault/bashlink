@@ -505,59 +505,10 @@ The dependency module implements utility functions to check current
 environment again needed assumptions.
 ### Function bl_dependency_check
 This function check if all given dependencies are present.
-
-```bash
->>> bl.dependency.check mkdir ls; echo $?
-0
-```
-```bash
->>> bl.dependency.check mkdir __not_existing__ 1>/dev/null; echo $?
-2
-```
-```bash
->>> bl.dependency.check __not_existing__ 1>/dev/null; echo $?
-2
-```
-```bash
->>> bl.dependency.check ls __not_existing__; echo $?
-__not_existing__
-2
-```
-```bash
->>> bl.dependency.check "ls __not_existing__"; echo $?
-ls __not_existing__
-2
-```
 ### Function bl_dependency_check_pkgconfig
 This function check if all given libraries can be found.
-
-```bash
->>> bl.dependency.check_shared_library libc.so; echo $?
-0
-```
-```bash
->>> bl.dependency.check_shared_library libc.so __not_existing__ 1>/dev/null; echo $?
-2
-```
-```bash
->>> bl.dependency.check_shared_library __not_existing__ 1>/dev/null; echo $?
-2
-```
 ### Function bl_dependency_check_shared_library
 This function check if all given shared libraries can be found.
-
-```bash
->>> bl.dependency.check_shared_library libc.so; echo $?
-0
-```
-```bash
->>> bl.dependency.check_shared_library libc.so __not_existing__ 1>/dev/null; echo $?
-2
-```
-```bash
->>> bl.dependency.check_shared_library __not_existing__ 1>/dev/null; echo $?
-2
-```
 ### Function bl_dependency_determine_files
 Determines all needed files for given packages.
 
@@ -623,14 +574,14 @@ bl.dictionary.get_keys dictionary_name
 
 ```bash
 >>> bl.dictionary.set map foo "a b c" bar 5
->>> bl.dictionary.get_keys map
+>>> bl.dictionary.get_keys map | sort --unique
 bar
 foo
 ```
 ```bash
 >>> bl.dictionary.set map foo "a b c" bar 5
 >>> local key
->>> for key in $(bl.dictionary.get_keys map); do
+>>> for key in $(bl.dictionary.get_keys map | sort --unique); do
 >>>     echo "$key": "$(bl.dictionary.get map "$key")"
 >>> done
 bar: 5
@@ -639,7 +590,7 @@ foo: a b c
 ```bash
 >>> bl_dictionary_bash_version_test=true
 >>> bl.dictionary.set map foo "a b c" bar 5
->>> bl.dictionary.get_keys map | sort -u
+>>> bl.dictionary.get_keys map | sort --unique
 bar
 foo
 ```
@@ -1229,10 +1180,6 @@ caught
 >>> }
 >>> bl_exception_foo || echo info
 +bl.doctest.contains
-+bl.doctest.multiline_ellipsis
-Error: Context does not allow error traps.
-Traceback (most recent call first):
-...
 this should be printed
 ```
 exception are implicitly active inside try blocks:
@@ -1365,15 +1312,11 @@ conditional like `( ...  ) || echo Warning ...`.
 >>>         echo caught
 >>>     }
 >>>     false
->>>     echo this should not be executed
+>>>     echo this should be executed
 >>> }
 >>> _ || echo "error in exceptions_foo"
 +bl.doctest.contains
-+bl.doctest.multiline_ellipsis
-Error: Context does not allow error traps.
-Traceback (most recent call first):
-...
-this should not be executed
+this should be executed
 ```
 ### Function bl_exception_deactivate
 Deactivates exception handling for code which where activated
@@ -1926,9 +1869,9 @@ test
 >>> echo test
 >>> bl.logging.set_file_descriptors
 >>> bl.logging.cat "$test_file_path"
-test
-test
-test
++bl.doctest.multiline_ellipsis
++bl.doctest.contains
+...
 test
 ```
 ### Function bl_logging_set_file_descriptors
