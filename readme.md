@@ -17,7 +17,7 @@ Project status
 [![npm downloads](https://img.shields.io/npm/dy/bashlink.svg?style=for-the-badge)](https://www.npmjs.com/package/bashlink)
 
 [![lint](https://img.shields.io/github/actions/workflow/status/thaibault/bashlink/lint.yaml?label=lint&style=for-the-badge)](https://github.com/thaibault/bashlink/actions/workflows/lint.yaml)
-[![test](https://img.shields.io/github/actions/workflow/status/thaibault/bashlink/test-coverage-report.yaml?label=test&style=for-the-badge)](https://github.com/thaibault/bashlink/actions/workflows/test-coverage-report.yaml)
+[![test](https://img.shields.io/github/actions/workflow/status/thaibault/bashlink/test.yaml?label=test&style=for-the-badge)](https://github.com/thaibault/bashlink/actions/workflows/test.yaml)
 
 [![documentation website](https://img.shields.io/website-up-down-green-red/https/torben.website/bashlink.svg?label=documentation-website&style=for-the-badge)](https://torben.website/bashlink)
 
