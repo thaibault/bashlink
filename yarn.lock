@@ -138,9 +138,9 @@ detect-node@^2.0.4:
   integrity sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g==
 
 documentation-website@*:
-  version "1.0.315"
-  resolved "https://registry.yarnpkg.com/documentation-website/-/documentation-website-1.0.315.tgz#a4350e6b119e01547a12ead2775a40fc335ac07b"
-  integrity sha512-IEiXSgtJXvVl5NsYnYBZNWqBWCgcQvAP64hhbyEMGN6T1iiBn6+Chm8KZH3UGb5KzgVy5HyUpVF8UGr1haZQbw==
+  version "1.0.319"
+  resolved "https://registry.yarnpkg.com/documentation-website/-/documentation-website-1.0.319.tgz#ce4c23cc0c39d91ab88c5e91b2f2ca72cb6999f2"
+  integrity sha512-mdKzZNxun31LsCSt0ymdpJShrQfcfIeYVmeYCIGWndxyOIOpA1A7aLa1gSn/YlkOQP7KBByMjdT1BviTJSfzBA==
 
 end-of-stream@^1.0.0:
   version "1.4.4"
