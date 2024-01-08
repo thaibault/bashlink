@@ -1,393 +1,3 @@
-  if [ "$1" = create ]; then
-        action=create
-        shift
-    elif [ "$1" = delete ]; then
-        action=delete
-        shift
-    elif [ "$1" = list ]; then
-        target=/
-        shift
-    fi
-    if [[ "$1" != '' ]]; then
-        target="$1"
-        shift
-    fi
-
-    sudo umount /mnt &>/dev/null
-    if [ "$action" = create ]; then
-        sudo mount "$target" /mnt
-        local -r timestamp="$(date +"%d:%m:%y:%T")"
-        sudo btrfs subvolume snapshot /mnt/root "/mnt/rootBackup${timestamp}"
-        # NOTE: Autocompletion should be done by sudo. Not bash as user.
-        sudo bash -c "cp --recursive /boot/* \"/mnt/rootBackup${timestamp}/boot/\""
-        sudo umount /mnt
-    elif [ "$action" = delete ]; then
-        if [ "$1" = '' ]; then
-            bl.logging.error Missing given subvolume name to delete.
-        fi
-        sudo mount "$target" /mnt
-        sudo btrfs subvolume delete "/mnt/$(basename "$1")"
-        sudo umount /mnt
-    elif [ "$action" = list ]; then
-        sudo btrfs subvolume list "$target"
-    else
-        bl.logging.cat << EOF
-bl.filesystem.btrfs_subvolume_backup create|delete|help|list [DEVICE|LOCATION] [SUBVOLUME_NAME]
-EOF
-    fi
-}
-alias bl.filesystem.btrfs_subvolume_backup_autocomplete=bl_filesystem_btrfs_subvolume_backup_autocomplete
-bl_filesystem_btrfs_subvolume_backup_autocomplete() {
-    local -r __documentation__='
-        Autocompletion function for `bl.filesystem.subvolume_backup`.
-    '
-    local -r last_complete_argument="${COMP_WORDS[${COMP_CWORD}-1]}"
-    local -r current_argument="${COMP_WORDS[-1]}"
-    if [[ $COMP_CWORD == 1 ]]; then
-        read -r -a COMPREPLY <<< "$(
-            compgen -W 'create delete list' -- "$current_argument")"
-    elif \
-        (( UID == 0 )) && \
-        (( COMP_CWORD == 2 )) && \
-        [ "$last_complete_argument" = delete ]
-    then
-        read -r -a COMPREPLY <<< "$(compgen -W "$(
-            bl.filesystem.btrfs_subvolume_backup list | \
-            cut --delimiter ' ' --field 9 | tr '\n' ' '
-        )" -- "$current_argument")"
-    fi
-    return 0
-}
-complete -F bl_filesystem_btrfs_subvolume_backup_autocomplete bl_filesystem_btrfs_subvolume_backup
-alias bl.filesystem.btrfs_subvolume_delete=bl_filesystem_btrfs_subvolume_delete
-bl_filesystem_btrfs_subvolume_delete() {
-    local -r __documentation__='
-        Delete a subvolume. Also deletes child subvolumes.
-
-        >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/backup_last; echo $?
-        0
-        >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/foo; echo $?
-        1
-    '
-    local -r volume="$1"
-    local child
-    bl.filesystem.btrfs_subvolume_set_read_only "$volume" false
-    bl.filesystem.btrfs_get_child_volumes "$volume" | \
-        while read -r child; do
-            btrfs subvolume delete "$child"
-        done
-    btrfs subvolume delete "$volume"
-}
-## endregion
-alias bl.filesystem.close_crypt_blockdevice=bl_filesystem_close_crypt_blockdevice
-bl_filesystem_close_crypt_blockdevice() {
-    local -r __documentation__='
-        Mounts encrypted blockdevices as analyseable blockdevice.
-
-        ```bash
-            bl.filesystem.close_crypt_blockdevice test
-        ```
-    '
-    sudo cryptsetup luksClose "$1"
-}
-alias bl.filesystem.create_partition_via_offset=bl_filesystem_create_partition_via_offset
-bl_filesystem_create_partition_via_offset() {
-    local -r __documentation__='
-        Creates a partition after given disk offset.
-    '
-    local -r device="$1"
-    local -r name_or_uuid="$2"
-    local -r loop_device="$(losetup --find)"
-    local -r sector_size="$(blockdev --getbsz "$device")"
-    # NOTE: partx's NAME field corresponds to partition labels
-    local -r partition_info=$(partx --raw --noheadings --output \
-        START,NAME,UUID,TYPE "$device" 2>/dev/null| command grep "$name_or_uuid")
-    local -r offset_sectors="$(
-        echo "$partition_info" | \
-            cut --delimiter ' ' --fields 1)"
-    if [ "$offset_sectors" = '' ]; then
-        bl.logging.error_exception \
-            "Could not find partition with label/uuid \"$name_or_uuid\" on device \"$device\""
-        return 1
-    fi
-    local offset_bytes="$(
-        echo | \
-            awk -v x="$offset_sectors" -v y="$sector_size" '{print x * y}')"
-    losetup --offset "$offset_bytes" "$loop_device" "$device"
-    echo "$loop_device"
-}
-alias bl.filesystem.find_block_device=bl_filesystem_find_block_device
-bl_filesystem_find_block_device() {
-    local -r __documentation__='
-        >>> bl.filesystem.find_block_device "boot_partition"
-        /dev/sdb1
-
-        >>> bl.filesystem.find_block_device "boot_partition" /dev/sda
-        /dev/sda2
-
-        >>> bl.filesystem.find_block_device "discoverable by blkid"
-        /dev/sda2
-
-        >>> bl.filesystem.find_block_device "_partition"
-        /dev/sdb1 /dev/sdb2
-
-        >>> bl.filesystem.find_block_device "not matching anything" || echo not found
-        not found
-
-        >>> bl.filesystem.find_block_device "" || echo not found
-        not found
-    '
-    local -r partition_pattern="$1"
-    local -r device="${2-}"
-    [ "$partition_pattern" = '' ] && \
-        return 1
-    bl_filesystem_find_block_device_simple() {
-        local device_info
-        # NOTE: We should ensure that we do not set an argument if the variable
-        # "$device" is empty or not set.
-        lsblk \
-            --noheadings \
-            --list \
-            --paths \
-            --output NAME,TYPE,LABEL,PARTLABEL,UUID,PARTUUID \
-            ${device:+"$device"} | \
-                sort --unique | \
-                    while read -r device_info; do
-                        local current_device
-                        current_device="$(
-                            echo "$device_info" | \
-                                cut --delimiter ' ' --fields 1)"
-                        if [[ "$device_info" = *"$partition_pattern"* ]]; then
-                            echo "$current_device"
-                        fi
-                    done
-    }
-    bl_filesystem_find_block_device_deep() {
-        local device_info
-        # NOTE: We should ensure that we do not set an argument if the variable
-        # "$device" is empty or not set.
-        lsblk \
-            --noheadings \
-            --list \
-            --paths \
-            --output NAME \
-            ${device:+"$device"} | \
-                sort --unique | \
-                    cut --delimiter ' ' --fields 1 | \
-                        while read -r current_device; do
-                            blkid --probe --output value "$current_device" | \
-                                while read -r device_info; do
-                                    if [[ "$device_info" = *"${partition_pattern}"* ]]; then
-                                        echo "$current_device"
-                                    fi
-                                done
-                        done
-    }
-    # NOTE: Using "mapfile -t" is not appreciate here, because needed process
-    # subsition wouldn't be supported by dash.
-    # shellcheck disable=SC2207
-    local -a candidates=($(bl_filesystem_find_block_device_simple))
-    if (( ${#candidates[@]} == 0 )); then
-        # shellcheck disable=SC2207
-        candidates=($(bl_filesystem_find_block_device_deep))
-    fi
-    (( ${#candidates[@]} == 0 )) && \
-        return 1
-    if (( ${#candidates[@]} != 1 )); then
-        echo "${candidates[@]}"
-        return 1
-    fi
-    echo "${candidates[0]}"
-}
-## region file links
-alias bl.filesystem.find_hardlinks=bl_filesystem_find_hardlinks
-bl_filesystem_find_hardlinks() {
-    local -r __documentation__='
-        Finds same files as given file (hardlinks).
-
-        ```bash
-            bl.filesystem.find_hardlinks /home/user/test.txt
-        ```
-    '
-    sudo command find / -samefile "$1" 2>/dev/null
-}
-alias bl.filesystem.show_symbolic_links=bl_filesystem_show_symbolic_links
-bl_filesystem_show_symbolic_links() {
-    local -r __documentation__='
-        Shows symbolic links in current directory if no argument is provided or
-        in given location and their subdirectories (recursive).
-
-        ```bash
-            bl.filesystem.show_symbolic_links
-        ```
-
-        ```bash
-            bl.filesystem.show_symbolic_links /home
-        ```
-    '
-    local element
-    command find "$1" -type l -print0 | while IFS= read -r -d '' element; do
-        bl.logging.plain "${element} -> "
-        readlink "$element"
-    done
-}
-## endregion
-alias bl.filesystem.make_crypt_blockdevice=bl_filesystem_make_crypt_blockdevice
-bl_filesystem_make_crypt_blockdevice() {
-    local -r __documentation__='
-        Creates encrypted blockdevices.
-
-        ```bash
-            bl.filesystem.make_crypt_blockdevice /dev/sda
-        ```
-    '
-    sudo cryptsetup \
-        -v \
-        --cipher aes-xts-plain64 \
-        --hash sha512 \
-        --iter-time 5000 \
-        --key-size 512 \
-        --use-random luksFormat \
-        "$@"
-}
-alias bl.filesystem.make_uefi_boot_entry=bl_filesystem_make_uefi_boot_entry
-bl_filesystem_make_uefi_boot_entry() {
-    # shellcheck disable=SC1004
-    local -r __documentation__='
-        Creates an uefi boot entry.
-
-        ```bash
-            bl.filesystem.make_uefi_boot_entry archLinux
-        ```
-
-        ```bash
-            bl.filesystem.make_uefi_boot_entry archLinuxFallback
-        ```
-
-        ```bash
-            bl.filesystem.make_uefi_boot_entry \
-                archLinuxLTSFallback \
-                vmlinuz-linux-lts
-        ```
-    '
-    local -r kernel_parameter_file_path="${bl_globals_configuration_path}linux/kernel/${1}CommandLine"
-    local kernel=vmlinuz-linux
-    if [[ "$2" ]]; then
-        kernel="$2"
-    fi
-    if [ -f "$kernel_parameter_file_path" ]; then
-        local command="sudo efibootmgr --verbose --create --disk /dev/sda --part 1 -l \"\\${kernel}\" --label \"$1\" --unicode \"$(cat "$kernel_parameter_file_path")\""
-        bl.logging.info "Create boot entry \"$1\" with command \"${command}\"."
-        eval "$command"
-        return $?
-    fi
-    bl.logging.error_exception \
-        "Error: file \"${kernel_parameter_file_path}\" doesn't exists."
-}
-alias bl.filesystem.open_crypt_blockdevice=bl_filesystem_open_crypt_blockdevice
-bl_filesystem_open_crypt_blockdevice() {
-    local -r __documentation__='
-        Mounts encrypted blockdevices as analyseable blockdevice.
-
-        ```bash
-            bl.filesystem.open_crypt_blockdevice /dev/sdb test
-        ```
-    '
-    sudo cryptsetup luksOpen "$@"
-}
-alias bl.filesystem.overlay_location=bl_filesystem_overlay_location
-bl_filesystem_overlay_location() {
-    local -r __documentation__='
-        Mounts an overlay over given location. This could be useful if we have a
-        read only system caused by physical reasons.
-
-        ```bash
-            bl.filesystem.overlay_location /usr/bin/
-        ```
-    '
-    mkdir --parents /tmp/overlayfsDifferences
-    mount --types overlayfs --options \
-        lowerdir="$1",upperdir='/tmp/overlayDifferences' overlayfs "$1"
-}
-alias bl.filesystem.repair=bl_filesystem_repair
-bl_filesystem_repair() {
-    local -r __documentation__='
-        Finds filesystem errors on linux based filesystem and repairs them.
-
-        ```bash
-            bl.filesystem.repair /dev/mmcblk0p2
-        ```
-    '
-    local target=/dev/mmcblk0
-    if [[ "$1" ]]; then
-        target="$1"
-    fi
-    sudo badblocks "$target"
-    sudo fsck -a "$target"
-}
-alias bl.filesystem.set_maximum_user_watches=bl_filesystem_set_maximum_user_watches
-bl_filesystem_set_maximum_user_watches() {
-    local -r __documentation__='
-        Sets the maximum number of concurrent allowed file observations via
-        inotify.
-
-        ```bash
-            bl.filesystem.set_maximum_user_watches 500000
-        ```
-    '
-    echo "$1" | \
-        sudo tee /proc/sys/fs/inotify/max_user_watches
-}
-alias bl.filesystem.write_blockdevice_to_image=bl_filesystem_write_blockdevice_to_image
-bl_filesystem_write_blockdevice_to_image() {
-    # shellcheck disable=SC1004
-    local -r __documentation__='
-        Writes a given backup from given blockdevice.
-
-        ```bash
-            bl.filesystem.write_blockdevice_to_image \
-                /dev/mmcblk0 \
-                /data/private/backup/image.img
-        ```
-    '
-    local source=/dev/mmcblk0
-    if [[ "$1" ]]; then
-        source="$1"
-    fi
-    local target="${bl_globals_data_path}private/backup/backup-sd-card.img"
-    if [[ "$2" ]]; then
-        target="$2"
-    fi
-    sudo dd bs=4M conv=fdatasync if="$source" of="$target" status=progress
-}
-alias bl.filesystem.write_image_to_blockdevice=bl_filesystem_write_image_to_blockdevice
-bl_filesystem_write_image_to_blockdevice() {
-    # shellcheck disable=SC1004
-    local -r __documentation__='
-        Writes a given image to given blockdevice.
-
-        ```bash
-            bl.filesystem.write_image_to_blockdevice \
-                /data/private/backup/image.img \
-                /dev/mmcblk0
-        ```
-    '
-    # shellcheck disable=SC2125
-    local source="${bl_globals_data_path}temp/image/"*.img
-    if [[ "$1" ]]; then
-        source="$1"
-    fi
-    local target=/dev/mmcblk0
-    if [[ "$2" ]]; then
-        target="$2"
-    fi
-    sudo dd bs=4M conv=fdatasync if="$source" of="$target" status=progress
-}
-# endregion
-# region vim modline
-# vim: set tabstop=4 shiftwidth=4 expandtab:
-# vim: foldmethod=marker foldmarker=region,endregion:
-# endregion
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 # region header
@@ -840,4 +450,393 @@ bl_filesystem_btrfs_subvolume_backup() {
     '
     local action=list
     local target=PARTLABEL=system
-  
+    if [ "$1" = create ]; then
+        action=create
+        shift
+    elif [ "$1" = delete ]; then
+        action=delete
+        shift
+    elif [ "$1" = list ]; then
+        target=/
+        shift
+    fi
+    if [[ "$1" != '' ]]; then
+        target="$1"
+        shift
+    fi
+
+    sudo umount /mnt &>/dev/null
+    if [ "$action" = create ]; then
+        sudo mount "$target" /mnt
+        local -r timestamp="$(date +"%d:%m:%y:%T")"
+        sudo btrfs subvolume snapshot /mnt/root "/mnt/rootBackup${timestamp}"
+        # NOTE: Autocompletion should be done by sudo. Not bash as user.
+        sudo bash -c "cp --recursive /boot/* \"/mnt/rootBackup${timestamp}/boot/\""
+        sudo umount /mnt
+    elif [ "$action" = delete ]; then
+        if [ "$1" = '' ]; then
+            bl.logging.error Missing given subvolume name to delete.
+        fi
+        sudo mount "$target" /mnt
+        sudo btrfs subvolume delete "/mnt/$(basename "$1")"
+        sudo umount /mnt
+    elif [ "$action" = list ]; then
+        sudo btrfs subvolume list "$target"
+    else
+        bl.logging.cat << EOF
+bl.filesystem.btrfs_subvolume_backup create|delete|help|list [DEVICE|LOCATION] [SUBVOLUME_NAME]
+EOF
+    fi
+}
+alias bl.filesystem.btrfs_subvolume_backup_autocomplete=bl_filesystem_btrfs_subvolume_backup_autocomplete
+bl_filesystem_btrfs_subvolume_backup_autocomplete() {
+    local -r __documentation__='
+        Autocompletion function for `bl.filesystem.subvolume_backup`.
+    '
+    local -r last_complete_argument="${COMP_WORDS[${COMP_CWORD}-1]}"
+    local -r current_argument="${COMP_WORDS[-1]}"
+    if [[ $COMP_CWORD == 1 ]]; then
+        read -r -a COMPREPLY <<< "$(
+            compgen -W 'create delete list' -- "$current_argument")"
+    elif \
+        (( UID == 0 )) && \
+        (( COMP_CWORD == 2 )) && \
+        [ "$last_complete_argument" = delete ]
+    then
+        read -r -a COMPREPLY <<< "$(compgen -W "$(
+            bl.filesystem.btrfs_subvolume_backup list | \
+            cut --delimiter ' ' --field 9 | tr '\n' ' '
+        )" -- "$current_argument")"
+    fi
+    return 0
+}
+complete -F bl_filesystem_btrfs_subvolume_backup_autocomplete bl_filesystem_btrfs_subvolume_backup
+alias bl.filesystem.btrfs_subvolume_delete=bl_filesystem_btrfs_subvolume_delete
+bl_filesystem_btrfs_subvolume_delete() {
+    local -r __documentation__='
+        Delete a subvolume. Also deletes child subvolumes.
+
+        >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/backup_last; echo $?
+        0
+        >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/foo; echo $?
+        1
+    '
+    local -r volume="$1"
+    local child
+    bl.filesystem.btrfs_subvolume_set_read_only "$volume" false
+    bl.filesystem.btrfs_get_child_volumes "$volume" | \
+        while read -r child; do
+            btrfs subvolume delete "$child"
+        done
+    btrfs subvolume delete "$volume"
+}
+## endregion
+alias bl.filesystem.close_crypt_blockdevice=bl_filesystem_close_crypt_blockdevice
+bl_filesystem_close_crypt_blockdevice() {
+    local -r __documentation__='
+        Mounts encrypted blockdevices as analyseable blockdevice.
+
+        ```bash
+            bl.filesystem.close_crypt_blockdevice test
+        ```
+    '
+    sudo cryptsetup luksClose "$1"
+}
+alias bl.filesystem.create_partition_via_offset=bl_filesystem_create_partition_via_offset
+bl_filesystem_create_partition_via_offset() {
+    local -r __documentation__='
+        Creates a partition after given disk offset.
+    '
+    local -r device="$1"
+    local -r name_or_uuid="$2"
+    local -r loop_device="$(losetup --find)"
+    local -r sector_size="$(blockdev --getbsz "$device")"
+    # NOTE: partx's NAME field corresponds to partition labels
+    local -r partition_info=$(partx --raw --noheadings --output \
+        START,NAME,UUID,TYPE "$device" 2>/dev/null| command grep "$name_or_uuid")
+    local -r offset_sectors="$(
+        echo "$partition_info" | \
+            cut --delimiter ' ' --fields 1)"
+    if [ "$offset_sectors" = '' ]; then
+        bl.logging.error_exception \
+            "Could not find partition with label/uuid \"$name_or_uuid\" on device \"$device\""
+        return 1
+    fi
+    local offset_bytes="$(
+        echo | \
+            awk -v x="$offset_sectors" -v y="$sector_size" '{print x * y}')"
+    losetup --offset "$offset_bytes" "$loop_device" "$device"
+    echo "$loop_device"
+}
+alias bl.filesystem.find_block_device=bl_filesystem_find_block_device
+bl_filesystem_find_block_device() {
+    local -r __documentation__='
+        >>> bl.filesystem.find_block_device "boot_partition"
+        /dev/sdb1
+
+        >>> bl.filesystem.find_block_device "boot_partition" /dev/sda
+        /dev/sda2
+
+        >>> bl.filesystem.find_block_device "discoverable by blkid"
+        /dev/sda2
+
+        >>> bl.filesystem.find_block_device "_partition"
+        /dev/sdb1 /dev/sdb2
+
+        >>> bl.filesystem.find_block_device "not matching anything" || echo not found
+        not found
+
+        >>> bl.filesystem.find_block_device "" || echo not found
+        not found
+    '
+    local -r partition_pattern="$1"
+    local -r device="${2-}"
+    [ "$partition_pattern" = '' ] && \
+        return 1
+    bl_filesystem_find_block_device_simple() {
+        local device_info
+        # NOTE: We should ensure that we do not set an argument if the variable
+        # "$device" is empty or not set.
+        lsblk \
+            --noheadings \
+            --list \
+            --paths \
+            --output NAME,TYPE,LABEL,PARTLABEL,UUID,PARTUUID \
+            ${device:+"$device"} | \
+                sort --unique | \
+                    while read -r device_info; do
+                        local current_device
+                        current_device="$(
+                            echo "$device_info" | \
+                                cut --delimiter ' ' --fields 1)"
+                        if [[ "$device_info" = *"$partition_pattern"* ]]; then
+                            echo "$current_device"
+                        fi
+                    done
+    }
+    bl_filesystem_find_block_device_deep() {
+        local device_info
+        # NOTE: We should ensure that we do not set an argument if the variable
+        # "$device" is empty or not set.
+        lsblk \
+            --noheadings \
+            --list \
+            --paths \
+            --output NAME \
+            ${device:+"$device"} | \
+                sort --unique | \
+                    cut --delimiter ' ' --fields 1 | \
+                        while read -r current_device; do
+                            blkid --probe --output value "$current_device" | \
+                                while read -r device_info; do
+                                    if [[ "$device_info" = *"${partition_pattern}"* ]]; then
+                                        echo "$current_device"
+                                    fi
+                                done
+                        done
+    }
+    # NOTE: Using "mapfile -t" is not appreciate here, because needed process
+    # subsition wouldn't be supported by dash.
+    # shellcheck disable=SC2207
+    local -a candidates=($(bl_filesystem_find_block_device_simple))
+    if (( ${#candidates[@]} == 0 )); then
+        # shellcheck disable=SC2207
+        candidates=($(bl_filesystem_find_block_device_deep))
+    fi
+    (( ${#candidates[@]} == 0 )) && \
+        return 1
+    if (( ${#candidates[@]} != 1 )); then
+        echo "${candidates[@]}"
+        return 1
+    fi
+    echo "${candidates[0]}"
+}
+## region file links
+alias bl.filesystem.find_hardlinks=bl_filesystem_find_hardlinks
+bl_filesystem_find_hardlinks() {
+    local -r __documentation__='
+        Finds same files as given file (hardlinks).
+
+        ```bash
+            bl.filesystem.find_hardlinks /home/user/test.txt
+        ```
+    '
+    sudo command find / -samefile "$1" 2>/dev/null
+}
+alias bl.filesystem.show_symbolic_links=bl_filesystem_show_symbolic_links
+bl_filesystem_show_symbolic_links() {
+    local -r __documentation__='
+        Shows symbolic links in current directory if no argument is provided or
+        in given location and their subdirectories (recursive).
+
+        ```bash
+            bl.filesystem.show_symbolic_links
+        ```
+
+        ```bash
+            bl.filesystem.show_symbolic_links /home
+        ```
+    '
+    local element
+    command find "$1" -type l -print0 | while IFS= read -r -d '' element; do
+        bl.logging.plain "${element} -> "
+        readlink "$element"
+    done
+}
+## endregion
+alias bl.filesystem.make_crypt_blockdevice=bl_filesystem_make_crypt_blockdevice
+bl_filesystem_make_crypt_blockdevice() {
+    local -r __documentation__='
+        Creates encrypted blockdevices.
+
+        ```bash
+            bl.filesystem.make_crypt_blockdevice /dev/sda
+        ```
+    '
+    sudo cryptsetup \
+        -v \
+        --cipher aes-xts-plain64 \
+        --hash sha512 \
+        --iter-time 5000 \
+        --key-size 512 \
+        --use-random luksFormat \
+        "$@"
+}
+alias bl.filesystem.make_uefi_boot_entry=bl_filesystem_make_uefi_boot_entry
+bl_filesystem_make_uefi_boot_entry() {
+    # shellcheck disable=SC1004
+    local -r __documentation__='
+        Creates an uefi boot entry.
+
+        ```bash
+            bl.filesystem.make_uefi_boot_entry archLinux
+        ```
+
+        ```bash
+            bl.filesystem.make_uefi_boot_entry archLinuxFallback
+        ```
+
+        ```bash
+            bl.filesystem.make_uefi_boot_entry \
+                archLinuxLTSFallback \
+                vmlinuz-linux-lts
+        ```
+    '
+    local -r kernel_parameter_file_path="${bl_globals_configuration_path}linux/kernel/${1}CommandLine"
+    local kernel=vmlinuz-linux
+    if [[ "$2" ]]; then
+        kernel="$2"
+    fi
+    if [ -f "$kernel_parameter_file_path" ]; then
+        local command="sudo efibootmgr --verbose --create --disk /dev/sda --part 1 -l \"\\${kernel}\" --label \"$1\" --unicode \"$(cat "$kernel_parameter_file_path")\""
+        bl.logging.info "Create boot entry \"$1\" with command \"${command}\"."
+        eval "$command"
+        return $?
+    fi
+    bl.logging.error_exception \
+        "Error: file \"${kernel_parameter_file_path}\" doesn't exists."
+}
+alias bl.filesystem.open_crypt_blockdevice=bl_filesystem_open_crypt_blockdevice
+bl_filesystem_open_crypt_blockdevice() {
+    local -r __documentation__='
+        Mounts encrypted blockdevices as analyseable blockdevice.
+
+        ```bash
+            bl.filesystem.open_crypt_blockdevice /dev/sdb test
+        ```
+    '
+    sudo cryptsetup luksOpen "$@"
+}
+alias bl.filesystem.overlay_location=bl_filesystem_overlay_location
+bl_filesystem_overlay_location() {
+    local -r __documentation__='
+        Mounts an overlay over given location. This could be useful if we have a
+        read only system caused by physical reasons.
+
+        ```bash
+            bl.filesystem.overlay_location /usr/bin/
+        ```
+    '
+    mkdir --parents /tmp/overlayfsDifferences
+    mount --types overlayfs --options \
+        lowerdir="$1",upperdir='/tmp/overlayDifferences' overlayfs "$1"
+}
+alias bl.filesystem.repair=bl_filesystem_repair
+bl_filesystem_repair() {
+    local -r __documentation__='
+        Finds filesystem errors on linux based filesystem and repairs them.
+
+        ```bash
+            bl.filesystem.repair /dev/mmcblk0p2
+        ```
+    '
+    local target=/dev/mmcblk0
+    if [[ "$1" ]]; then
+        target="$1"
+    fi
+    sudo badblocks "$target"
+    sudo fsck -a "$target"
+}
+alias bl.filesystem.set_maximum_user_watches=bl_filesystem_set_maximum_user_watches
+bl_filesystem_set_maximum_user_watches() {
+    local -r __documentation__='
+        Sets the maximum number of concurrent allowed file observations via
+        inotify.
+
+        ```bash
+            bl.filesystem.set_maximum_user_watches 500000
+        ```
+    '
+    echo "$1" | \
+        sudo tee /proc/sys/fs/inotify/max_user_watches
+}
+alias bl.filesystem.write_blockdevice_to_image=bl_filesystem_write_blockdevice_to_image
+bl_filesystem_write_blockdevice_to_image() {
+    # shellcheck disable=SC1004
+    local -r __documentation__='
+        Writes a given backup from given blockdevice.
+
+        ```bash
+            bl.filesystem.write_blockdevice_to_image \
+                /dev/mmcblk0 \
+                /data/private/backup/image.img
+        ```
+    '
+    local source=/dev/mmcblk0
+    if [[ "$1" ]]; then
+        source="$1"
+    fi
+    local target="${bl_globals_data_path}private/backup/backup-sd-card.img"
+    if [[ "$2" ]]; then
+        target="$2"
+    fi
+    sudo dd bs=4M conv=fdatasync if="$source" of="$target" status=progress
+}
+alias bl.filesystem.write_image_to_blockdevice=bl_filesystem_write_image_to_blockdevice
+bl_filesystem_write_image_to_blockdevice() {
+    # shellcheck disable=SC1004
+    local -r __documentation__='
+        Writes a given image to given blockdevice.
+
+        ```bash
+            bl.filesystem.write_image_to_blockdevice \
+                /data/private/backup/image.img \
+                /dev/mmcblk0
+        ```
+    '
+    # shellcheck disable=SC2125
+    local source="${bl_globals_data_path}temp/image/"*.img
+    if [[ "$1" ]]; then
+        source="$1"
+    fi
+    local target=/dev/mmcblk0
+    if [[ "$2" ]]; then
+        target="$2"
+    fi
+    sudo dd bs=4M conv=fdatasync if="$source" of="$target" status=progress
+}
+# endregion
+# region vim modline
+# vim: set tabstop=4 shiftwidth=4 expandtab:
+# vim: foldmethod=marker foldmarker=region,endregion:
+# endregion
