@@ -1,0 +1,489 @@
+/* !/usr/bin/env css
+-*- coding: utf-8 -*- */
+/* region header
+Copyright Torben Sickert (info["~at~"]torben.website) 16.12.2012
+
+License
+-------
+
+This library written by Torben Sickert stand under a creative commons naming
+3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
+endregion */
+@import "highlight.js/styles/github.css";
+@import "website-utilities/fonts.compiled.css";
+@import "website-utilities/index.compiled.css";
+
+:root {
+    /* region extra small dimension */
+    @custom-media --w-extra-extra-small (min-width: 360px);
+    @custom-media --w-extra-small (min-width: 500px);
+    /* endregion */
+    /* region default media query dimensions */
+    @custom-media --w-small (min-width: 768px);
+    @custom-media --w-medium (min-width: 992px);
+    @custom-media --w-large (min-width: 1200px);
+    /* endregion */
+}
+
+.doc.wu {
+    /* region constants */
+    /** region color */
+    --color1: #fff;
+    --color2: #fbfbfc;
+    --color3: #f7f7f9;
+    --color4: #ddd;
+    --color5: #cbcbcd;
+    --color6: #797979;
+    --color7: #333;
+    --color8: #212121;
+    --color9: black;
+    --color10: #0090ff;
+    --color11: #0069ba;
+    /** endregion */
+    /* endregion */
+    /* region custom properties */
+    /* stylelint-disable at-rule-no-unknown */
+    @define-mixin icon {
+        background-position: 0 0;
+        background-repeat: no-repeat;
+        display: inline-block;
+        height: 30px;
+        overflow: hidden;
+        width: 30px;
+        vertical-align: text-top;
+    }
+    /*
+        NOTE: We explicit inherit form ".icon" to prepare this class to be
+        super classes as well.
+    */
+    @define-mixin icon-blacktocat {
+        @mixin icon;
+
+        background-image: url("image/blacktocat.png");
+        background-position: 0 0;
+        height: 30px;
+        width: 30px;
+    }
+    @define-mixin icon-archiv {
+        @mixin icon;
+
+        background-position: 0 0;
+        height: 64px;
+        width: 82px;
+    }
+    @define-mixin icon-archiv-gray {
+        @mixin icon-archiv;
+
+        background-image: url("image/folderGray.png");
+    }
+    @define-mixin icon-archiv-blue {
+        @mixin icon-archiv;
+
+        background-image: url("image/folderBlue.png");
+    }
+    @define-mixin icon-download {
+        @mixin icon;
+
+        background-image: url("image/arrowDown.png");
+        background-position: 0 0;
+        height: var(--w-default-space);
+        width: 20px;
+    }
+    /* stylelint-enable at-rule-no-unknown */
+    /* endregion */
+    /* region global */
+    /*
+        NOTE: If we swap these lines to order alphabetical bodies background
+        color does not get overwritten.
+    */
+    color: var(--color7);
+    background-color: var(--color8);
+    line-height: 1.5;
+
+    *,
+    ::after,
+    ::before {
+        box-sizing: border-box;
+    }
+    /** region grid */
+    .header__inner,
+    .section__inner,
+    .footer__inner {
+        position: relative;
+
+        margin: 0 auto;
+        padding: var(--w-default-space) calc(var(--w-default-space) / 2);
+    }
+    /** endregion */
+    /** region symbol */
+    .section__inner__arrow-left-home,
+    .header__inner__links__left-arrow {
+        float: left;
+        height: 14px;
+        width: 14px !important;
+        margin-top: 10px;
+        overflow: visible;
+        vertical-align: baseline;
+    }
+
+    .header__inner__links__left-arrow {
+        display: none;
+
+        margin-left: 10px;
+        margin-top: 38px;
+    }
+    /** endregion */
+    /** region headline */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: var(--color8);
+
+        font-family: var(--w-typography-font-family-headline);
+        font-size: 2em;
+
+        letter-spacing: -1px;
+        margin: 10px 0;
+    }
+    h1 { font-size: 4em; }
+    h2 { font-size: 3em; }
+    /** endregion */
+    /** region link */
+    a {
+        color: var(--color10);
+        outline: none !important;
+        text-shadow: none;
+        transition: color 0.5s ease, background-color 0.5s ease;
+    }
+    /* Badge links */
+    p a {
+        &[href^="https://coveralls.io/github/"],
+        &[href^="https://github.com/"],
+        &[href^="https://torben.website/"],
+        &[href^="https://www.npmjs.com/package/"] {
+            margin: 5px;
+        }
+    }
+
+    a:hover { color: var(--color11); }
+
+    .top-link {
+        bottom: 30px;
+        position: fixed;
+        right: 45px;
+        visibility: hidden;
+        z-index: 4;
+    }
+    /** endregion */
+    /** region image */
+    /*** region generic */
+    /* stylelint-disable at-rule-no-unknown */
+    [class^="icon-"],
+    [class*=" icon-"],
+    .icon { @mixin icon; }
+    /* stylelint-disable selector-class-pattern */
+    .icon- {
+        &blacktocat { @mixin icon-blacktocat; }
+        &blue-archiv { @mixin icon-archiv-blue; }
+        &download { @mixin icon-download; }
+        &gray-archiv { @mixin icon-archiv-gray; }
+    }
+    /* stylelint-enable selector-class-pattern */
+    /* stylelint-enable at-rule-no-unknown */
+    /*** endregion */
+    /** endregion */
+    /* endregion */
+    /* region header */
+    .header {
+        background-image:
+            linear-gradient(
+                to bottom,
+                var(--color7),
+                var(--color8)
+            );
+        width: 100%;
+    }
+
+    .header__inner {
+        padding: 50px 10px 30px;
+
+        .header__inner__forkme-banner {
+            background-color: var(--color10);
+            border-radius: 0 0 2px 2px;
+            box-shadow: 0 0 10px var(--color9);
+            color: var(--color1);
+            display: block;
+            font-weight: 700;
+            padding: 10px;
+            position: absolute;
+            right: 10px;
+            top: 0;
+            z-index: 10;
+
+            &:hover {
+                background-color: var(--color11);
+                color: var(--color1);
+            }
+        }
+
+        .header__inner__forkme-banner__icon-github {
+            /* stylelint-disable at-rule-no-unknown */
+            @mixin icon-blacktocat;
+            /* stylelint-enable at-rule-no-unknown */
+
+            margin-bottom: -2px;
+            margin-left: 8px;
+            margin-top: -6px;
+        }
+
+        .header__inner__title,
+        .header__inner__tagline {
+            border: none;
+            color: var(--color1);
+            text-shadow: var(--color9) 0 0 10px;
+
+            a {
+                color: var(--color1);
+                text-shadow: var(--color9) 0 0 10px;
+            }
+        }
+
+        .header__inner__tagline {
+            background: none;
+            font-size: 2em;
+            font-weight: 300;
+        }
+
+        .header__inner__links {
+            bottom: -40px;
+            height: 70px;
+            padding: 0;
+            position: absolute;
+            right: 0;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .header__inner__links__api-link {
+            float: left;
+
+            margin-left: 10px;
+            padding-top: 36px;
+
+            span {
+                display: none;
+            }
+        }
+
+        .header__inner__links__lang {
+            color: var(--color6);
+
+            float: right;
+
+            padding-right: 10px;
+            padding-top: 35px;
+
+            &.current {
+                color: var(--color7);
+            }
+
+            &:hover {
+                color: var(--color8);
+            }
+        }
+
+        .header__inner__links__download-arrow {
+            /* stylelint-disable at-rule-no-unknown */
+            @mixin icon-download;
+            /* stylelint-enable at-rule-no-unknown */
+
+            display: none;
+            float: right;
+            margin-left: var(--w-default-space);
+            margin-top: 39px;
+        }
+        /* region download buttons */
+
+        .header__inner__links__download {
+            /* stylelint-disable at-rule-no-unknown */
+            @mixin icon-archiv-gray;
+            /* stylelint-enable at-rule-no-unknown */
+
+            color: var(--color1);
+            display: block;
+            float: right;
+            font-size: 1.2em;
+            font-weight: bolder;
+            height: 66px;
+            margin-right: calc(var(--w-default-space) / 2);
+            overflow: hidden;
+            padding-top: 29px;
+            text-align: center;
+            width: 80px;
+        }
+
+        .header__inner__links__download:hover {
+            /* stylelint-disable at-rule-no-unknown */
+            @mixin icon-archiv-blue;
+            /* stylelint-enable at-rule-no-unknown */
+
+            color: var(--color1);
+            height: 66px;
+            width: 80px;
+        }
+        /* endregion */
+    }
+    /* endregion */
+    /* region footer */
+    .footer__inner {
+        padding-left: 0;
+        padding-right: 0;
+        text-align: center;
+        width: 100%;
+
+        p { color: var(--color3); }
+        a:hover { color: var(--color11); }
+    }
+    /* endregion */
+    /* region section */
+    .section {
+        background-color: var(--color1);
+        overflow: auto;
+        word-wrap: break-word;
+
+        .section__about-this-website {
+            a[href="#home"] {
+                display: inline-block;
+                float: left;
+
+                margin-top: 8px;
+                margin-left: 10px;
+            }
+
+            p {
+                margin-bottom: 45px;
+            }
+        }
+
+        .section__inner {
+            padding-top: 40px;
+        }
+
+        .section__main {
+            p {
+                margin: var(--w-default-space) 0 0 0;
+            }
+
+            code {
+                display: block;
+                padding: 9.5px;
+
+                font-size: 0.7em;
+                line-height: 1.4286;
+
+                color: #333;
+                overflow: auto;
+
+                background-color: var(--color2);
+
+                border: 1px solid var(--color4);
+
+                margin: var(--w-default-space) 0 0 0;
+            }
+
+            .show-example-wrapper {
+                background-color: var(--color2);
+
+                border: 1px solid var(--color4);
+                border-top: 0;
+
+                margin-top: -14px;
+                padding: calc(var(--w-default-space) / 2);
+
+                h3 {
+                    color: var(--color5);
+                    font-family: var(--w-typography-font-family);
+                    font-size: 0.9em;
+                    font-weight: bold;
+                    letter-spacing: 1px;
+                    margin-bottom: calc(var(--w-default-space) / 2);
+                    margin-top: 0;
+                }
+
+                p {
+                    margin: 0;
+                }
+            }
+        }
+    }
+    /* endregion */
+    /* region responsive */
+    /** region extra extra small */
+    @media (--w-extra-extra-small) {
+        .header__inner__links__left-arrow,
+        .header__inner__links__download-arrow { display: initial; }
+        /** region extra small */
+        @media (--w-extra-small) {
+            .header__inner__links__api-link span {
+                display: initial;
+            }
+
+            @media (--w-small) {
+                /* region small */
+                /** region headline */
+                h2 {
+                    border-bottom: 1px dashed var(--color4);
+                    padding-bottom: 10px;
+                }
+                /** endregion */
+
+                .header__inner,
+                .section__inner,
+                .footer__inner { width: 715px; }
+
+                .header__inner__links {
+                    width: 706px;
+                }
+
+                .header__inner__links__left-arrow { margin-left: 0; }
+
+                .section__main {
+                    code {
+                        font-size: 0.8em;
+                        width: 695px;
+                    }
+
+                    .show-example-wrapper { width: 100%; }
+                }
+
+                .top-link {
+                    bottom: 34px;
+                    position: fixed;
+                    right: 5px;
+                    visibility: visible;
+                    z-index: 4;
+                }
+                /* endregion */
+                /* region medium */
+                @media (--w-medium) {
+                    .top-link { right: 45px; }
+
+                    .section__main code {
+                        font-size: 0.9em;
+                    }
+                }
+                /* endregion */
+            }
+        }
+        /** endregion */
+    }
+    /** endregion */
+    /* endregion */
+}
+/* region vim modline
+vim: set tabstop=4 shiftwidth=4 expandtab:
+vim: foldmethod=marker foldmarker=region,endregion:
+endregion */
