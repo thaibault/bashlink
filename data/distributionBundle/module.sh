@@ -1,362 +1,3 @@
-      Modules should be imported only once.
-
-        >>> (
-        >>>     bl.module.import bashlink.mockup.a
-        >>>     bl.module.import bashlink.mockup.a
-        >>> )
-        imported module a
-        >>> (
-        >>>     bl.module.import bashlink.mockup.a
-        >>>     echo $bl_module_declared_function_names_after_source
-        >>> )
-        imported module a
-        bl_mockup_a_foo
-        >>> (
-        >>>     bl.module.import bashlink.logging
-        >>>     bl_logging_set_level warn
-        >>>     bl.module.import bashlink.mockup.c
-        >>>     echo $bl_module_declared_function_names_after_source
-        >>> )
-        +bl.doctest.multiline_contains
-        imported module b
-        imported module c
-        introduces a global unprefixed name: "foo123". Maybe it should be
-        foo123
-    '
-    local caller_file_path="${BASH_SOURCE[1]}"
-    if (( $# == 2 )); then
-        caller_file_path="$2"
-    fi
-    if bl.module.is_imported "$1" "$caller_file_path"; then
-        return 0
-    fi
-    # NOTE: We have to use "local" before to avoid shadowing the "$?" value.
-    local result
-    if result="$(bl.module.resolve "$1" true "$caller_file_path")"; then
-        local -r file_path="$(
-            echo "$result" | \
-                command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
-        local scope_name="$(
-            echo "$result" | \
-                command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
-        if [ -d "$file_path" ]; then
-            local sub_file_path
-            for sub_file_path in "${file_path}"/*; do
-                local excluded=false
-                local excluded_name
-                for excluded_name in "${bl_module_directory_names_to_ignore[@]}"
-                do
-                    if \
-                        [ -d "$sub_file_path" ] && \
-                        [ "$excluded_name" = "$(basename "$sub_file_path")" ]
-                    then
-                        excluded=true
-                        break
-                    fi
-                done
-                if ! $excluded; then
-                    for excluded_name in "${bl_module_file_names_to_ignore[@]}"
-                    do
-                        if \
-                            [ -f "$sub_file_path" ] && \
-                            [ "$excluded_name" = "$(basename "$sub_file_path")" ]
-                        then
-                            excluded=true
-                            break
-                        fi
-                    done
-                fi
-                if ! $excluded; then
-                    # shellcheck disable=SC1117
-                    local name="$(
-                        echo "$sub_file_path" | \
-                            command sed \
-                                --regexp-extended \
-                                "s:${scope_name}/([^/]+):${scope_name}.\1:"
-                    )"
-                    bl.module.import "$name" "$caller_file_path"
-                fi
-            done
-        else
-            bl_module_imported+=("$file_path")
-            if $bl_module_prevent_namespace_check; then
-                bl.module.import_raw "$file_path"
-            else
-                scope_name="$(
-                    bl.module.remove_known_file_extension "$scope_name"
-                )"
-                bl.module.import_with_namespace_check \
-                    "$file_path" \
-                    "$(bl.module.rewrite_scope_name "$scope_name")" \
-                    "$scope_name"
-            fi
-        fi
-    else
-        echo "$result" 1>&2
-        return 1
-    fi
-}
-alias bl.module.import_without_namespace_check=bl_module_import_without_namespace_check
-bl_module_import_without_namespace_check() {
-    local -r __documentation__='
-        Imports given module without any namespace checks. Needed for internal
-        usage.
-
-        >>> bl.module.import_without_namespace_check bashlink.module; echo $?
-        0
-    '
-    local caller_file_path="${BASH_SOURCE[1]}"
-    if (( $# == 2 )); then
-        caller_file_path="$2"
-    fi
-    local file_path
-    if file_path="$(bl.module.resolve "$1" "$caller_file_path")"; then
-        if bl.module.is_imported "$1" "$file_path" "$caller_file_path"; then
-            return 0
-        fi
-        bl_module_imported+=("$file_path")
-        bl.module.import_raw "$file_path"
-    fi
-}
-alias bl.module.resolve=bl_module_resolve
-bl_module_resolve() {
-    local -r __documentation__='
-        Resolves given module reference to its corresponding file path.
-
-        If second parameter is set to "true" resolved scope name will also be
-        printed with a "/" as delimiter.
-
-        >>> bl.module.resolve bashlink.module
-        +bl.doctest.contains
-        /bashlink/module.sh
-    '
-    # NOTE: We have to declare variable first to avoid shadowing the return
-    # code coming from "grep".
-    local cached_result
-    if \
-        cached_result="$(
-            command grep \
-                --max-count 1 \
-                "$1##$2##$3##" \
-                "$bl_module_name_resolving_cache_file_path" \
-                    2>/dev/null
-        )" && \
-        cached_result="$(
-            echo "$cached_result" | \
-                command sed --regexp-extended 's/^.+##.*##.*##(.+)$/\1/' \
-                    2>/dev/null
-        )"
-    then
-        echo -n "$cached_result"
-        return 0
-    fi
-
-    local name="$1"
-    local caller_path
-    bl_module_declared_function_names_after_source=''
-    local -r current_path="$(dirname "$(dirname "$(
-        bl.path.convert_to_absolute "${BASH_SOURCE[0]}"
-    )")")"
-    if (( $# == 1 )) || [ "${!#}" = true ] || [ "${!#}" = false ]; then
-        caller_path="$(dirname "$(
-            bl.path.convert_to_absolute "${BASH_SOURCE[1]}"
-        )")"
-    else
-        caller_path="$(dirname "$(bl.path.convert_to_absolute "${!#}")")"
-    fi
-    local -r initial_caller_path="$(dirname "$(
-        bl.path.convert_to_absolute "${BASH_SOURCE[-1]}"
-    )")"
-
-    local -r execution_path="$(pwd)"
-    local file_path=''
-    while true; do
-        local extension
-        local extension_description=''
-        for extension in "${bl_module_known_extensions[@]}"; do
-            if [[ "$extension_description" != '' ]]; then
-                extension_description+=', '
-            fi
-            extension_description+="\"$extension\""
-            # Try absolute file path reference.
-            if [[ "$name" = /* ]]; then
-                if [ -e "${name}${extension}" ]; then
-                    file_path="${name}${extension}"
-                    break
-                fi
-            else
-                # Try relative to caller file path reference.
-                if [ -e "${caller_path}/${name}${extension}" ]; then
-                    file_path="${caller_path}/${name}${extension}"
-                    break
-                fi
-                # Try relative to initial caller file path reference.
-                if [[ -e "${initial_caller_path}/${name}${extension}" ]]; then
-                    file_path="${initial_caller_path}/${name}${extension}"
-                    break
-                fi
-                # Try relative to executer file path reference.
-                if [ -e "${execution_path}/${name}${extension}" ]; then
-                    file_path="${execution_path}/${name}${extension}"
-                    break
-                fi
-                local path
-                # Try locations in "$PATH" listed references.
-                for path in ${PATH//:/ }; do
-                    if [ -e "${path}/${name}${extension}" ]; then
-                        file_path="${path}/${name}${extension}"
-                        break
-                    fi
-                done
-                if [ "$file_path" != '' ]; then
-                    break
-                fi
-            fi
-
-            # Try to find module in this library or this whole library itself.
-            if [ -e "${current_path}/${name}${extension}" ]; then
-                file_path="${current_path}/${name}${extension}"
-                break
-            fi
-
-            if $bl_module_retrieve_remote_modules; then
-                local path_candidate="$(dirname "${BASH_SOURCE[0]}")/${name#bashlink.}${extension}"
-                if [ "${name#bashlink.}" = "$name" ]; then
-                    path_candidate="${bl_module_remote_module_cache_path}/${name}${extension}"
-                fi
-
-                # Try if already downloaded remote module exists.
-                if [ -e "$path_candidate" ]; then
-                    file_path="$path_candidate"
-                    break
-                fi
-
-                # Try to download needed module.
-                local url
-                for url in "${bl_module_known_remote_urls[@]}"; do
-                    local tidy_up=false
-                    if ! [ -d "$(dirname "$path_candidate")" ]; then
-                        tidy_up=true
-                        mkdir --parents "$(dirname "$path_candidate")"
-                    fi
-                    if curl "${url}/${name#bashlink.}${extension}" \
-                        >"$path_candidate"
-                    then
-                        file_path="$path_candidate"
-                        break
-                    elif $tidy_up; then
-                        rm --recursive "$(dirname "$path_candidate")"
-                    fi
-                done
-            fi
-        done
-        if [ "$file_path" = '' ]; then
-            local extension_pattern='('
-            for extension in "${bl_module_known_extensions[@]}"; do
-                extension_pattern+="$extension|"
-            done
-            extension_pattern+=')'
-
-            # shellcheck disable=SC1117
-            local new_name="$(
-                echo "$name" | \
-                    command sed \
-                        --regexp-extended \
-                        "s:\.([^.]+?)(\.$extension_pattern)?$:/\1\2:")"
-            if [ "$new_name" = "$name" ]; then
-                break
-            else
-                name="$new_name"
-            fi
-        else
-            break
-        fi
-    done
-
-    if [ "$file_path" = '' ]; then
-        bl.module.log \
-            error_exception \
-            "Module file path for \"$1\" could not be resolved for" \
-            "\"${BASH_SOURCE[1]}\" in \"$caller_path\", \"$execution_path\"" \
-            "or \"$current_path\" for one of the file extension:" \
-            "${extension_description}." || \
-                return $?
-    fi
-    file_path="$(bl.path.convert_to_absolute "$file_path")"
-
-    local result
-    if [ "$2" = true ]; then
-        local scope_name="$(basename "$1")"
-        if \
-            [[ "$file_path" == "$current_path"* ]] && \
-            [[ "$(basename "$1")" != bashlink.* ]] && \
-            [[ "$(basename "$1")" != bashlink ]]
-        then
-            scope_name="bashlink.$scope_name"
-        fi
-        result="$(bl.path.convert_to_absolute "$file_path")/$(
-            bl_module_remove_known_file_extension "$scope_name")"
-    else
-        result="$(bl.path.convert_to_absolute "$file_path")"
-    fi
-
-    echo "$1##$2##$3##$result" >>"$bl_module_name_resolving_cache_file_path"
-    chmod o+rw "$bl_module_name_resolving_cache_file_path" &>/dev/null
-    sort \
-        --output \
-        "$bl_module_name_resolving_cache_file_path" \
-        "$bl_module_name_resolving_cache_file_path"
-
-    if $bl_module_sync_before_resolve; then
-        sync
-    fi
-
-    echo -n "$result"
-}
-alias bl.module.remove_known_file_extension=bl_module_remove_known_file_extension
-bl_module_remove_known_file_extension() {
-    local -r __documentation__='
-        Removes known file extension from given module references.
-
-        >>> bl.module.remove_known_file_extension module.sh
-        module
-    '
-    local -r name="$1"
-    local extension
-    for extension in "${bl_module_known_extensions[@]}"; do
-        local result="${name%"$extension"}"
-        if [[ "$name" != "$result" ]]; then
-            echo "$result"
-            return 0
-        fi
-    done
-    echo "$1"
-}
-alias bl.module.rewrite_scope_name=bl_module_rewrite_scope_name
-bl_module_rewrite_scope_name() {
-    local -r __documentation__='
-        Rewrite scope name. Usually needed to shorten a scope name.
-
-        >>> bl.module.rewrite_scope_name bashlink.module
-        bl.module
-
-        >>> bl.module.rewrite_scope_name a-b+a
-        a.b.a
-    '
-    local resolved_scope_name="$1"
-    local rewrite
-    for rewrite in "${bl_module_scope_rewrites[@]}"; do
-        resolved_scope_name="$(
-            echo "$resolved_scope_name" | \
-                command sed --regexp-extended "s/$rewrite")"
-    done
-    echo "$resolved_scope_name"
-}
-# endregion
-# region vim modline
-# vim: set tabstop=4 shiftwidth=4 expandtab:
-# vim: foldmethod=marker foldmarker=region,endregion:
-# endregion
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 # region header
@@ -841,4 +482,362 @@ bl_module_import() {
         introduces a global unprefixed name: "foo123". Maybe it should be
         imported module b
 
-  
+        Modules should be imported only once.
+
+        >>> (
+        >>>     bl.module.import bashlink.mockup.a
+        >>>     bl.module.import bashlink.mockup.a
+        >>> )
+        imported module a
+        >>> (
+        >>>     bl.module.import bashlink.mockup.a
+        >>>     echo $bl_module_declared_function_names_after_source
+        >>> )
+        imported module a
+        bl_mockup_a_foo
+        >>> (
+        >>>     bl.module.import bashlink.logging
+        >>>     bl_logging_set_level warn
+        >>>     bl.module.import bashlink.mockup.c
+        >>>     echo $bl_module_declared_function_names_after_source
+        >>> )
+        +bl.doctest.multiline_contains
+        imported module b
+        imported module c
+        introduces a global unprefixed name: "foo123". Maybe it should be
+        foo123
+    '
+    local caller_file_path="${BASH_SOURCE[1]}"
+    if (( $# == 2 )); then
+        caller_file_path="$2"
+    fi
+    if bl.module.is_imported "$1" "$caller_file_path"; then
+        return 0
+    fi
+    # NOTE: We have to use "local" before to avoid shadowing the "$?" value.
+    local result
+    if result="$(bl.module.resolve "$1" true "$caller_file_path")"; then
+        local -r file_path="$(
+            echo "$result" | \
+                command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
+        local scope_name="$(
+            echo "$result" | \
+                command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
+        if [ -d "$file_path" ]; then
+            local sub_file_path
+            for sub_file_path in "${file_path}"/*; do
+                local excluded=false
+                local excluded_name
+                for excluded_name in "${bl_module_directory_names_to_ignore[@]}"
+                do
+                    if \
+                        [ -d "$sub_file_path" ] && \
+                        [ "$excluded_name" = "$(basename "$sub_file_path")" ]
+                    then
+                        excluded=true
+                        break
+                    fi
+                done
+                if ! $excluded; then
+                    for excluded_name in "${bl_module_file_names_to_ignore[@]}"
+                    do
+                        if \
+                            [ -f "$sub_file_path" ] && \
+                            [ "$excluded_name" = "$(basename "$sub_file_path")" ]
+                        then
+                            excluded=true
+                            break
+                        fi
+                    done
+                fi
+                if ! $excluded; then
+                    # shellcheck disable=SC1117
+                    local name="$(
+                        echo "$sub_file_path" | \
+                            command sed \
+                                --regexp-extended \
+                                "s:${scope_name}/([^/]+):${scope_name}.\1:"
+                    )"
+                    bl.module.import "$name" "$caller_file_path"
+                fi
+            done
+        else
+            bl_module_imported+=("$file_path")
+            if $bl_module_prevent_namespace_check; then
+                bl.module.import_raw "$file_path"
+            else
+                scope_name="$(
+                    bl.module.remove_known_file_extension "$scope_name"
+                )"
+                bl.module.import_with_namespace_check \
+                    "$file_path" \
+                    "$(bl.module.rewrite_scope_name "$scope_name")" \
+                    "$scope_name"
+            fi
+        fi
+    else
+        echo "$result" 1>&2
+        return 1
+    fi
+}
+alias bl.module.import_without_namespace_check=bl_module_import_without_namespace_check
+bl_module_import_without_namespace_check() {
+    local -r __documentation__='
+        Imports given module without any namespace checks. Needed for internal
+        usage.
+
+        >>> bl.module.import_without_namespace_check bashlink.module; echo $?
+        0
+    '
+    local caller_file_path="${BASH_SOURCE[1]}"
+    if (( $# == 2 )); then
+        caller_file_path="$2"
+    fi
+    local file_path
+    if file_path="$(bl.module.resolve "$1" "$caller_file_path")"; then
+        if bl.module.is_imported "$1" "$file_path" "$caller_file_path"; then
+            return 0
+        fi
+        bl_module_imported+=("$file_path")
+        bl.module.import_raw "$file_path"
+    fi
+}
+alias bl.module.resolve=bl_module_resolve
+bl_module_resolve() {
+    local -r __documentation__='
+        Resolves given module reference to its corresponding file path.
+
+        If second parameter is set to "true" resolved scope name will also be
+        printed with a "/" as delimiter.
+
+        >>> bl.module.resolve bashlink.module
+        +bl.doctest.contains
+        /bashlink/module.sh
+    '
+    # NOTE: We have to declare variable first to avoid shadowing the return
+    # code coming from "grep".
+    local cached_result
+    if \
+        cached_result="$(
+            command grep \
+                --max-count 1 \
+                "$1##$2##$3##" \
+                "$bl_module_name_resolving_cache_file_path" \
+                    2>/dev/null
+        )" && \
+        cached_result="$(
+            echo "$cached_result" | \
+                command sed --regexp-extended 's/^.+##.*##.*##(.+)$/\1/' \
+                    2>/dev/null
+        )"
+    then
+        echo -n "$cached_result"
+        return 0
+    fi
+
+    local name="$1"
+    local caller_path
+    bl_module_declared_function_names_after_source=''
+    local -r current_path="$(dirname "$(dirname "$(
+        bl.path.convert_to_absolute "${BASH_SOURCE[0]}"
+    )")")"
+    if (( $# == 1 )) || [ "${!#}" = true ] || [ "${!#}" = false ]; then
+        caller_path="$(dirname "$(
+            bl.path.convert_to_absolute "${BASH_SOURCE[1]}"
+        )")"
+    else
+        caller_path="$(dirname "$(bl.path.convert_to_absolute "${!#}")")"
+    fi
+    local -r initial_caller_path="$(dirname "$(
+        bl.path.convert_to_absolute "${BASH_SOURCE[-1]}"
+    )")"
+
+    local -r execution_path="$(pwd)"
+    local file_path=''
+    while true; do
+        local extension
+        local extension_description=''
+        for extension in "${bl_module_known_extensions[@]}"; do
+            if [[ "$extension_description" != '' ]]; then
+                extension_description+=', '
+            fi
+            extension_description+="\"$extension\""
+            # Try absolute file path reference.
+            if [[ "$name" = /* ]]; then
+                if [ -e "${name}${extension}" ]; then
+                    file_path="${name}${extension}"
+                    break
+                fi
+            else
+                # Try relative to caller file path reference.
+                if [ -e "${caller_path}/${name}${extension}" ]; then
+                    file_path="${caller_path}/${name}${extension}"
+                    break
+                fi
+                # Try relative to initial caller file path reference.
+                if [[ -e "${initial_caller_path}/${name}${extension}" ]]; then
+                    file_path="${initial_caller_path}/${name}${extension}"
+                    break
+                fi
+                # Try relative to executer file path reference.
+                if [ -e "${execution_path}/${name}${extension}" ]; then
+                    file_path="${execution_path}/${name}${extension}"
+                    break
+                fi
+                local path
+                # Try locations in "$PATH" listed references.
+                for path in ${PATH//:/ }; do
+                    if [ -e "${path}/${name}${extension}" ]; then
+                        file_path="${path}/${name}${extension}"
+                        break
+                    fi
+                done
+                if [ "$file_path" != '' ]; then
+                    break
+                fi
+            fi
+
+            # Try to find module in this library or this whole library itself.
+            if [ -e "${current_path}/${name}${extension}" ]; then
+                file_path="${current_path}/${name}${extension}"
+                break
+            fi
+
+            if $bl_module_retrieve_remote_modules; then
+                local path_candidate="$(dirname "${BASH_SOURCE[0]}")/${name#bashlink.}${extension}"
+                if [ "${name#bashlink.}" = "$name" ]; then
+                    path_candidate="${bl_module_remote_module_cache_path}/${name}${extension}"
+                fi
+
+                # Try if already downloaded remote module exists.
+                if [ -e "$path_candidate" ]; then
+                    file_path="$path_candidate"
+                    break
+                fi
+
+                # Try to download needed module.
+                local url
+                for url in "${bl_module_known_remote_urls[@]}"; do
+                    local tidy_up=false
+                    if ! [ -d "$(dirname "$path_candidate")" ]; then
+                        tidy_up=true
+                        mkdir --parents "$(dirname "$path_candidate")"
+                    fi
+                    if curl "${url}/${name#bashlink.}${extension}" \
+                        >"$path_candidate"
+                    then
+                        file_path="$path_candidate"
+                        break
+                    elif $tidy_up; then
+                        rm --recursive "$(dirname "$path_candidate")"
+                    fi
+                done
+            fi
+        done
+        if [ "$file_path" = '' ]; then
+            local extension_pattern='('
+            for extension in "${bl_module_known_extensions[@]}"; do
+                extension_pattern+="$extension|"
+            done
+            extension_pattern+=')'
+
+            # shellcheck disable=SC1117
+            local new_name="$(
+                echo "$name" | \
+                    command sed \
+                        --regexp-extended \
+                        "s:\.([^.]+?)(\.$extension_pattern)?$:/\1\2:")"
+            if [ "$new_name" = "$name" ]; then
+                break
+            else
+                name="$new_name"
+            fi
+        else
+            break
+        fi
+    done
+
+    if [ "$file_path" = '' ]; then
+        bl.module.log \
+            error_exception \
+            "Module file path for \"$1\" could not be resolved for" \
+            "\"${BASH_SOURCE[1]}\" in \"$caller_path\", \"$execution_path\"" \
+            "or \"$current_path\" for one of the file extension:" \
+            "${extension_description}." || \
+                return $?
+    fi
+    file_path="$(bl.path.convert_to_absolute "$file_path")"
+
+    local result
+    if [ "$2" = true ]; then
+        local scope_name="$(basename "$1")"
+        if \
+            [[ "$file_path" == "$current_path"* ]] && \
+            [[ "$(basename "$1")" != bashlink.* ]] && \
+            [[ "$(basename "$1")" != bashlink ]]
+        then
+            scope_name="bashlink.$scope_name"
+        fi
+        result="$(bl.path.convert_to_absolute "$file_path")/$(
+            bl_module_remove_known_file_extension "$scope_name")"
+    else
+        result="$(bl.path.convert_to_absolute "$file_path")"
+    fi
+
+    echo "$1##$2##$3##$result" >>"$bl_module_name_resolving_cache_file_path"
+    chmod o+rw "$bl_module_name_resolving_cache_file_path" &>/dev/null
+    sort \
+        --output \
+        "$bl_module_name_resolving_cache_file_path" \
+        "$bl_module_name_resolving_cache_file_path"
+
+    if $bl_module_sync_before_resolve; then
+        sync
+    fi
+
+    echo -n "$result"
+}
+alias bl.module.remove_known_file_extension=bl_module_remove_known_file_extension
+bl_module_remove_known_file_extension() {
+    local -r __documentation__='
+        Removes known file extension from given module references.
+
+        >>> bl.module.remove_known_file_extension module.sh
+        module
+    '
+    local -r name="$1"
+    local extension
+    for extension in "${bl_module_known_extensions[@]}"; do
+        local result="${name%"$extension"}"
+        if [[ "$name" != "$result" ]]; then
+            echo "$result"
+            return 0
+        fi
+    done
+    echo "$1"
+}
+alias bl.module.rewrite_scope_name=bl_module_rewrite_scope_name
+bl_module_rewrite_scope_name() {
+    local -r __documentation__='
+        Rewrite scope name. Usually needed to shorten a scope name.
+
+        >>> bl.module.rewrite_scope_name bashlink.module
+        bl.module
+
+        >>> bl.module.rewrite_scope_name a-b+a
+        a.b.a
+    '
+    local resolved_scope_name="$1"
+    local rewrite
+    for rewrite in "${bl_module_scope_rewrites[@]}"; do
+        resolved_scope_name="$(
+            echo "$resolved_scope_name" | \
+                command sed --regexp-extended "s/$rewrite")"
+    done
+    echo "$resolved_scope_name"
+}
+# endregion
+# region vim modline
+# vim: set tabstop=4 shiftwidth=4 expandtab:
+# vim: foldmethod=marker foldmarker=region,endregion:
+# endregion
