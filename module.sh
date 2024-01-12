@@ -24,7 +24,14 @@ declare -g bl_module_known_remote_urls=(
     https://torben.website/bashlink/data/distributionBundle
 )
 # region import
-load() {
+alias bl.module.download=bl_module_download
+bl_module_download() {
+    local -r __documentation__='
+        Simply downloads missing modules.
+
+        >>> bl.module.download https://domain.tld/path/to/file.ext
+        1
+    '
     command curl --insecure "$@"
     return $?
 }
@@ -35,7 +42,7 @@ if \
     ! [ -f "$(dirname "${BASH_SOURCE[0]}")/path.sh" ]
 then
     for bl_module_url in "${bl_module_known_remote_urls[@]}"; do
-        if load "${bl_module_url}/path.sh" \
+        if bl.module.download "${bl_module_url}/path.sh" \
             >"$(dirname "${BASH_SOURCE[0]}")/path.sh"
         then
             [ "${bl_module_remote_module_cache_path:-}" = '' ] && \
@@ -728,8 +735,10 @@ bl_module_resolve() {
                         tidy_up=true
                         mkdir --parents "$(dirname "$path_candidate")"
                     fi
-                    if load "${url}/${name#bashlink.}${extension}" \
-                        >"$path_candidate"
+                    if \
+                        bl.module.download \
+                            "${url}/${name#bashlink.}${extension}" \
+                                >"$path_candidate"
                     then
                         file_path="$path_candidate"
                         break
