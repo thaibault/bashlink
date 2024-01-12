@@ -29,7 +29,7 @@ bl_module_download() {
     local -r __documentation__='
         Simply downloads missing modules.
 
-        >>> bl.module.download --silent https://domain.tld/path/to/file.ext
+        >>> bl.module.download --silent https://domain.tld/path/to/file.ext; echo $?
         1
     '
     command curl --insecure "$@"
