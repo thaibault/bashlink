@@ -24,13 +24,18 @@ declare -g bl_module_known_remote_urls=(
     https://torben.website/bashlink/data/distributionBundle
 )
 # region import
+load() {
+    command curl --insecure "$@"
+    return $?
+}
+
 declare -g bl_module_tidy_up_path=false
 if \
     $bl_module_retrieve_remote_modules && \
     ! [ -f "$(dirname "${BASH_SOURCE[0]}")/path.sh" ]
 then
     for bl_module_url in "${bl_module_known_remote_urls[@]}"; do
-        if curl "${bl_module_url}/path.sh" \
+        if load "${bl_module_url}/path.sh" \
             >"$(dirname "${BASH_SOURCE[0]}")/path.sh"
         then
             [ "${bl_module_remote_module_cache_path:-}" = '' ] && \
@@ -723,7 +728,7 @@ bl_module_resolve() {
                         tidy_up=true
                         mkdir --parents "$(dirname "$path_candidate")"
                     fi
-                    if curl "${url}/${name#bashlink.}${extension}" \
+                    if load "${url}/${name#bashlink.}${extension}" \
                         >"$path_candidate"
                     then
                         file_path="$path_candidate"
