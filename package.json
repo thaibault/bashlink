@@ -66,7 +66,7 @@
     "postversion": "yarn publish --non-interactive; git push --tags && git push",
     "report:coverage": "true",
     "test": "./doctest.sh --verbose",
-    "update": "yarn version patch && git push --tags",
+    "update": "yarn version patch && yarn npm publish",
     "update:documentation": "documentation-website"
   },
   "devDependencies": {
