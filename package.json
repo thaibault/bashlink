@@ -81,5 +81,10 @@
     "name": "bashlink",
     "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
     "trackingCode": "UA-40192634-14"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10",
+    "yarn": ">=4"
   }
 }
