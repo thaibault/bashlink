@@ -531,10 +531,12 @@ bl_module_import() {
     if result="$(bl.module.resolve "$1" true "$caller_file_path")"; then
         local -r file_path="$(
             echo "$result" | \
-                command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
+                command sed --regexp-extended 's:^(.+)/[^/]+$:\1:'
+        )"
         local scope_name="$(
             echo "$result" | \
-                command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
+                command sed --regexp-extended 's:^.*/([^/]+)$:\1:'
+        )"
         if [ -d "$file_path" ]; then
             local sub_file_path
             for sub_file_path in "${file_path}"/*; do
