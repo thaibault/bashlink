@@ -40,6 +40,7 @@ bl_array_contains() {
             return 0
         fi
     done
+
     return 1
 }
 alias bl.array.filter=bl_array_filter
@@ -74,16 +75,17 @@ bl_array_get_index() {
         >>> bl_array_get_index bar foo bar baz
         1
     '
-    local -r value="$1"
+    local -r search_value="$1"
     shift
     local -ar array=("$@")
     local -i result=-1
     local -i index
     for index in "${!array[@]}"; do
-        if [[ "${array[$index]}" == "${value}" ]]; then
+        if [ "${array[$index]}" = "$search_value" ]; then
             result="$index"
         fi
     done
+
     echo "$result"
     if (( result == -1 )); then
         return 1
