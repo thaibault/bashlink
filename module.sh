@@ -53,7 +53,7 @@ then
 fi
 # shellcheck source=./path.sh
 source "$(dirname "${BASH_SOURCE[0]}")/path.sh"
-if $bl_module_tidy_up_path; then
+if $bl_module_retrieve_remote_modules && $bl_module_tidy_up_path; then
     rm "$(dirname "${BASH_SOURCE[0]}")/path.sh"
 fi
 # endregion
@@ -107,11 +107,15 @@ declare -ag bl_module_known_extensions=(
 )
 declare -g bl_module_tidy_up=false
 declare -g bl_module_sync_before_resolve=false
-if $bl_module_retrieve_remote_modules && [[
-    "${bl_module_remote_module_cache_path:-}" = ''
-]]; then
+if \
+    $bl_module_retrieve_remote_modules && \
+    [[ "${bl_module_remote_module_cache_path:-}" = '' ]]
+then
     declare -g bl_module_remote_module_cache_path="$(
-        mktemp --directory --suffix -bashlink-module-cache)"
+        mktemp \
+            --directory \
+            --suffix -${USER:-unknown-user}-bashlink-module-cache
+    )"
     bl_module_tidy_up=true
 fi
 declare -g bl_module_prevent_namespace_check=true
