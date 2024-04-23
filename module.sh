@@ -114,7 +114,7 @@ then
     declare -g bl_module_remote_module_cache_path="$(
         mktemp \
             --directory \
-            --suffix -${USER:-unknown-user}-bashlink-module-cache
+            --suffix "-bashlink-module-cache-${USER:-unknown-user}"
     )"
     bl_module_tidy_up=true
 fi
@@ -123,7 +123,7 @@ declare -ag bl_module_scope_rewrites=(
     '^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/'
     '[^a-zA-Z0-9._]/./g'
 )
-declare -g bl_module_name_resolving_cache_file_path=/tmp/bashlink-module-name-resolve-cache
+declare -g bl_module_name_resolving_cache_file_path="/tmp/bashlink-module-name-resolve-cache-${USER:-unknown-user}"
 # endregion
 # region functions
 alias bl.module.check_name=bl_module_check_name
