@@ -17,7 +17,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.array
 # endregion
 # region variables
-declare -gr bl_arguments__documentation__='
+declare -gr BL_ARGUMENTS__DOCUMENTATION__='
     The arguments module provides an argument parser that can be used in
     functions and scripts.
 
@@ -47,10 +47,10 @@ declare -gr bl_arguments__documentation__='
     1: positional3
     1: positional3
 '
-declare -ag bl_arguments_new=()
+declare -ag BL_ARGUMENTS_NEW=()
 # endregion
 # region functions
-alias bl.arguments.apply_new='set -- "${bl_arguments_new[@]}"'
+alias bl.arguments.apply_new='set -- "${BL_ARGUMENTS_NEW[@]}"'
 bl_arguments_apply_new() {
     local -r __documentation__='
         Call this function after you are finished with argument parsing. The
@@ -76,7 +76,7 @@ bl_arguments_get_flag() {
         >>> echo $foo
         >>> bl.arguments.get_flag --bar bar
         >>> echo $bar
-        >>> echo "${bl_arguments_new[@]}"
+        >>> echo "${BL_ARGUMENTS_NEW[@]}"
         true
         false
         other_param1 other_param2
@@ -92,7 +92,7 @@ bl_arguments_get_flag() {
     local -a new_arguments=()
     eval "${variable_name}=false"
     local argument
-    for argument in "${bl_arguments_new[@]:-}"; do
+    for argument in "${BL_ARGUMENTS_NEW[@]:-}"; do
         local match=false
         local flag
         for flag in "${flag_aliases[@]}"; do
@@ -104,7 +104,7 @@ bl_arguments_get_flag() {
         $match || \
             new_arguments+=("$argument")
     done
-    bl_arguments_new=("${new_arguments[@]:+${new_arguments[@]}}")
+    BL_ARGUMENTS_NEW=("${new_arguments[@]:+${new_arguments[@]}}")
 }
 alias bl.arguments.get_keyword=bl_arguments_get_keyword
 bl_arguments_get_keyword() {
@@ -120,7 +120,7 @@ bl_arguments_get_keyword() {
         >>> bl.arguments.set other_param1 foo=bar baz=baz other_param2
         >>> bl.arguments.get_keyword foo foo
         >>> echo $foo
-        >>> echo "${bl_arguments_new[@]}"
+        >>> echo "${BL_ARGUMENTS_NEW[@]}"
         bar
         other_param1 baz=baz other_param2
         >>> local foo
@@ -136,13 +136,13 @@ bl_arguments_get_keyword() {
     local variable="$1"
     [[ "${2:-}" != '' ]] && \
         variable="$2"
-    local argument key bl_arguments__temporary_value__
+    local argument key BL_ARGUMENTS__TEMPORARY_VALUE__
     local new_arguments=()
-    for argument in "${bl_arguments_new[@]:-}"; do
+    for argument in "${BL_ARGUMENTS_NEW[@]:-}"; do
         if [[ "$argument" == *=* ]]; then
-            IFS='=' read -r key bl_arguments__temporary_value__ <<<"$argument"
+            IFS='=' read -r key BL_ARGUMENTS__TEMPORARY_VALUE__ <<<"$argument"
             if [[ "$key" == "$keyword" ]]; then
-                eval "${variable}=$bl_arguments__temporary_value__"
+                eval "${variable}=$BL_ARGUMENTS__TEMPORARY_VALUE__"
             else
                 new_arguments+=("$argument")
             fi
@@ -150,7 +150,7 @@ bl_arguments_get_keyword() {
             new_arguments+=("$argument")
         fi
     done
-    bl_arguments_new=("${new_arguments[@]:+${new_arguments[@]}}")
+    BL_ARGUMENTS_NEW=("${new_arguments[@]:+${new_arguments[@]}}")
 }
 alias bl.arguments.get_parameter=bl_arguments_get_parameter
 bl_arguments_get_parameter() {
@@ -170,7 +170,7 @@ bl_arguments_get_parameter() {
         >>> bl.arguments.set other_param1 --foo bar other_param2
         >>> bl.arguments.get_parameter --foo -f foo
         >>> echo $foo
-        >>> echo "${bl_arguments_new[@]}"
+        >>> echo "${BL_ARGUMENTS_NEW[@]}"
         bar
         other_param1 other_param2
     '
@@ -180,8 +180,8 @@ bl_arguments_get_parameter() {
     local match=false
     local new_arguments=()
     local index
-    for index in "${!bl_arguments_new[@]}"; do
-        local argument="${bl_arguments_new[$index]}"
+    for index in "${!BL_ARGUMENTS_NEW[@]}"; do
+        local argument="${BL_ARGUMENTS_NEW[$index]}"
         if $match; then
             match=false
             continue
@@ -190,7 +190,7 @@ bl_arguments_get_parameter() {
         local parameter
         for parameter in "${parameter_aliases[@]}"; do
             if [ "$argument" = "$parameter" ]; then
-                eval "${variable}=${bl_arguments_new[(( index + 1 ))]}"
+                eval "${variable}=${BL_ARGUMENTS_NEW[(( index + 1 ))]}"
                 match=true
                 break
             fi
@@ -199,7 +199,7 @@ bl_arguments_get_parameter() {
             new_arguments+=("$argument")
         fi
     done
-    bl_arguments_new=("${new_arguments[@]:+${new_arguments[@]}}")
+    BL_ARGUMENTS_NEW=("${new_arguments[@]:+${new_arguments[@]}}")
 }
 alias bl.arguments.get_positional=bl_arguments_get_positional
 bl_arguments_get_positional() {
@@ -224,7 +224,7 @@ bl_arguments_get_positional() {
     local -i index="$1"
     (( index-- ))
     local -r variable="$2"
-    eval "${variable}=${bl_arguments_new[index]}"
+    eval "${variable}=${BL_ARGUMENTS_NEW[index]}"
 }
 alias bl.arguments.set=bl_arguments_set
 bl_arguments_set() {
@@ -237,7 +237,7 @@ bl_arguments_set() {
             bl.arguments.set argument1 argument2 ...
         ```
     '
-    bl_arguments_new=("$@")
+    BL_ARGUMENTS_NEW=("$@")
 }
 alias bl.arguments.wrapper_with_minimum_number_of_arguments=bl_arguments_wrapper_with_minimum_number_of_arguments
 bl_arguments_wrapper_with_minimum_number_of_arguments() {

@@ -16,7 +16,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 # endregion
 # region variables
-declare -gr bl_array__documentation__='
+declare -gr BL_ARRAY__DOCUMENTATION__='
     This module implements utility functions concerning arrays.
 '
 # endregion

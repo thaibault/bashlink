@@ -16,7 +16,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.tools
 # endregion
 # region variables
-declare -gr bl_dictionary__documentation__='
+declare -gr BL_DICTIONARY__DOCUMENTATION__='
     The dictionary module implements utility functions concerning dictionary
     operations.
 '
@@ -32,7 +32,7 @@ bl_dictionary_get() {
 
         >>> bl.dictionary.get unset_map unset_value; echo $?
         1
-        >>> bl_dictionary_bash_version_test=true
+        >>> BL_DICTIONARY_BASH_VERSION_TEST=true
         >>> bl.dictionary.get unset_map unset_value; echo $?
         1
 
@@ -47,12 +47,12 @@ bl_dictionary_get() {
         >>> bl.dictionary.get map foo
         a b c
 
-        >>> bl_dictionary_bash_version_test=true
+        >>> BL_DICTIONARY_BASH_VERSION_TEST=true
         >>> bl.dictionary.set map foo 2
         >>> bl.dictionary.get map foo
         2
 
-        >>> bl_dictionary_bash_version_test=true
+        >>> BL_DICTIONARY_BASH_VERSION_TEST=true
         >>> bl.dictionary.set map foo "a b c"
         >>> bl.dictionary.get map foo
         a b c
@@ -62,7 +62,7 @@ bl_dictionary_get() {
     local store
     if \
         [[ ${BASH_VERSINFO[0]} -lt 4 ]] || \
-        [ -n "${bl_dictionary_bash_version_test:-}" ]
+        [ -n "${BL_DICTIONARY_BASH_VERSION_TEST:-}" ]
     then
         store="bl_dictionary_store_${name}_${key}"
     else
@@ -94,7 +94,7 @@ bl_dictionary_get_keys() {
         bar: 5
         foo: a b c
 
-        >>> bl_dictionary_bash_version_test=true
+        >>> BL_DICTIONARY_BASH_VERSION_TEST=true
         >>> bl.dictionary.set map foo "a b c" bar 5
         >>> bl.dictionary.get_keys map | sort --unique
         bar
@@ -105,7 +105,7 @@ bl_dictionary_get_keys() {
     local store="bl_dictionary_store_${name}"
     if \
         (( BASH_VERSINFO[0] < 4 )) || \
-        [ -n "${bl_dictionary_bash_version_test:-}" ]
+        [ -n "${BL_DICTIONARY_BASH_VERSION_TEST:-}" ]
     then
         for key in $(
             declare -p | \
@@ -131,24 +131,24 @@ bl_dictionary_set() {
             bl.dictionary.set dictionary_name key value
         ```
 
-        >>> bl.dictionary.set map foo 2
-        >>> echo ${bl_dictionary_store_map[foo]}
+        >>> bl.dictionary.set MAP FOO 2
+        >>> echo ${BL_DICTIONARY_STORE_MAP[FOO]}
         2
-        >>> bl.dictionary.set map foo "a b c" bar 5
-        >>> echo ${bl_dictionary_store_map[foo]}
-        >>> echo ${bl_dictionary_store_map[bar]}
+        >>> bl.dictionary.set MAP FOO "a b c" BAR 5
+        >>> echo ${BL_DICTIONARY_STORE_MAP[FOO]}
+        >>> echo ${BL_DICTIONARY_STORE_MAP[BAR]}
         a b c
         5
-        >>> bl.dictionary.set map foo "a b c" bar; echo $?
+        >>> bl.dictionary.set MAP FOO "a b c" BAR; echo $?
         1
 
-        >>> bl_dictionary_bash_version_test=true
-        >>> bl.dictionary.set map foo 2
-        >>> echo $bl_dictionary_store_map_foo
+        >>> BL_DICTIONARY_BASH_VERSION_TEST=true
+        >>> bl.dictionary.set MAP FOO 2
+        >>> echo $BL_DICTIONARY_STORE_MAP_FOO
         2
-        >>> bl_dictionary_bash_version_test=true
-        >>> bl.dictionary.set map foo "a b c"
-        >>> echo $bl_dictionary_store_map_foo
+        >>> BL_DICTIONARY_BASH_VERSION_TEST=true
+        >>> bl.dictionary.set MAP FOO "a b c"
+        >>> echo $BL_DICTIONARY_STORE_MAP_FOO
         a b c
     '
     local -r name="$1"
@@ -160,12 +160,12 @@ bl_dictionary_set() {
             return 1
         if \
             (( BASH_VERSINFO[0] < 4 )) || \
-            [ -n "${bl_dictionary_bash_version_test:-}" ]
+            [ -n "${BL_DICTIONARY_BASH_VERSION_TEST:-}" ]
         then
-            eval "bl_dictionary_store_${name}_${key}=$value"
+            eval "BL_DICTIONARY_STORE_${name}_${key}=$value"
         else
-            declare -Ag "bl_dictionary_store_${name}"
-            eval "bl_dictionary_store_${name}[${key}]=$value"
+            declare -Ag "BL_DICTIONARY_STORE_${name}"
+            eval "BL_DICTIONARY_STORE_${name}[${key}]=$value"
         fi
         (( $# == 1 )) && \
             return

@@ -13,9 +13,9 @@
 # region executable header
 if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
     for bl_doctest_sub_path in / lib/; do
-        if [ -f "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${bl_doctest_sub_path}bashlink/module.sh" ]
+        if [ -f "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${BL_DOCTEST_SUB_PATH}bashlink/module.sh" ]
         then
-            exec "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${bl_doctest_sub_path}bashlink/doctest.sh" "$@"
+            exec "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${BL_DOCTEST_SUB_PATH}bashlink/doctest.sh" "$@"
         fi
     done
 fi
@@ -35,7 +35,7 @@ bl.module.import bashlink.time
 bl.module.import bashlink.tools
 # endregion
 # region variables
-declare -gr bl_doctest__documentation__='
+declare -gr BL_DOCTEST__DOCUMENTATION__='
     This module implements function and module level testing via documentation
     strings. Tests can be run by invoking:
 
@@ -157,16 +157,16 @@ declare -gr bl_doctest__documentation__='
 
     -bl.documentation.exclude_print
 '
-declare -g bl_doctest_debug=false
-declare -g bl_doctest_module_reference_under_test=''
-declare -gr bl_doctest_name_indicator=__documentation__
-declare -g bl_doctest_nounset=false
-declare -g bl_doctest_synchronized=false
-declare -g bl_doctest_is_synchronized=true
-declare -g bl_doctest_supress_undocumented=false
-declare -gr bl_doctest_regular_expression="/${bl_doctest_name_indicator}='/,/';$/p"
-declare -g bl_doctest_regular_expression_one_line="${bl_doctest_name_indicator}='.*';$"
-declare -g bl_doctest_use_side_by_side_output=true
+declare -g BL_DOCTEST_DEBUG=false
+declare -g BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST=''
+declare -gr BL_DOCTEST_NAME_INDICATOR=__documentation__
+declare -g BL_DOCTEST_NOUNSET=false
+declare -g BL_DOCTEST_SYNCHRONIZED=false
+declare -g BL_DOCTEST_IS_SYNCHRONIZED=true
+declare -g BL_DOCTEST_SUPRESS_UNDOCUMENTED=false
+declare -gr BL_DOCTEST_REGULAR_EXPRESSION="/${BL_DOCTEST_NAME_INDICATOR}='/,/';$/p"
+declare -g BL_DOCTEST_REGULAR_EXPRESSION_ONE_LINE="${BL_DOCTEST_NAME_INDICATOR}='.*';$"
+declare -g BL_DOCTEST_USE_SIDE_BY_SIDE_OUTPUT=true
 # endregion
 # region functions
 alias bl.doctest.compare_result=bl_doctest_compare_result
@@ -327,7 +327,7 @@ bl_doctest_compare_result() {
             echo Missing expected output. 1>&2
             return 3
         fi
-        if $bl_doctest_debug; then
+        if $BL_DOCTEST_DEBUG; then
             local modifier=''
             if $ellipsis_on; then
                 modifier+=ellipsis
@@ -345,14 +345,14 @@ bl_doctest_compare_result() {
             if ! $multiline_ellipsis || bl_doctest_compare_line; then
                 ellipsis_on=false
             fi
-            if $bl_doctest_debug; then
+            if $BL_DOCTEST_DEBUG; then
                 echo \
-                    "Matched by ellipsis ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
+                    "Matched by ellipsis ${BL_CLI_COLOR_LIGHT_GREEN}${BL_CLI_POWERLINE_OK}${BL_CLI_COLOR_DEFAULT}"
             fi
         elif bl_doctest_compare_line; then
-            if $bl_doctest_debug; then
+            if $BL_DOCTEST_DEBUG; then
                 echo \
-                    "Matched ${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
+                    "Matched ${BL_CLI_COLOR_LIGHT_GREEN}${BL_CLI_POWERLINE_OK}${BL_CLI_COLOR_DEFAULT}"
             fi
             if ! $multiline_contains; then
                 contains=false
@@ -360,11 +360,11 @@ bl_doctest_compare_result() {
         else
             if $contains; then
                 echo \
-                    "Specified \"$buffer_line\" is not in given \"$got_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}" \
+                    "Specified \"$buffer_line\" is not in given \"$got_line\". ${BL_CLI_COLOR_LIGHT_RED}${BL_CLI_POWERLINE_FAIL}${BL_CLI_COLOR_DEFAULT}" \
                         1>&2
             else
                 echo \
-                    "\"$got_line\" is not \"$buffer_line\". ${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}" \
+                    "\"$got_line\" is not \"$buffer_line\". ${BL_CLI_COLOR_LIGHT_RED}${BL_CLI_POWERLINE_FAIL}${BL_CLI_COLOR_DEFAULT}" \
                         1>&2
             fi
             if ! $multiline_contains; then
@@ -383,9 +383,9 @@ bl_doctest_eval() {
         >>> "
         >>> local output_buffer="foo
         >>> bar"
-        >>> bl_doctest_use_side_by_side_output=false
-        >>> bl_doctest_module_reference_under_test=bashlink.module
-        >>> bl_doctest_nounset=false
+        >>> BL_DOCTEST_USE_SIDE_BY_SIDE_OUTPUT=false
+        >>> BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST=bashlink.module
+        >>> BL_DOCTEST_NOUNSET=false
         >>> bl.doctest.eval "$test_buffer" "$output_buffer"
     '
     local -r test_buffer="$1"
@@ -399,9 +399,10 @@ bl_doctest_eval() {
     local -r function_name="${5-}"
     local -i result=0
     local -r scope_name="$(bl.module.rewrite_scope_name "$(
-        bl.module.remove_known_file_extension "$module_name")")"
+        bl.module.remove_known_file_extension "$module_name
+    ")")"
     local -r alternate_scope_name="${scope_name//./_}"
-    local -r setup_identifier="${scope_name//[^[:alnum:]_]/_}"__doctest_setup__
+    local -r setup_identifier="${scope_name//[^[:alnum:]_]/_}"__DOCTEST_SETUP__
     local -r setup_string="${!setup_identifier:-}"
     local function_name_description=''
     if [[ "$function_name" != '' ]]; then
@@ -428,23 +429,24 @@ bl_doctest_eval() {
 source '$module_module_file_path'
 # Suppress the warnings here because they have already been printed when
 # analyzing the module initially.
-bl_module_prevent_namespace_check=true
+BL_MODULE_PREVENT_NAMESPACE_CHECK=true
 $(
-    if [ "$bl_doctest_module_reference_under_test" = doctest ]; then
+    if [ "$BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST" = doctest ]; then
         echo bl.module.import "$doctest_module_file_path"
     else
-        echo bl.module.import "$bl_doctest_module_reference_under_test" "$doctest_module_file_path"
+        echo bl.module.import "$BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST" "$doctest_module_file_path"
     fi
 )
-bl_module_prevent_namespace_check=false
+BL_MODULE_PREVENT_NAMESPACE_CHECK=false
 $setup_string
 bl.module.determine_declared_names >'$declared_names_before_run_file_path'
-$($bl_doctest_nounset && echo 'set -o nounset')
+$($BL_DOCTEST_NOUNSET && echo 'set -o nounset')
 # NOTE: We have to wrap the test context a function to ensure the "local"
 # keyword has an effect inside.
 ${alternate_scope_name}_doctest_environment() {
-    ${alternate_scope_name}_bl_doctest_temporary_file_paths_file_path="\$(
-        mktemp --suffix "-bashlink-doctest-${scope_name}${function_name_description}.paths")"
+    ${alternate_scope_name}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH="\$(
+        mktemp --suffix "-bashlink-doctest-${scope_name}${function_name_description}.paths"
+    )"
     ${alternate_scope_name}_bl_doctest_mktemp() {
         local result
         if [ "\$#" = 0 ]; then
@@ -452,18 +454,18 @@ ${alternate_scope_name}_doctest_environment() {
         else
             result="\$(mktemp "\$@")"
         fi
-        echo "\$result" >"\$${alternate_scope_name}_bl_doctest_temporary_file_paths_file_path"
+        echo "\$result" >"\$${alternate_scope_name}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
         echo "\$result"
     }
     # We run in a subshell to ensure that out cleanup routine runs even after
     # "exit" calls in tests.
     ( $test_buffer )
     sync
-    local bl_doctest_temporary_file_path
-    while read bl_doctest_temporary_file_path; do
-        rm --force --recursive "\$bl_doctest_temporary_file_path"
-    done <"\$${alternate_scope_name}_bl_doctest_temporary_file_paths_file_path"
-    rm --force --recursive "\$${alternate_scope_name}_bl_doctest_temporary_file_paths_file_path"
+    local BL_DOCTEST_TEMPORARY_FILE_PATH
+    while read BL_DOCTEST_TEMPORARY_FILE_PATH; do
+        rm --force --recursive "\$BL_DOCTEST_TEMPORARY_FILE_PATH"
+    done <"\$${alternate_scope_name}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
+    rm --force --recursive "\$${alternate_scope_name}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
 }
 ${alternate_scope_name}_doctest_environment
 bl.module.determine_declared_names >'$declared_names_after_run_file_path'
@@ -479,17 +481,18 @@ EOF
     else
         output="$(bash --noprofile --norc 2>&1 <(echo "$test_script"))"
     fi
-    bl_doctest_new_declared_names="$(diff \
+    BL_DOCTEST_NEW_DECLARED_NAMES="$(diff \
         "$declared_names_before_run_file_path" \
         "$declared_names_after_run_file_path" | \
-            command grep -e '^>' | command sed 's/^> //')"
+            command grep -e '^>' | command sed 's/^> //'
+    )"
     local test_name="$function_name"
     if [ -z "$test_name" ]; then
         test_name="$module_name"
     fi
-    if [[ "$bl_doctest_new_declared_names" != '' ]]; then
+    if [[ "$BL_DOCTEST_NEW_DECLARED_NAMES" != '' ]]; then
         local name
-        bl.string.get_unique_lines <<< "$bl_doctest_new_declared_names" | \
+        bl.string.get_unique_lines <<< "$BL_DOCTEST_NEW_DECLARED_NAMES" | \
             while read -r name; do
                 if ! bl.module.check_name "$name" "$scope_name"; then
                     bl.logging.warn \
@@ -507,15 +510,15 @@ EOF
         # NOTE: We have to replace last pending test information line first.
         bl.logging.is_enabled info && \
             bl.logging.plain -n $'\r'
-        bl.logging.plain "${bl_cli_color_light_red}error:${bl_cli_color_default} ${reason}"
-        bl.logging.plain "${bl_cli_color_light_red}test:${bl_cli_color_default}"
+        bl.logging.plain "${BL_CLI_COLOR_LIGHT_RED}error:${BL_CLI_COLOR_DEFAULT} ${reason}"
+        bl.logging.plain "${BL_CLI_COLOR_LIGHT_RED}test:${BL_CLI_COLOR_DEFAULT}"
         bl.logging.plain "$test_buffer"
-        bl.logging.plain "${bl_cli_color_light_red}expected:${bl_cli_color_default}"
+        bl.logging.plain "${BL_CLI_COLOR_LIGHT_RED}expected:${BL_CLI_COLOR_DEFAULT}"
         bl.logging.plain "$output_buffer"
-        bl.logging.plain "${bl_cli_color_light_red}got:${bl_cli_color_default}"
+        bl.logging.plain "${BL_CLI_COLOR_LIGHT_RED}got:${BL_CLI_COLOR_DEFAULT}"
         bl.logging.plain "$output"
-        if $bl_doctest_use_side_by_side_output; then
-            bl.logging.plain "${bl_cli_color_light_red}difference:${bl_cli_color_default}"
+        if $BL_DOCTEST_USE_SIDE_BY_SIDE_OUTPUT; then
+            bl.logging.plain "${BL_CLI_COLOR_LIGHT_RED}difference:${BL_CLI_COLOR_DEFAULT}"
             local diff=diff
             bl.dependency.check colordiff && diff=colordiff
             $diff --side-by-side <(echo -e "$(
@@ -565,15 +568,16 @@ bl_doctest_get_function_docstring() {
     (
         local docstring
         if ! docstring="$(type "$function_name" 2>/dev/null | \
-            command grep "$bl_doctest_regular_expression_one_line")"
+            command grep "$BL_DOCTEST_REGULAR_EXPRESSION_ONE_LINE")"
         then
             docstring="$(
                 type "$function_name" 2>/dev/null | \
-                    command sed --quiet "$bl_doctest_regular_expression")"
+                    command sed --quiet "$BL_DOCTEST_REGULAR_EXPRESSION"
+            )"
         fi
-        eval "unset $bl_doctest_name_indicator"
+        eval "unset $BL_DOCTEST_NAME_INDICATOR"
         eval "$docstring"
-        echo "${!bl_doctest_name_indicator}"
+        echo "${!BL_DOCTEST_NAME_INDICATOR}"
     )
 }
 alias bl.doctest.parse_docstring=bl_doctest_parse_docstring
@@ -783,11 +787,11 @@ bl_doctest_run_test() {
 
         >>> bl.doctest.run_test "test" bashlink.doctest bl_doctest_get_function_docstring
 
-        >>> bl_doctest_module_reference_under_test=bashlink.doctest
+        >>> BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST=bashlink.doctest
         >>> bl.doctest.run_test ">>> echo a
         >>> a" bashlink.doctest bl_doctest_get_function_docstring
 
-        >>> bl_doctest_module_reference_under_test=bashlink.doctest
+        >>> BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST=bashlink.doctest
         >>> bl.doctest.run_test ">>> echo a" bashlink.doctest bl_doctest_get_function_docstring &>/dev/null 3>&1 4>&1; echo $?
         1
     '
@@ -797,24 +801,24 @@ bl_doctest_run_test() {
     local test_name="$module_name"
     [[ -z "$function_name" ]] || \
         test_name="$function_name"
-    if $bl_doctest_is_synchronized; then
-        bl.logging.info --no-new-line "$test_name ${bl_cli_color_light_yellow}${bl_cli_powerline_cog}${bl_cli_color_default}"
+    if $BL_DOCTEST_IS_SYNCHRONIZED; then
+        bl.logging.info --no-new-line "$test_name ${BL_CLI_COLOR_LIGHT_YELLOW}${BL_CLI_POWERLINE_COG}${BL_CLI_COLOR_DEFAULT}"
     fi
     if bl.doctest.parse_docstring "$docstring" bl_doctest_eval '>>>' \
         "$module_name" "$function_name"
     then
-        $bl_doctest_is_synchronized && \
+        $BL_DOCTEST_IS_SYNCHRONIZED && \
             bl.logging.is_enabled info && \
             bl.logging.plain -n $'\r'
         bl.logging.info \
             "$test_name" \
-            "${bl_cli_color_light_green}${bl_cli_powerline_ok}${bl_cli_color_default}"
+            "${BL_CLI_COLOR_LIGHT_GREEN}${BL_CLI_POWERLINE_OK}${BL_CLI_COLOR_DEFAULT}"
     else
         # NOTE: `bl.doctest.eval` has replaced last line if info logging level
         # is enabled.
         bl.logging.warn \
             "$test_name" \
-            "${bl_cli_color_light_red}${bl_cli_powerline_fail}${bl_cli_color_default}"
+            "${BL_CLI_COLOR_LIGHT_RED}${BL_CLI_POWERLINE_FAIL}${BL_CLI_COLOR_DEFAULT}"
         return 1
     fi
     return 0
@@ -833,11 +837,11 @@ bl_doctest_test() {
         Given function "bl_doctest_not_existing" is not documented.
         1
     '
-    bl_doctest_module_reference_under_test="$1"
+    BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST="$1"
     local -r given_function_names_to_test="$2"
     local result
     if ! result="$(
-        bl.module.resolve "$bl_doctest_module_reference_under_test" true
+        bl.module.resolve "$BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST" true
     )"; then
         bl.logging.plain -n "$result" 1>&2 3>&4
         return 1
@@ -855,13 +859,13 @@ bl_doctest_test() {
         shopt -s nullglob
         local file_paths=(*)
         if (( ${#file_paths[@]} > 1 )); then
-            bl_doctest_is_synchronized=false
+            BL_DOCTEST_IS_SYNCHRONIZED=false
         fi
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
             local excluded=false
             local excluded_name
-            for excluded_name in "${bl_module_directory_names_to_ignore[@]}"; do
+            for excluded_name in "${BL_MODULE_DIRECTORY_NAMES_TO_IGNORE[@]}"; do
                 if [[ -d "$sub_file_path" ]] && [[
                     "$excluded_name" = "$(basename "$sub_file_path")"
                 ]]; then
@@ -870,7 +874,7 @@ bl_doctest_test() {
                 fi
             done
             if ! $excluded; then
-                for excluded_name in "${bl_module_file_names_to_ignore[@]}"; do
+                for excluded_name in "${BL_MODULE_FILE_NAMES_TO_IGNORE[@]}"; do
                     if [[ -f "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
                         excluded=true
                         break
@@ -878,7 +882,7 @@ bl_doctest_test() {
                 done
             fi
             if ! $excluded; then
-                if $bl_doctest_synchronized; then
+                if $BL_DOCTEST_SYNCHRONIZED; then
                     (( total++ ))
                     # shellcheck disable=SC1117
                     bl.doctest.test "$(
@@ -901,7 +905,7 @@ bl_doctest_test() {
                 fi
             fi
         done
-        if ! $bl_doctest_synchronized; then
+        if ! $BL_DOCTEST_SYNCHRONIZED; then
             local -i subprocess_id
             for subprocess_id in $(jobs -p); do
                 (( total++ ))
@@ -917,10 +921,11 @@ bl_doctest_test() {
     fi
     (
         bl.module.import_without_namespace_check \
-            "$bl_doctest_module_reference_under_test"
+            "$BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST"
         scope_name="$(
             bl.module.rewrite_scope_name "$module_name" | \
-                command sed --regexp-extended 's:\.:_:g')"
+                command sed --regexp-extended 's:\.:_:g'
+        )"
         local name
         local function_names_to_test=''
         for name in $given_function_names_to_test; do
@@ -946,7 +951,7 @@ bl_doctest_test() {
         bl.time.start
         if [ "$given_function_names_to_test" = '' ]; then
             # Module level tests
-            local module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
+            local module_documentation_variable_name="${scope_name}${BL_DOCTEST_NAME_INDICATOR}"
             local docstring="${!module_documentation_variable_name}"
             if [ "$docstring" = '' ]; then
                 bl.logging.warn "Module \"$module_name\" is not documented."
@@ -968,7 +973,7 @@ bl_doctest_test() {
             elif [ "$given_function_names_to_test" != '' ]; then
                 (( total++ ))
                 bl.logging.error "Given function \"$name\" is not documented."
-            elif ! $bl_doctest_supress_undocumented; then
+            elif ! $BL_DOCTEST_SUPRESS_UNDOCUMENTED; then
                 bl.logging.warn "Function \"$name\" is not documented."
             fi
         done
@@ -1000,13 +1005,13 @@ bl_doctest_main() {
     local help
     bl.arguments.get_flag --help -h help
     if $help; then
-        bl.documentation.get_formatted_docstring "$bl_doctest__documentation__"
+        bl.documentation.get_formatted_docstring "$BL_DOCTEST__DOCUMENTATION__"
         return 0
     fi
     local no_side_by_side
     bl.arguments.get_flag --prevent-side-by-side no_side_by_side
     if $no_side_by_side; then
-        bl_doctest_use_side_by_side_output=false
+        BL_DOCTEST_USE_SIDE_BY_SIDE_OUTPUT=false
     fi
     # Indicates if we should ran tests in parallel.
     bl.arguments.get_flag --synchronized bl_doctest_synchronized
@@ -1020,14 +1025,14 @@ bl_doctest_main() {
     if $verbose; then
         bl.logging.set_level info
     fi
-    bl_doctest_is_synchronized=true
+    BL_DOCTEST_IS_SYNCHRONIZED=true
     bl.time.start
     local item_names=''
     local -i success=0
     local -i total=0
     if [ "$#" = 0 ]; then
         item_names=bashlink
-        if $bl_doctest_synchronized; then
+        if $BL_DOCTEST_SYNCHRONIZED; then
             (( total++ ))
             bl.doctest.test bashlink && \
                 (( success++ ))
@@ -1035,8 +1040,8 @@ bl_doctest_main() {
             bl.doctest.test bashlink &
         fi
     else
-        if ! $bl_doctest_synchronized && [[ "$#" -gt 1 ]]; then
-            bl_doctest_is_synchronized=false
+        if ! $BL_DOCTEST_SYNCHRONIZED && [[ "$#" -gt 1 ]]; then
+            BL_DOCTEST_IS_SYNCHRONIZED=false
         fi
         local name
         for name in "$@"; do
@@ -1048,7 +1053,7 @@ bl_doctest_main() {
             if [ "$function_name" = "$name" ]; then
                 function_name=''
             fi
-            if $bl_doctest_synchronized; then
+            if $BL_DOCTEST_SYNCHRONIZED; then
                 (( total++ ))
                 bl.doctest.test "$module_name" "$function_name" && \
                     (( success++ ))
@@ -1058,7 +1063,7 @@ bl_doctest_main() {
             item_names+="$name"
         done
     fi
-    if ! $bl_doctest_synchronized; then
+    if ! $BL_DOCTEST_SYNCHRONIZED; then
         local -i subprocess_id
         for subprocess_id in $(jobs -p); do
             (( total++ ))

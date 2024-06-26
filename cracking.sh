@@ -16,7 +16,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.logging
 # endregion
 # region variables
-declare -gr bl_cracking__documentation__='
+declare -gr BL_CRACKING__DOCUMENTATION__='
     The cracking module implements utility functions to make a system
     unusable or trigger unexpected behavior.
 '
