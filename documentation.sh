@@ -13,9 +13,9 @@
 # region executable header
 if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
     for bl_doctest_sub_path in / lib/; do
-        if [ -f "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${bl_doctest_sub_path}bashlink/module.sh" ]
+        if [ -f "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${BL_DOCTEST_SUB_PATH}bashlink/module.sh" ]
         then
-            exec "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${bl_doctest_sub_path}bashlink/documentation.sh" "$@"
+            exec "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${BL_DOCTEST_SUB_PATH}bashlink/documentation.sh" "$@"
         fi
     done
 fi
@@ -31,7 +31,7 @@ bl.module.import bashlink.string
 bl.module.import bashlink.tools
 # endregion
 # region variables
-declare -gr bl_documentation__documentation__='
+declare -gr BL_DOCUMENTATION__DOCUMENTATION__='
     The documentation module implements function and module level documentation
     generation in markdown.
 '
@@ -113,14 +113,14 @@ bl_documentation_generate() {
         for sub_file_path in "${file_path}"/*; do
             local excluded=false
             local excluded_name
-            for excluded_name in "${bl_module_directory_names_to_ignore[@]}"; do
+            for excluded_name in "${BL_MODULE_DIRECTORY_NAMES_TO_IGNORE[@]}"; do
                 if [[ -d "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
                     excluded=true
                     break
                 fi
             done
             if ! $excluded; then
-                for excluded_name in "${bl_module_file_names_to_ignore[@]}"; do
+                for excluded_name in "${BL_MODULE_FILE_NAMES_TO_IGNORE[@]}"; do
                     if [[ -f "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
                         excluded=true
                         break
@@ -152,7 +152,7 @@ bl_documentation_generate() {
             echo "$declared_function_names"))"
         # Module level documentation
         # shellcheck disable=SC2154
-        local -r module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
+        local -r module_documentation_variable_name="${scope_name}${BL_DOCTEST_NAME_INDICATOR}"
         local docstring="${!module_documentation_variable_name}"
         echo "## Module $module_name"
         if [ "$docstring" = '' ]; then

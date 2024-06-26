@@ -19,12 +19,12 @@ bl.module.import bashlink.logging
 bl.module.import bashlink.path
 # endregion
 # region variables
-declare -gr bl_filesystem__documentation__='
+declare -gr BL_FILESYSTEM__DOCUMENTATION__='
     Provides filesystem aware utility functions.
 '
-declare -gr bl_filesystem__dependencies__=(pv)
+declare -gr BL_FILESYSTEM__DEPENDENCIES__=(pv)
 # shellcheck disable=SC1004
-declare -gr bl_filesystem__doctest_setup__='
+declare -gr BL_FILESYSTEM__DOCTEST_SETUP__='
     # Runs once before tests are started:
     # region import
     bl.module.import bashlink.array
@@ -722,7 +722,7 @@ bl_filesystem_make_uefi_boot_entry() {
                 vmlinuz-linux-lts
         ```
     '
-    local -r kernel_parameter_file_path="${bl_globals_configuration_path}linux/kernel/${1}CommandLine"
+    local -r kernel_parameter_file_path="${BL_GLOBALS_CONFIGURATION_PATH}linux/kernel/${1}CommandLine"
     local kernel=vmlinuz-linux
     if [[ "$2" ]]; then
         kernel="$2"
@@ -806,7 +806,7 @@ bl_filesystem_write_blockdevice_to_image() {
     if [[ "$1" ]]; then
         source="$1"
     fi
-    local target="${bl_globals_data_path}private/backup/backup-sd-card.img"
+    local target="${BL_GLOBALS_DATA_PATH}private/backup/backup-sd-card.img"
     if [[ "$2" ]]; then
         target="$2"
     fi
@@ -825,7 +825,7 @@ bl_filesystem_write_image_to_blockdevice() {
         ```
     '
     # shellcheck disable=SC2125
-    local source="${bl_globals_data_path}temp/image/"*.img
+    local source="${BL_GLOBALS_DATA_PATH}temp/image/"*.img
     if [[ "$1" ]]; then
         source="$1"
     fi

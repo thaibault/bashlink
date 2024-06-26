@@ -19,7 +19,7 @@ bl.module.import bashlink.logging
 bl.module.import bashlink.string
 # endregion
 # region variables
-declare -gr bl_tools__documentation__='
+declare -gr BL_TOOLS__DOCUMENTATION__='
     This module provides generic utility functions.
 '
 # endregion
@@ -226,7 +226,7 @@ bl_tools_send_e_mail() {
                 "Sun, 2 Feb 1986 14:23:56 +0100"
         ```
     '
-    local e_mail_address="$bl_globals_user_e_mail_address"
+    local e_mail_address="$BL_GLOBALS_USER_E_MAIL_ADDRESS"
     if [ "$3" ]; then
         e_mail_address="$3"
     fi

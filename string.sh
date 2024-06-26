@@ -18,7 +18,7 @@ bl.module.import bashlink.cli
 bl.module.import bashlink.logging
 # endregion
 # region variables
-declare -gr bl_string__documentation__='
+declare -gr BL_STRING__DOCUMENTATION__='
     This module implements utility functions concerning strings.
 '
 # endregion
@@ -142,9 +142,9 @@ bl_string_make_command_promt_prefix() {
         ```
     '
 
-    local error_promt="(${bl_cli_color_masked_red}${return_code}${bl_cli_color_masked_default})"
+    local error_promt="(${BL_CLI_COLOR_MASKED_RED}${return_code}${BL_CLI_COLOR_MASKED_DEFAULT})"
     if  (( return_code == 0 )); then
-        error_promt="${bl_cli_color_masked_green}>${bl_cli_color_masked_default}"
+        error_promt="${BL_CLI_COLOR_MASKED_GREEN}>${BL_CLI_COLOR_MASKED_DEFAULT}"
     fi
 
     local system_load_average=''
@@ -162,10 +162,10 @@ bl_string_make_command_promt_prefix() {
             git branch 2>/dev/null | \
             command sed --regexp-extended "s/^\* (.*)$/ $(
                 bl.string.validate_regular_expression_replacement \
-                    "$bl_cli_color_masked_red"
+                    "$BL_CLI_COLOR_MASKED_RED"
             )\1$(
                 bl.string.validate_regular_expression_replacement \
-                    "$bl_cli_color_masked_cyan"
+                    "$BL_CLI_COLOR_MASKED_CYAN"
             )/g" | \
                 tr --delete "\n" | \
                     command sed 's/  / /g' | \
@@ -173,16 +173,16 @@ bl_string_make_command_promt_prefix() {
                             command sed 's/ *$//g'
         )"
         if [ "$git_branch" ]; then
-            git_branch="(${bl_cli_color_masked_light_gray}git${bl_cli_color_masked_default})-(${bl_cli_color_masked_cyan}${git_branch}${bl_cli_color_masked_default})"
+            git_branch="(${BL_CLI_COLOR_MASKED_LIGHT_GRAY}git${BL_CLI_COLOR_MASKED_DEFAULT})-(${BL_CLI_COLOR_MASKED_CYAN}${git_branch}${BL_CLI_COLOR_MASKED_DEFAULT})"
         fi
     fi
 
-    local user_name="$bl_cli_color_masked_blue"
+    local user_name="$BL_CLI_COLOR_MASKED_BLUE"
     if (( "$(id --user)" == 0 )); then
-        user_name="$bl_cli_color_masked_red"
+        user_name="$BL_CLI_COLOR_MASKED_RED"
     fi
     # shellcheck disable=SC1117
-    user_name+="\u$bl_cli_color_masked_default"
+    user_name+="\u$BL_CLI_COLOR_MASKED_DEFAULT"
 
     local title_bar=''
     if [[ "$TERM" != linux ]]; then
@@ -190,11 +190,11 @@ bl_string_make_command_promt_prefix() {
         title_bar="\[\e]0;\u@\h:$(pwd)\a\]"
     fi
 
-    local -r username="${bl_cli_color_masked_cyan}${user_name}${bl_cli_color_masked_light_gray}"
-    local -r usergroupname="${bl_cli_color_masked_cyan}\h${bl_cli_color_masked_default}"
-    local -r systemload="${bl_cli_color_masked_magenta}${system_load_average}${bl_cli_color_masked_default}"
-    local -r working_path="${bl_cli_color_masked_light_gray}\w${bl_cli_color_masked_default}"
-    local -r suffix="${bl_cli_color_masked_dark_gray}> ${bl_cli_color_masked_default}"
+    local -r username="${BL_CLI_COLOR_MASKED_CYAN}${user_name}${BL_CLI_COLOR_MASKED_LIGHT_GRAY}"
+    local -r usergroupname="${BL_CLI_COLOR_MASKED_CYAN}\h${BL_CLI_COLOR_MASKED_DEFAULT}"
+    local -r systemload="${BL_CLI_COLOR_MASKED_MAGENTA}${system_load_average}${BL_CLI_COLOR_MASKED_DEFAULT}"
+    local -r working_path="${BL_CLI_COLOR_MASKED_LIGHT_GRAY}\w${BL_CLI_COLOR_MASKED_DEFAULT}"
+    local -r suffix="${BL_CLI_COLOR_MASKED_DARK_GRAY}> ${BL_CLI_COLOR_MASKED_DEFAULT}"
 
     # shellcheck disable=SC1117
     echo -n "${title_bar}${error_promt} ${username}@${usergroupname}${systemload} ${working_path}\n${git_branch}${suffix}"

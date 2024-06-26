@@ -14,7 +14,7 @@
 # import any other modules (like "bashlink.logging") to avoid a cyclic
 # dependency graph.
 # region variables
-declare -gr bl_path__documentation__='
+declare -gr BL_PATH__DOCUMENTATION__='
     The path module implements utility functions concerning path.
 '
 # endregion
