@@ -42,6 +42,7 @@
     "number.sh",
     "pacman.sh",
     "path.sh",
+    "prompt",
     "ssh.sh",
     "string.sh",
     "time.sh",

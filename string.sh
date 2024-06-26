@@ -150,12 +150,12 @@ bl_string_make_command_promt_prefix() {
     local system_load_average=''
     local git_branch=''
     if [[ "$1" != '-s' && "$1" != '--simple' ]]; then
-        system_load_average="$(
+        system_load_average=" ($(
             uptime | \
                 command grep --extended-regexp --only-matching \
                     '[0-9]{1,2}[.,][0-9]{1,2}' | \
                         head --lines 1
-        )"
+                                    ))"
 
         # shellcheck disable=SC1117
         git_branch="$(
@@ -197,7 +197,7 @@ bl_string_make_command_promt_prefix() {
     local -r suffix="${bl_cli_color_masked_dark_gray}> ${bl_cli_color_masked_default}"
 
     # shellcheck disable=SC1117
-    echo -n "${title_bar}${error_promt} ${username}@${usergroupname} (${systemload}) ${working_path}\n${git_branch}${suffix}"
+    echo -n "${title_bar}${error_promt} ${username}@${usergroupname}${systemload} ${working_path}\n${git_branch}${suffix}"
 }
 alias bl.string.merge_text_files=bl_string_merge_text_files
 bl_string_merge_text_files() {
