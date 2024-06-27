@@ -16,7 +16,8 @@ declare -i TIMEOUT_IN_SECONDS=1
 timeout \
     --kill-after="$((TIMEOUT_IN_SECONDS * 3))" \
     "$TIMEOUT_IN_SECONDS" \
-    "${CURRENT_PATH}main.sh"
+    "${CURRENT_PATH}main.sh" \
+    "$@"
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:

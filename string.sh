@@ -125,7 +125,7 @@ bl_string_images_to_css_classes() {
 alias bl.string.make_command_promt_prefix=bl_string_make_command_promt_prefix
 bl_string_make_command_promt_prefix() {
     # NOTE: This have to be the first statement to retrieve last return code.
-    local -ir return_code=$?
+    local -i return_code=$?
 
     local -r __documentation__='
         Generates a new user prompt with useful runtime parameters.
@@ -134,13 +134,25 @@ bl_string_make_command_promt_prefix() {
             bl.string.make_command_promt_prefix
             ...
 
-            bl.string.make_command_promt_prefix -s
+            bl.string.make_command_promt_prefix 0
             ...
 
-            bl.string.make_command_promt_prefix --simple
+            bl.string.make_command_promt_prefix -s 0
+            ...
+
+            bl.string.make_command_promt_prefix --simple 1
             ...
         ```
     '
+    local simple=false
+    if [[ "$1" = '-s' || "$1" = '--simple' ]]; then
+        simple=true
+        shift
+    fi
+
+    if [ ! -z "$1" ]; then
+        return_code="$1"
+    fi
 
     local error_promt="(${BL_CLI_COLOR_MASKED_RED}${return_code}${BL_CLI_COLOR_MASKED_DEFAULT})"
     if  (( return_code == 0 )); then
@@ -149,13 +161,13 @@ bl_string_make_command_promt_prefix() {
 
     local system_load_average=''
     local git_branch=''
-    if [[ "$1" != '-s' && "$1" != '--simple' ]]; then
+    if "$simple"; then
         system_load_average=" ($(
             uptime | \
                 command grep --extended-regexp --only-matching \
                     '[0-9]{1,2}[.,][0-9]{1,2}' | \
                         head --lines 1
-                                    ))"
+        ))"
 
         # shellcheck disable=SC1117
         git_branch="$(
