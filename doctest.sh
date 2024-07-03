@@ -12,7 +12,7 @@
 # shellcheck disable=SC2016,SC2034,SC2155
 # region executable header
 if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
-    for bl_doctest_sub_path in / lib/; do
+    for BL_DOCTEST_SUB_PATH in / lib/; do
         if [ -f "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${BL_DOCTEST_SUB_PATH}bashlink/module.sh" ]
         then
             exec "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${BL_DOCTEST_SUB_PATH}bashlink/doctest.sh" "$@"
@@ -159,7 +159,7 @@ declare -gr BL_DOCTEST__DOCUMENTATION__='
 '
 declare -g BL_DOCTEST_DEBUG=false
 declare -g BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST=''
-declare -gr BL_DOCTEST_NAME_INDICATOR=__documentation__
+declare -gr BL_DOCTEST_NAME_INDICATOR=__DOCUMENTATION__
 declare -g BL_DOCTEST_NOUNSET=false
 declare -g BL_DOCTEST_SYNCHRONIZED=false
 declare -g BL_DOCTEST_IS_SYNCHRONIZED=true
@@ -398,10 +398,16 @@ bl_doctest_eval() {
     local -r module_module_file_path="$(bl.module.resolve bashlink.module)"
     local -r function_name="${5-}"
     local -i result=0
-    local -r scope_name="$(bl.module.rewrite_scope_name "$(
+
+    local -r function_scope_name="$(bl.module.rewrite_function_scope_name "$(
         bl.module.remove_known_file_extension "$module_name
     ")")"
-    local -r alternate_scope_name="${scope_name//./_}"
+    local -r alternate_function_scope_name="${scope_name//./_}"
+    local -r globals_scope_name="$(bl.module.rewrite_globals_scope_name "$(
+        bl.module.remove_known_file_extension "$module_name
+    ")")"
+    local -r alternate_globals_scope_name="${globals_scope_name//./_}"
+
     local -r setup_identifier="${scope_name//[^[:alnum:]_]/_}"__DOCTEST_SETUP__
     local -r setup_string="${!setup_identifier:-}"
     local function_name_description=''
@@ -847,12 +853,15 @@ bl_doctest_test() {
         return 1
     fi
     local -r file_path="$(
-        echo "$result" | command sed --regexp-extended 's:^(.+)/[^/]+$:\1:')"
+        echo "$result" | command sed --regexp-extended 's:^(.+)/[^/]+$:\1:'
+    )"
     local -r module_name="$(
-        echo "$result" | command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
+        echo "$result" | command sed --regexp-extended 's:^.*/([^/]+)$:\1:'
+    )"
     local scope_name="$(
         bl.module.rewrite_scope_name "$module_name" | \
-            command sed --regexp-extended 's:\.:_:g')"
+            command sed --regexp-extended 's:\.:_:g'
+    )"
     local -i success=0
     local -i total=0
     if [ -d "$file_path" ]; then
@@ -923,7 +932,7 @@ bl_doctest_test() {
         bl.module.import_without_namespace_check \
             "$BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST"
         scope_name="$(
-            bl.module.rewrite_scope_name "$module_name" | \
+            bl.module.rewrite_scope_name "${module_name^^}" | \
                 command sed --regexp-extended 's:\.:_:g'
         )"
         local name
@@ -944,10 +953,12 @@ bl_doctest_test() {
             local function_names_to_test="$module_declared_function_names_after_source"
             # Adds internal already loaded but correctly prefixed functions.
             function_names_to_test+=" $(
-                ! declare -F | cut -d' ' -f3 | command grep -e "^$scope_name")"
+                ! declare -F | cut -d' ' -f3 | command grep -e "^$scope_name"
+            )"
         fi
         function_names_to_test="$(bl.string.get_unique_lines <(
-            echo "$function_names_to_test"))"
+            echo "$function_names_to_test"
+        ))"
         bl.time.start
         if [ "$given_function_names_to_test" = '' ]; then
             # Module level tests

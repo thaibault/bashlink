@@ -138,6 +138,7 @@ bl_changeroot_with_kernel_api() {
     local -i return_code=0
     bl.changeroot.with_fake_fallback "$@" || \
         return_code=$?
+    local -i current_return_code=0
     for mountpoint_path in $(bl.array.reverse "${mounted_locations[*]}"); do
         if mountpoint -q "${new_root_location}${mountpoint_path}" || \
             [ -f "/${mountpoint_path}" ]
@@ -153,9 +154,9 @@ bl_changeroot_with_kernel_api() {
             fi
             # NOTE: "return_code" remains with an error code if there was
             # given one in all iterations.
-            # shellcheck disable=SC2181
-            [[ $? != 0 ]] && \
-                return_code=$?
+            current_return_code=$?
+            ((current_return_code != 0)) && \
+                return_code="$current_return_code"
         else
             bl.logging.warn \
                 "Location \"${new_root_location}${mountpoint_path}\" should be a mountpoint but isn't."

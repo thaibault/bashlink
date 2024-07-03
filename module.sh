@@ -41,7 +41,7 @@ if \
     $BL_MODULE_RETRIEVE_REMOTE_MODULES && \
     ! [ -f "$(dirname "${BASH_SOURCE[0]}")/path.sh" ]
 then
-    for bl_module_url in "${BL_MODULE_KNOWN_REMOTE_URLS[@]}"; do
+    for BL_MODULE_URL in "${BL_MODULE_KNOWN_REMOTE_URLS[@]}"; do
         if bl.module.download "${BL_MODULE_URL}/path.sh" \
             >"$(dirname "${BASH_SOURCE[0]}")/path.sh"
         then
@@ -119,9 +119,13 @@ then
     BL_MODULE_TIDY_UP=true
 fi
 declare -g BL_MODULE_PREVENT_NAMESPACE_CHECK=true
-declare -ag BL_MODULE_SCOPE_REWRITES=(
+declare -ag BL_MODULE_FUNCTION_SCOPE_REWRITES=(
     '^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/'
     '[^a-zA-Z0-9._]/./g'
+)
+declare -ag BL_MODULE_GLOBALS_SCOPE_REWRITES=(
+    '^BASHLINK(([_]mockup)?[_][a-zA-Z_-]+)$/BL\1/'
+    '[^a-zA-Z0-9_]/_/g'
 )
 declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-resolve-cache-${USER:-unknown-user}"
 # endregion
@@ -354,7 +358,7 @@ bl_module_import_raw() {
         error: Failed to source module "bashlink.not_existing".
         1
     '
-    BL_MODULE_IMPORT_LEVEL=$((bl_module_import_level + 1))
+    BL_MODULE_IMPORT_LEVEL=$((BL_MODULE_IMPORT_LEVEL + 1))
     # shellcheck disable=SC1090
     source "$1"
     local -i return_code=$?
@@ -368,7 +372,7 @@ bl_module_import_raw() {
         bl.module.log error_exception "Failed to source module \"$1\"." ||
             return $?
     fi
-    BL_MODULE_IMPORT_LEVEL=$((bl_module_import_level - 1))
+    BL_MODULE_IMPORT_LEVEL=$((BL_MODULE_IMPORT_LEVEL - 1))
 }
 # NOTE: Depends on "bl.module.log"
 alias bl.module.import_with_namespace_check=bl_module_import_with_namespace_check
@@ -839,23 +843,45 @@ bl_module_remove_known_file_extension() {
     done
     echo "$1"
 }
-alias bl.module.rewrite_scope_name=bl_module_rewrite_scope_name
-bl_module_rewrite_scope_name() {
+alias bl.module.rewrite_function_scope_name=bl_module_rewrite_function_scope_name
+bl_module_rewrite_function_scope_name() {
     local -r __documentation__='
         Rewrite scope name. Usually needed to shorten a scope name.
 
-        >>> bl.module.rewrite_scope_name bashlink.module
+        >>> bl.module.rewrite_function_scope_name bashlink.module
         bl.module
 
-        >>> bl.module.rewrite_scope_name a-b+a
+        >>> bl.module.rewrite_function_scope_name a-b+a
         a.b.a
     '
     local resolved_scope_name="$1"
     local rewrite
-    for rewrite in "${BL_MODULE_SCOPE_REWRITES[@]}"; do
+    for rewrite in "${BL_MODULE_FUNCTION_SCOPE_REWRITES[@]}"; do
         resolved_scope_name="$(
             echo "$resolved_scope_name" | \
-                command sed --regexp-extended "s/$rewrite")"
+                command sed --regexp-extended "s/$rewrite"
+        )"
+    done
+    echo "$resolved_scope_name"
+}
+alias bl.module.rewrite_globals_scope_name=bl_module_rewrite_globals_scope_name
+bl_module_rewrite_globals_scope_name() {
+    local -r __documentation__='
+        Rewrite scope name. Usually needed to shorten a scope name.
+
+        >>> bl.module.rewrite_globals_scope_name BASHLINK_MODULE
+        BL_MODULE
+
+        >>> bl.module.rewrite_globals_scope_name a-b+a
+        a_b_a
+    '
+    local resolved_scope_name="$1"
+    local rewrite
+    for rewrite in "${BL_MODULE_GLOBALS_SCOPE_REWRITES[@]}"; do
+        resolved_scope_name="$(
+            echo "$resolved_scope_name" | \
+                command sed --regexp-extended "s/$rewrite"
+        )"
     done
     echo "$resolved_scope_name"
 }

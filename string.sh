@@ -122,8 +122,8 @@ bl_string_images_to_css_classes() {
         fi
     done
 }
-alias bl.string.make_command_promt_prefix=bl_string_make_command_promt_prefix
-bl_string_make_command_promt_prefix() {
+alias bl.string.make_command_prompt_prefix=bl_string_make_command_prompt_prefix
+bl_string_make_command_prompt_prefix() {
     # NOTE: This have to be the first statement to retrieve last return code.
     local -i return_code=$?
 
@@ -131,16 +131,16 @@ bl_string_make_command_promt_prefix() {
         Generates a new user prompt with useful runtime parameters.
 
         ```bash
-            bl.string.make_command_promt_prefix
+            bl.string.make_command_prompt_prefix
             ...
 
-            bl.string.make_command_promt_prefix 0
+            bl.string.make_command_prompt_prefix 0
             ...
 
-            bl.string.make_command_promt_prefix -s 0
+            bl.string.make_command_prompt_prefix -s 0
             ...
 
-            bl.string.make_command_promt_prefix --simple 1
+            bl.string.make_command_prompt_prefix --simple 1
             ...
         ```
     '
@@ -150,18 +150,18 @@ bl_string_make_command_promt_prefix() {
         shift
     fi
 
-    if [ ! -z "$1" ]; then
-        return_code="$1"
+    if [ -n "$1" ]; then
+        return_code=$1
     fi
 
-    local error_promt="(${BL_CLI_COLOR_MASKED_RED}${return_code}${BL_CLI_COLOR_MASKED_DEFAULT})"
+    local error_prompt="(${BL_CLI_COLOR_MASKED_RED}${return_code}${BL_CLI_COLOR_MASKED_DEFAULT})"
     if  (( return_code == 0 )); then
-        error_promt="${BL_CLI_COLOR_MASKED_GREEN}>${BL_CLI_COLOR_MASKED_DEFAULT}"
+        error_prompt="${BL_CLI_COLOR_MASKED_GREEN}>${BL_CLI_COLOR_MASKED_DEFAULT}"
     fi
 
     local system_load_average=''
     local git_branch=''
-    if "$simple"; then
+    if ! "$simple"; then
         system_load_average=" ($(
             uptime | \
                 command grep --extended-regexp --only-matching \
@@ -209,7 +209,7 @@ bl_string_make_command_promt_prefix() {
     local -r suffix="${BL_CLI_COLOR_MASKED_DARK_GRAY}> ${BL_CLI_COLOR_MASKED_DEFAULT}"
 
     # shellcheck disable=SC1117
-    echo -n "${title_bar}${error_promt} ${username}@${usergroupname}${systemload} ${working_path}\n${git_branch}${suffix}"
+    command echo -n "${title_bar}${error_prompt} ${username}@${usergroupname}${systemload} ${working_path}\n${git_branch}${suffix}"
 }
 alias bl.string.merge_text_files=bl_string_merge_text_files
 bl_string_merge_text_files() {

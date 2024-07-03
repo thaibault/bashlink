@@ -32,7 +32,7 @@ bl_time_get_elapsed() {
         0
     '
     local -ir end_time="$(date +%s%N)"
-    local -ir elapsed_time_in_nano_seconds=$(( end_time - bl_time_start ))
+    local -ir elapsed_time_in_nano_seconds=$(( end_time - BL_TIME_START ))
     echo $(( elapsed_time_in_nano_seconds / 1000000 ))
 }
 alias bl.time.start=bl_time_start
