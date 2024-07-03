@@ -10,7 +10,7 @@
 # 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
-declare -gr BL_GLOBALS_DOCUMENTATION__='
+declare -gr BL_GLOBALS__DOCUMENTATION__='
     The globals module provides generic re-usable variables.
 '
 declare -g BL_GLOBALS_CONFIGURATION_PATH=~/configuration/

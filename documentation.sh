@@ -12,7 +12,7 @@
 # shellcheck disable=SC2016,SC2034,SC2155
 # region executable header
 if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
-    for bl_doctest_sub_path in / lib/; do
+    for BL_DOCTEST_SUB_PATH in / lib/; do
         if [ -f "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${BL_DOCTEST_SUB_PATH}bashlink/module.sh" ]
         then
             exec "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${BL_DOCTEST_SUB_PATH}bashlink/documentation.sh" "$@"

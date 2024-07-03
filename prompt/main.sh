@@ -13,7 +13,7 @@
 source "${ILU_PUBLIC_REPOSITORY_PATH}bashlink/module.sh"
 bl.module.import bashlink.string
 
-bl.string.make_command_promt_prefix "$@"
+bl.string.make_command_prompt_prefix "$@"
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:
