@@ -400,12 +400,12 @@ bl_doctest_eval() {
     local -i result=0
 
     local -r function_scope_name="$(bl.module.rewrite_function_scope_name "$(
-        bl.module.remove_known_file_extension "$module_name
-    ")")"
+        bl.module.remove_known_file_extension "$module_name"
+    )")"
     local -r alternate_function_scope_name="${function_scope_name//./_}"
     local -r globals_scope_name="$(bl.module.rewrite_global_scope_name "$(
-        bl.module.remove_known_file_extension "$module_name
-    ")")"
+        bl.module.remove_known_file_extension "$module_name"
+    )")"
     local -r alternate_globals_scope_name="${globals_scope_name//./_}"
 
     local -r setup_identifier="${globals_scope_name//[^[:alnum:]_]/_}"__DOCTEST_SETUP__
@@ -967,12 +967,12 @@ bl_doctest_test() {
         ))"
         bl.time.start
         if [ "$given_function_names_to_test" = '' ]; then
-            globals_scope_name="$(
+            global_scope_name_prefix="$(
                 bl.module.rewrite_global_scope_name "${module_name^^}" | \
                     command sed --regexp-extended 's:\.:_:g'
             )"
             # Module level tests
-            local module_documentation_variable_name="${globals_scope_name}${BL_DOCTEST_NAME_INDICATOR}"
+            local module_documentation_variable_name="${global_scope_name_prefix}${BL_DOCTEST_NAME_INDICATOR}"
             local docstring="${!module_documentation_variable_name}"
             if [ "$docstring" = '' ]; then
                 bl.logging.warn "Module \"$module_name\" is not documented."

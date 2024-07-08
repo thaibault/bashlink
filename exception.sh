@@ -332,7 +332,7 @@ bl_exception_activate() {
     # _
     # false
     #
-    trap 'bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $BL_EXCEPTION_RETURN_CODE; return $BL_EXCEPTION_RETURN_CODE' ERR
+    trap 'bl_exception_error_handler || declare -i BL_EXCEPTION_RETURN_CODE=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $BL_EXCEPTION_RETURN_CODE; return $BL_EXCEPTION_RETURN_CODE' ERR
     # trap bl_exception_debug_handler DEBUG
     # trap bl_exception_exit_handler EXIT
     BL_EXCEPTION_ACTIVE=true
@@ -349,7 +349,7 @@ bl_exception_deactivate() {
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
         >>> bl.exception.deactivate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-        bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $BL_EXCEPTION_RETURN_CODE; return $BL_EXCEPTION_RETURN_CODE
+        bl_exception_error_handler || declare -i BL_EXCEPTION_RETURN_CODE=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $BL_EXCEPTION_RETURN_CODE; return $BL_EXCEPTION_RETURN_CODE
         echo $foo
     '
     $BL_EXCEPTION_ACTIVE || \
@@ -389,7 +389,7 @@ bl_exception_enter_try() {
     # other than 0. The nested error trap converts an error into such a
     # `return !=0`.
     bl.exception.deactivate
-    (( bl_exception_try_catch_level++ ))
+    (( BL_EXCEPTION_TRY_CATCH_LEVEL++ ))
 }
 alias bl.exception.error_handler=bl_exception_error_handler
 bl_exception_error_handler() {
@@ -437,7 +437,7 @@ bl_exception_exit_try() {
         caught
     '
     local -ir BL_EXCEPTION_RETURN_CODE=$1
-    (( bl_exception_try_catch_level-- ))
+    (( BL_EXCEPTION_TRY_CATCH_LEVEL-- ))
     if (( BL_EXCEPTION_TRY_CATCH_LEVEL == 0 )); then
         if $BL_EXCEPTION_ACTIVE_BEFORE_TRY; then
             bl.exception.activate true
@@ -451,7 +451,8 @@ bl_exception_exit_try() {
             rm "$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH"
         elif $BL_EXCEPTION_SUPPORTED; then
             bl.logging.warn \
-                "Traceback file under \"$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH\" is missing."
+                Traceback file under \
+                "\"$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH\" is missing."
         fi
     else
         bl.exception.activate true
