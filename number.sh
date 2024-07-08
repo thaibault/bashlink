@@ -18,7 +18,7 @@ bl.module.import bashlink.array
 bl.module.import bashlink.logging
 # endregion
 # region variables
-declare -gr bl_number__documentation__='
+declare -gr BL_NUMBER__DOCUMENTATION__='
     The number module implements utility functions concerning numbers.
 '
 # endregion

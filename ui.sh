@@ -18,10 +18,10 @@ bl.module.import bashlink.exception
 bl.module.import bashlink.logging
 # endregion
 # region variables
-declare -gr bl_ui__documentation__='
+declare -gr BL_UI__DOCUMENTATION__='
     This module provides helper methods to use low level graphical interfaces.
 '
-declare -agr bl_ui__dependencies__=(dialog)
+declare -agr BL_UI__DEPENDENCIES__=(dialog)
 # endregion
 # region functions
 alias bl.ui.dialog=bl_ui_dialog
@@ -72,7 +72,7 @@ bl_ui_dialog() {
     {
         rm --force "$output_buffer_file_path"
         # shellcheck disable=SC2086,SC2154
-        return $bl_exception_return_code
+        return $BL_EXCEPTION_RETURN_CODE
     }
     # shellcheck disable=SC2317
     rm --force "$output_buffer_file_path"

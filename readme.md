@@ -48,20 +48,20 @@ bl.module.import bashlink.logging
 Integrate bashlink into your standalone bash script:
 
 ```bash
-declare -gr moduleName_bashlink_path="$(
+declare -gr MODULE_NAME_BASHLINK_PATH="$(
     mktemp --directory --suffix -module-name-bashlink
 )/bashlink/"
-mkdir "$moduleName_bashlink_path"
+mkdir "$MODULE_NAME_BASHLINK_PATH"
 if curl \
     https://raw.githubusercontent.com/thaibault/bashlink/main/module.sh \
-        >"${moduleName_bashlink_path}module.sh"
+        >"${MODULE_NAME_BASHLINK_PATH}module.sh"
 then
-    declare -gr bl_module_retrieve_remote_modules=true
+    declare -gr BL_MODULE_RETRIEVE_REMOTE_MODULES=true
     # shellcheck disable=SC1091
-    source "${moduleName_bashlink_path}module.sh"
+    source "${MODULE_NAME_BASHLINK_PATH}module.sh"
 else
     echo Needed bashlink library not found 1>&2
-    rm --force --recursive "$moduleName_bashlink_path"
+    rm --force --recursive "$MODULE_NAME_BASHLINK_PATH"
     exit 1
 fi
 # Your standalone code comes here
@@ -77,20 +77,20 @@ elif [ -f "/usr/lib/bashlink/module.sh" ]; then
     # shellcheck disable=SC1091
     source "/usr/lib/bashlink/module.sh"
 else
-    declare -gr moduleName_bashlink_path="$(
+    declare -gr MODULE_NAME_BASHLINK_PATH="$(
         mktemp --directory --suffix -module-name-bashlink
     )/bashlink/"
-    mkdir "$moduleName_bashlink_path"
+    mkdir "$MODULE_NAME_BASHLINK_PATH"
     if curl \
         https://raw.githubusercontent.com/thaibault/bashlink/main/module.sh \
-            >"${moduleName_bashlink_path}module.sh"
+            >"${MODULE_NAME_BASHLINK_PATH}module.sh"
     then
-        declare -gr bl_module_retrieve_remote_modules=true
+        declare -gr BL_MODULE_RETRIEVE_REMOTE_MODULES=true
         # shellcheck disable=SC1090
-        source "${moduleName_bashlink_path}/module.sh"
+        source "${MODULE_NAME_BASHLINK_PATH}/module.sh"
     else
         echo Needed bashlink library not found 1>&2
-        rm --force --recursive "$moduleName_bashlink_path"
+        rm --force --recursive "$MODULE_NAME_BASHLINK_PATH"
         exit 1
     fi
 fi
@@ -107,20 +107,20 @@ elif [ -f "/usr/lib/bashlink/module.sh" ]; then
     # shellcheck disable=SC1091
     source "/usr/lib/bashlink/module.sh"
 else
-    declare -gr moduleName_bashlink_path="$(
+    declare -gr MODULE_NAME_BASHLINK_PATH="$(
         mktemp --directory --suffix -module-name-bashlink
     )/bashlink/"
-    mkdir "$moduleName_bashlink_path"
+    mkdir "$MODULE_NAME_BASHLINK_PATH"
     if curl \
         https://raw.githubusercontent.com/thaibault/bashlink/main/module.sh \
-            >"${moduleName_bashlink_path}module.sh"
+            >"${MODULE_NAME_BASHLINK_PATH}module.sh"
     then
-        declare -gr bl_module_retrieve_remote_modules=true
+        declare -gr BL_MODULE_RETRIEVE_REMOTE_MODULES=true
         # shellcheck disable=SC1090
-        source "${moduleName_bashlink_path}/module.sh"
+        source "${MODULE_NAME_BASHLINK_PATH}/module.sh"
     else
         echo Needed bashlink library not found 1>&2
-        rm --force --recursive "$moduleName_bashlink_path"
+        rm --force --recursive "$MODULE_NAME_BASHLINK_PATH"
         exit 1
     fi
 fi
@@ -136,14 +136,13 @@ moduleName_main() {
 # Your module functions comes here.
 if bl.tools.is_main; then
     moduleName.main "$@"
-    [ -d "$moduleName_bashlink_path" ] && \
-        rm --recursive "$moduleName_bashlink_path"
+    [ -d "$MODULE_NAME_BASHLINK_PATH" ] && \
+        rm --recursive "$MODULE_NAME_BASHLINK_PATH"
     # shellcheck disable=SC2154
-    [ -d "$bl_module_remote_module_cache_path" ] && \
-        rm --recursive "$bl_module_remote_module_cache_path"
+    [ -d "$BL_MODULE_REMOTE_MODULE_CACHE_PATH" ] && \
+        rm --recursive "$BL_MODULE_REMOTE_MODULE_CACHE_PATH"
 fi
 ```
-
 <!-- region vim modline
 vim: set tabstop=4 shiftwidth=4 expandtab:
 vim: foldmethod=marker foldmarker=region,endregion:

@@ -17,7 +17,7 @@ bl.module.import bashlink.logging
 bl.module.import bashlink.number
 # endregion
 # region variables
-declare -gr bl_pacman__documentation__='
+declare -gr BL_PACMAN__DOCUMENTATION__='
     This module implements utility functions concerning the package manager
     `pacman`.
 '
