@@ -123,9 +123,9 @@ declare -ag BL_MODULE_FUNCTION_SCOPE_REWRITES=(
     '^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/'
     '[^a-zA-Z0-9._]/./g'
 )
-declare -ag BL_MODULE_GLOBALS_SCOPE_REWRITES=(
-    '^BASHLINK(([_]mockup)?[_][a-zA-Z_-]+)$/BL\1/'
-    '[^a-zA-Z0-9_]/_/g'
+declare -ag BL_MODULE_GLOBAL_SCOPE_REWRITES=(
+    '^BASHLINK(([._]mockup)?[._][a-zA-Z_-]+)$/BL\1/'
+    '[^a-zA-Z0-9._]/_/g'
 )
 declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-resolve-cache-${USER:-unknown-user}"
 # endregion
@@ -133,15 +133,21 @@ declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-r
 alias bl.module.check_name=bl_module_check_name
 bl_module_check_name() {
     local -r __documentation__='
-        Checks if given name is belongs to given scope.
+        checks if given name is belongs to given scope.
 
         >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
+        0
+
+        >>> bl.module.check_name "BL_MODULE_CHECK_NAME" "bl_module"; echo $?
         0
 
         >>> bl.module.check_name "bl_module_check_name" "bl_other_module"; echo $?
         1
 
         >>> bl.module.check_name "bl_other_module_not_existing" "bl_module"; echo $?
+        1
+
+        >>> bl.module.check_name "BL_OTHER_MODULE_NOT_EXISTING" "bl_module"; echo $?
         1
     '
     local -r name="$1"
@@ -151,14 +157,14 @@ bl_module_check_name() {
             command sed --regexp-extended 's/\./_/g'
     )"
     if ! [[ \
-        "$name" =~ ^${resolved_scope_name}([_A-Z]+|$) || \
-        "$name" =~ ^${alternate_resolved_scope_name//\./\\./}([_A-Z]+|$) \
+        "$name" =~ ^${resolved_scope_name}([_a-zA-Z]+|$) || \
+        "$name" =~ ^${alternate_resolved_scope_name//\./\\./}([_a-zA-Z]+|$) \
     ]]; then
         local excluded=false
         if [[ -z "$3" ]]; then
             local excluded_pattern
             for excluded_pattern in "${BL_MODULE_ALLOWED_SCOPE_NAMES[@]}"; do
-                if [[ $name =~ ^${excluded_pattern}[._A-Z]* ]]; then
+                if [[ $name =~ ^${excluded_pattern}[._a-zA-Z]* ]]; then
                     excluded=true
                     break
                 fi
@@ -386,15 +392,13 @@ bl_module_import_with_namespace_check() {
         Sources a script and checks variable definitions before and after
         sourcing.
 
-        >>> bl.module.import_with_namespace_check test bl_module bashlink.module bl_module bashlink_module; echo $?
+        >>> bl.module.import_with_namespace_check test bashlink.module bl_module; echo $?
         +bl.doctest.multiline_contains
         warning: Namespace "bl_module" in "bashlink.module" is not clean: Name "
     '
     local -r file_path="$1"
-    local -r resolved_function_scope_name="$2"
-    local -r function_scope_name="$3"
-    local -r resolved_globals_scope_name="$4"
-    local -r globals_scope_name="$5"
+    local -r scope_name="$2"
+    local -r alternate_scope_name="$3"
 
     if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
         BL_MODULE_DECLARED_FUNCTION_NAMES_BEFORE_SOURCE_FILE_PATH="$(
@@ -404,29 +408,33 @@ bl_module_import_with_namespace_check() {
         )"
     fi
     BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE=''
+
     local -r declared_names_after_source_file_path="$(
         mktemp \
             --suffix \
                 "-bashlink-module-declared-function-names-after-source-$scope_name"
     )"
-    # NOTE: All variables which are declared after
+    # NOTE: All unprefixed variables which are declared after
     # "bl.module.determine_declared_names" will be interpreted as newly
     # introduced variables from given module.
     local name
+    # region "do not declare any variable" area
     bl.module.determine_declared_names \
         --only-functions \
         >"$BL_MODULE_DECLARED_FUNCTION_NAMES_BEFORE_SOURCE_FILE_PATH"
-    # region do not declare variables area
-    if [ "$BL_MODULE_DECLARED_GLOBAL_NAMES_BEFORE_SOURCE_FILE_PATH" = '' ]; then
-        BL_MODULE_DECLARED_GLOBAL_NAMES_BEFORE_SOURCE_FILE_PATH="$(
+
+    if [ "$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH" = '' ]; then
+        BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH="$(
             mktemp \
                 --suffix \
-                    "-bashlink-module-declared-global-names-before-source-$scope_name"
+                    "-bashlink-module-declared-names-before-source-$scope_name"
         )"
     fi
+
     ## region check if scope is clean before sourcing
     bl.module.determine_declared_names \
         >"$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH"
+
     while read -r name; do
         if bl.module.check_name "$name" "$resolved_scope_name" true; then
             bl.module.log warn \
@@ -438,7 +446,8 @@ bl_module_import_with_namespace_check() {
     ## endregion
     bl.module.import_raw "$file_path"
     # Check if sourcing has introduced unprefixed names.
-    bl.module.determine_declared_names >"$declared_names_after_source_file_path"
+    bl.module.determine_declared_names \
+        >"$declared_names_after_source_file_path"
     # endregion
     local new_declared_names
     new_declared_names="$(
@@ -456,14 +465,14 @@ bl_module_import_with_namespace_check() {
             )"
             bl.module.log \
                 warn \
-                "Module \"$scope_name\" introduces a global unprefixed name:" \
-                "\"$name\". Maybe it should be prefixed with" \
+                "Module \"${scope_name}\" introduces a global unprefixed " \
+                "name: \"$name\". Maybe it should be prefixed with" \
                 "\"${resolved_scope_name}\" or" \
-                "\"$alternate_resolved_scope_name\"." \
+                "\"${alternate_resolved_scope_name}\"." \
                 1>&2
         fi
     done
-    # Mark introduced names as checked.
+    # Mark already names which we already warned about as checked.
     bl.module.determine_declared_names \
         >"$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH"
     rm "$declared_names_after_source_file_path"
@@ -606,8 +615,7 @@ bl_module_import() {
                 bl.module.import_with_namespace_check \
                     "$file_path" \
                     "$scope_name" \
-                    "$(bl.module.rewrite_function_scope_name "$scope_name")" \
-                    "$(bl.module.rewrite_global_scope_name "$scope_name")"
+                    "$(bl.module.rewrite_function_scope_name "$scope_name")"
             fi
         fi
     else
@@ -874,7 +882,7 @@ bl_module_rewrite_function_scope_name() {
     done
     echo "$resolved_scope_name"
 }
-alias bl.module.rewrite_global_scope_name=bl_module_rewrite_globals_scope_name
+alias bl.module.rewrite_global_scope_name=bl_module_rewrite_global_scope_name
 bl_module_rewrite_global_scope_name() {
     local -r __documentation__='
         Rewrite scope name. Usually needed to shorten a scope name.
@@ -887,7 +895,7 @@ bl_module_rewrite_global_scope_name() {
     '
     local resolved_scope_name="$1"
     local rewrite
-    for rewrite in "${BL_MODULE_GLOBALS_SCOPE_REWRITES[@]}"; do
+    for rewrite in "${BL_MODULE_GLOBAL_SCOPE_REWRITES[@]}"; do
         resolved_scope_name="$(
             echo "$resolved_scope_name" | \
                 command sed --regexp-extended "s/$rewrite"

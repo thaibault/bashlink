@@ -125,23 +125,28 @@ bl_string_images_to_css_classes() {
 alias bl.string.make_command_prompt_prefix=bl_string_make_command_prompt_prefix
 bl_string_make_command_prompt_prefix() {
     # NOTE: This have to be the first statement to retrieve last return code.
-    local -i return_code=$?
+    # NOTE: Cannot be an integer (local -i) because we need to overwrite with a
+    # given arguments which always has to be a string.
+    local return_code="$?"
 
     local -r __documentation__='
         Generates a new user prompt with useful runtime parameters.
 
         ```bash
             bl.string.make_command_prompt_prefix
-            ...
+            > ...@$... (...) ...
 
             bl.string.make_command_prompt_prefix 0
-            ...
+            > ...@$... (...) ...
 
             bl.string.make_command_prompt_prefix -s 0
-            ...
+            (1) ... ...@$... ...
 
             bl.string.make_command_prompt_prefix --simple 1
-            ...
+            (1) ... ...@$... ...
+
+            bl.string.make_command_prompt_prefix --simple 123
+            (123) ... ...@$... ...
         ```
     '
     local simple=false
@@ -150,12 +155,12 @@ bl_string_make_command_prompt_prefix() {
         shift
     fi
 
-    if [ -n "$1" ]; then
-        return_code=$1
+    if [[ "$1" && "$1" != '0' ]]; then
+        return_code="$1"
     fi
 
     local error_prompt="(${BL_CLI_COLOR_MASKED_RED}${return_code}${BL_CLI_COLOR_MASKED_DEFAULT})"
-    if  (( return_code == 0 )); then
+    if [ "$return_code" = '0' ]; then
         error_prompt="${BL_CLI_COLOR_MASKED_GREEN}>${BL_CLI_COLOR_MASKED_DEFAULT}"
     fi
 
