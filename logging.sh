@@ -191,8 +191,13 @@ bl_logging_get_prefix() {
     local -r loglevel=${color}${level}${BL_CLI_COLOR_DEFAULT}
     local path="${BASH_SOURCE[2]##./}"
     path="${path%.sh}"
+    local line_number=''
+    if [[ "$path" != '' ]]; then
+        path=":${BL_CLI_COLOR_LIGHT_GRAY}$(basename "$path")${BL_CLI_COLOR_DEFAULT}"
+        line_number=":${BL_CLI_COLOR_LIGHT_CYAN}${BASH_LINENO[1]}${BL_CLI_COLOR_DEFAULT}"
+    fi
     # shellcheck disable=SC2154
-    echo "${loglevel}:${BL_CLI_COLOR_LIGHT_GRAY}$(basename "$path")${BL_CLI_COLOR_DEFAULT}:${BL_CLI_COLOR_LIGHT_CYAN}${BASH_LINENO[1]}${BL_CLI_COLOR_DEFAULT}:"
+    echo "${loglevel}${path}${line_number}:"
 }
 alias bl.logging.is_enabled=bl_logging_is_enabled
 bl_logging_is_enabled() {
@@ -777,16 +782,22 @@ bl_logging_set_level() {
         >>> echo $BL_LOGGING_COMMAND_LEVEL
         3
         3
+
+        >>> bl.logging.set_level info --omit-command-output-configuration
+        >>> echo $BL_LOGGING_LEVEL
+        3
     '
     local level="$1"
     if [ "$level" = warn ]; then
         level=warning
     fi
     BL_LOGGING_LEVEL=$(bl.array.get_index "$level" "${BL_LOGGING_LEVELS[@]}")
-    if (( BL_LOGGING_LEVEL >= BL_LOGGING_COMMAND_LEVEL )); then
-        bl.logging.set_command_output_on
-    else
-        bl.logging.set_command_output_off
+    if [[ "$2" != '--omit-command-output-configuration' ]]; then
+        if (( BL_LOGGING_LEVEL >= BL_LOGGING_COMMAND_LEVEL )); then
+            bl.logging.set_command_output_on
+        else
+            bl.logging.set_command_output_off
+        fi
     fi
 }
 alias bl.logging.set_file=bl_logging_set_file
