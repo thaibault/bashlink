@@ -77,7 +77,3 @@ package() {
     ln --symbolic /usr/lib/bashlink/doctest.sh /usr/bin/bashlink-doctest
     ln --symbolic /usr/lib/bashlink/documentation.sh /usr/bin/bashlink-document
 }
-# region vim modline
-# vim: set tabstop=4 shiftwidth=4 expandtab:
-# vim: foldmethod=marker foldmarker=region,endregion:
-# endregion

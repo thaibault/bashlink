@@ -143,7 +143,3 @@ if bl.tools.is_main; then
         rm --recursive "$BL_MODULE_REMOTE_MODULE_CACHE_PATH"
 fi
 ```
-<!-- region vim modline
-vim: set tabstop=4 shiftwidth=4 expandtab:
-vim: foldmethod=marker foldmarker=region,endregion:
-endregion -->
