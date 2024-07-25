@@ -417,6 +417,56 @@ EOF
         return $?
     fi
 }
+
+alias bl.string.ltrim=bl_string_ltrim
+bl_string_ltrim() {
+    local -r __documentation__='
+        Trims leading whitespaces from given string.
+
+        >>> bl.string.ltrim " hans "
+        hans
+        >>> bl.string.ltrim " hans"
+        hans
+        >>> bl.string.ltrim hans
+        hans
+        >>> bl.string.ltrim "hans "
+        hans
+    '
+    echo -e "$1" | sed -e 's/^[[:space:]]*//'
+}
+alias bl.string.rtrim=bl_string_rtrim
+bl_string_rtrim() {
+    local -r __documentation__='
+        Trims trailing whitespaces from given string.
+
+        >>> bl.string.rtrim " hans "
+         hans
+        >>> bl.string.rtrim " hans"
+         hans
+        >>> bl.string.rtrim hans
+        hans
+        >>> bl.string.rtrim "hans "
+        hans
+    '
+    echo -e "$1" | sed -e 's/[[:space:]]*$//'
+}
+alias bl.string.trim=bl_string_trim
+bl_string_trim() {
+    local -r __documentation__='
+        Trims leading and trailing whitespaces from given string.
+
+        >>> bl.string.trim " hans "
+        hans
+        >>> bl.string.trim " hans"
+        hans
+        >>> bl.string.trim hans
+        hans
+        >>> bl.string.trim "hans "
+        hans
+    '
+    bl.string.rtrim "$(bl.string.ltrim "$1")"
+}
+
 alias bl.string.validate_argument=bl_string_validate_argument
 bl_string_validate_argument() {
     local -r __documentation__='
