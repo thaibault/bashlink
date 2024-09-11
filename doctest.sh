@@ -164,7 +164,7 @@ declare -g BL_DOCTEST_NOUNSET=false
 declare -g BL_DOCTEST_SYNCHRONIZED=false
 declare -g BL_DOCTEST_IS_SYNCHRONIZED=true
 declare -g BL_DOCTEST_SUPRESS_UNDOCUMENTED=false
-declare -gr BL_DOCTEST_REGULAR_EXPRESSION="/${BL_DOCTEST_NAME_INDICATOR}='/,/';$/pi"
+declare -gr BL_DOCTEST_EXPRESSION="/${BL_DOCTEST_NAME_INDICATOR}='/,/';$/pi"
 declare -g BL_DOCTEST_REGULAR_EXPRESSION_ONE_LINE="${BL_DOCTEST_NAME_INDICATOR}='.*';$"
 declare -g BL_DOCTEST_USE_SIDE_BY_SIDE_OUTPUT=true
 # endregion
@@ -585,7 +585,7 @@ bl_doctest_get_function_docstring() {
         )"; then
             docstring="$(
                 type "$function_name" 2>/dev/null | \
-                    command sed --quiet "$BL_DOCTEST_REGULAR_EXPRESSION"
+                    command sed --quiet "$BL_DOCTEST_EXPRESSION"
             )"
         fi
         eval "unset $BL_DOCTEST_NAME_INDICATOR"
@@ -936,7 +936,7 @@ bl_doctest_test() {
         return 0
     fi
     (
-        bl.module.import_without_namespace_check \
+        bl.module.import \
             "$BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST"
         function_scope_name="$(
             bl.module.rewrite_function_scope_name "${module_name^^}" | \
@@ -957,7 +957,7 @@ bl_doctest_test() {
         if [ "$function_names_to_test" = '' ]; then
             # Get all external module prefix and un-prefixed function names.
             # shellcheck disable=SC2154
-            local function_names_to_test="$module_declared_function_names_after_source"
+            local function_names_to_test="$BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE"
             # Adds internal already loaded but correctly prefixed functions.
             function_names_to_test+=" $(
                 ! declare -F | \
@@ -975,10 +975,10 @@ bl_doctest_test() {
                     command sed --regexp-extended 's:\.:_:g'
             )"
             # Module level tests
-            local module_documentation_variable_name="${global_scope_name_prefix}${BL_DOCTEST_NAME_INDICATOR}"
+            local module_documentation_variable_name="${global_scope_name_prefix}${BL_DOCTEST_NAME_INDICATOR^^}"
             local docstring="${!module_documentation_variable_name}"
             if [ "$docstring" = '' ]; then
-                bl.logging.warn "Module \"$module_name\" is not documented."
+                bl.logging.warn "Module \"${module_name}\" is not documented."
             else
                 (( total++ ))
                 bl.doctest.run_test "$docstring" "$module_name" && \
