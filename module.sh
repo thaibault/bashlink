@@ -438,8 +438,8 @@ bl_module_import_with_namespace_check() {
     while read -r name; do
         if bl.module.check_name "$name" "$resolved_scope_name" true; then
             bl.module.log warn \
-                "Namespace \"$resolved_scope_name\" in \"$scope_name\" is" \
-                "not clean: Name \"$name\" is already defined." \
+                "Namespace \"${resolved_scope_name}\" in \"${scope_name}\"" \
+                "is not clean: Name \"${name}\" is already defined." \
                 1>&2
         fi
     done < "$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH"
@@ -472,7 +472,7 @@ bl_module_import_with_namespace_check() {
                 1>&2
         fi
     done
-    # Mark already names which we already warned about as checked.
+    # Mark names which we already warned about as checked.
     bl.module.determine_declared_names \
         >"$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH"
     rm "$declared_names_after_source_file_path"
