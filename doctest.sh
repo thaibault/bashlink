@@ -976,6 +976,7 @@ bl_doctest_test() {
             )"
             # Module level tests
             local module_documentation_variable_name="${global_scope_name_prefix}${BL_DOCTEST_NAME_INDICATOR^^}"
+            echo TODO $module_documentation_variable_name
             local docstring="${!module_documentation_variable_name}"
             if [ "$docstring" = '' ]; then
                 bl.logging.warn "Module \"${module_name}\" is not documented."
