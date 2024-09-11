@@ -164,7 +164,7 @@ declare -g BL_DOCTEST_NOUNSET=false
 declare -g BL_DOCTEST_SYNCHRONIZED=false
 declare -g BL_DOCTEST_IS_SYNCHRONIZED=true
 declare -g BL_DOCTEST_SUPRESS_UNDOCUMENTED=false
-declare -gr BL_DOCTEST_EXPRESSION="/${BL_DOCTEST_NAME_INDICATOR}='/,/';$/pi"
+declare -gr BL_DOCTEST_EXPRESSION="/${BL_DOCTEST_NAME_INDICATOR}='/,/';$/p"
 declare -g BL_DOCTEST_REGULAR_EXPRESSION_ONE_LINE="${BL_DOCTEST_NAME_INDICATOR}='.*';$"
 declare -g BL_DOCTEST_USE_SIDE_BY_SIDE_OUTPUT=true
 # endregion
@@ -579,9 +579,7 @@ bl_doctest_get_function_docstring() {
         local docstring
         if ! docstring="$(
             type "$function_name" 2>/dev/null | \
-                command grep \
-                    --ignore-case \
-                    "$BL_DOCTEST_REGULAR_EXPRESSION_ONE_LINE"
+                command grep "$BL_DOCTEST_REGULAR_EXPRESSION_ONE_LINE"
         )"; then
             docstring="$(
                 type "$function_name" 2>/dev/null | \
@@ -936,8 +934,15 @@ bl_doctest_test() {
         return 0
     fi
     (
+        local module_prevent_namespace_check_backup="$BL_MODULE_PREVENT_NAMESPACE_CHECK"
+        local module_complain_about_dirty_scope_before_namespace_check_backup="$BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK"
+        BL_MODULE_PREVENT_NAMESPACE_CHECK=false
+        BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK=false
         bl.module.import \
             "$BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST"
+        declare -g BL_MODULE_PREVENT_NAMESPACE_CHECK="$module_prevent_namespace_check_backup"
+        declare -g BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK="$module_complain_about_dirty_scope_before_namespace_check_backup"
+
         function_scope_name="$(
             bl.module.rewrite_function_scope_name "${module_name^^}" | \
                 command sed --regexp-extended 's:\.:_:g'
@@ -976,7 +981,6 @@ bl_doctest_test() {
             )"
             # Module level tests
             local module_documentation_variable_name="${global_scope_name_prefix}${BL_DOCTEST_NAME_INDICATOR^^}"
-            echo TODO $module_documentation_variable_name
             local docstring="${!module_documentation_variable_name}"
             if [ "$docstring" = '' ]; then
                 bl.logging.warn "Module \"${module_name}\" is not documented."
@@ -997,13 +1001,13 @@ bl_doctest_test() {
                     (( success++ ))
             elif [ "$given_function_names_to_test" != '' ]; then
                 (( total++ ))
-                bl.logging.error "Given function \"$name\" is not documented."
+                bl.logging.error "Given function \"${name}\" is not documented."
             elif ! $BL_DOCTEST_SUPRESS_UNDOCUMENTED; then
-                bl.logging.warn "Function \"$name\" is not documented."
+                bl.logging.warn "Function \"${name}\" is not documented."
             fi
         done
         bl.logging.info "$module_name - passed $success/$total tests in" \
-            "$(bl.time.get_elapsed) ms from \"$module_name\"."
+            "$(bl.time.get_elapsed) ms from \"${module_name}\"."
         (( success != total )) && \
             exit 1
         exit 0
