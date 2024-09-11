@@ -159,12 +159,12 @@ declare -gr BL_DOCTEST__DOCUMENTATION__='
 '
 declare -g BL_DOCTEST_DEBUG=false
 declare -g BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST=''
-declare -gr BL_DOCTEST_NAME_INDICATOR=__DOCUMENTATION__
+declare -gr BL_DOCTEST_NAME_INDICATOR=__documentation__
 declare -g BL_DOCTEST_NOUNSET=false
 declare -g BL_DOCTEST_SYNCHRONIZED=false
 declare -g BL_DOCTEST_IS_SYNCHRONIZED=true
 declare -g BL_DOCTEST_SUPRESS_UNDOCUMENTED=false
-declare -gr BL_DOCTEST_REGULAR_EXPRESSION="/${BL_DOCTEST_NAME_INDICATOR}='/,/';$/p"
+declare -gr BL_DOCTEST_REGULAR_EXPRESSION="/${BL_DOCTEST_NAME_INDICATOR}='/,/';$/pi"
 declare -g BL_DOCTEST_REGULAR_EXPRESSION_ONE_LINE="${BL_DOCTEST_NAME_INDICATOR}='.*';$"
 declare -g BL_DOCTEST_USE_SIDE_BY_SIDE_OUTPUT=true
 # endregion
@@ -577,9 +577,12 @@ bl_doctest_get_function_docstring() {
     local -r function_name="$1"
     (
         local docstring
-        if ! docstring="$(type "$function_name" 2>/dev/null | \
-            command grep "$BL_DOCTEST_REGULAR_EXPRESSION_ONE_LINE")"
-        then
+        if ! docstring="$(
+            type "$function_name" 2>/dev/null | \
+                command grep \
+                    --ignore-case \
+                    "$BL_DOCTEST_REGULAR_EXPRESSION_ONE_LINE"
+        )"; then
             docstring="$(
                 type "$function_name" 2>/dev/null | \
                     command sed --quiet "$BL_DOCTEST_REGULAR_EXPRESSION"
