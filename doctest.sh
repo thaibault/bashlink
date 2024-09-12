@@ -68,11 +68,11 @@ declare -gr BL_DOCTEST__DOCUMENTATION__='
     ```
 
     A docstring can be defined for a function by defining a variable named
-    `__documentation__` at the function scope. On the module level, the
-    variable name should be `<module_name>__documentation__` (e.g.
-    `bl_arguments__documentation__` for the example above). NOTE: The
+    "__documentation__" at the function scope. On the module level, the
+    variable name should be "<module_name>__DOCUMENTATION__" (e.g.
+    "BL_ARGUMENTS__DOCUMENTATION__" for the example above). NOTE: The
     "docstring" needs to be defined with single quotes. Code contained in a
-    module level variable named `<module_name>__bl_doctest_setup__` will be run
+    module level variable named "<module_name>__BL_DOCTEST_SETUP__" will be run
     once before all the tests of a module are run. This is useful for defining
     mockup functions/data that can be used throughout all tests.
 
@@ -399,16 +399,15 @@ bl_doctest_eval() {
     local -r function_name="${5-}"
     local -i result=0
 
-    local -r function_scope_name="$(bl.module.rewrite_function_scope_name "$(
+    local -r function_scope_name_prefix="$(bl.module.rewrite_function_scope_name "$(
         bl.module.remove_known_file_extension "$module_name"
     )")"
-    local -r alternate_function_scope_name="${function_scope_name//./_}"
-    local -r globals_scope_name="$(bl.module.rewrite_global_scope_name "$(
-        bl.module.remove_known_file_extension "$module_name"
+    local -r alternate_function_scope_name_prefix="${function_scope_name_prefix//./_}"
+    local -r global_scope_name_prefix="$(bl.module.rewrite_global_scope_name "$(
+        bl.module.remove_known_file_extension "${module_name^^}"
     )")"
-    local -r alternate_globals_scope_name="${globals_scope_name//./_}"
+    local -r setup_identifier="${global_scope_name_prefix}"__DOCTEST_SETUP__
 
-    local -r setup_identifier="${globals_scope_name//[^[:alnum:]_]/_}"__DOCTEST_SETUP__
     local -r setup_string="${!setup_identifier:-}"
     local function_name_description=''
     if [[ "$function_name" != '' ]]; then
@@ -445,23 +444,23 @@ $(
 )
 BL_MODULE_PREVENT_NAMESPACE_CHECK=false
 $setup_string
-bl.module.determine_declared_names --only-functions >'$declared_names_before_run_file_path'
+bl.module.determine_declared_names >'$declared_names_before_run_file_path'
 $($BL_DOCTEST_NOUNSET && echo 'set -o nounset')
 # NOTE: We have to wrap the test context a function to ensure the "local"
 # keyword has an effect inside.
-${alternate_function_scope_name}_doctest_environment() {
-    ${alternate_globals_scope_name}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH="\$(
-        mktemp --suffix "-bashlink-doctest-${function_scope_name}${function_name_description}.paths"
+${alternate_function_scope_name_prefix}_doctest_environment() {
+    ${global_scope_name_prefix}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH="\$(
+        mktemp --suffix "-bashlink-doctest-${function_scope_name_prefix}${function_name_description}.paths"
     )"
-    ${alternate_function_scope_name}_bl_doctest_mktemp() {
+    ${alternate_function_scope_name_prefix}_bl_doctest_mktemp() {
         local result
         if [ "\$#" = 0 ]; then
-            result="\$(mktemp --suffix -bashlink-doctest-${function_scope_name}${function_name_description})"
+            result="\$(mktemp --suffix -bashlink-doctest-${function_scope_name_prefix}${function_name_description})"
         else
             result="\$(mktemp "\$@")"
         fi
         echo "\$result" \
-          >"\$${alternate_globals_scope_name}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
+          >"\$${global_scope_name_prefix}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
         echo "\$result"
     }
     # We run in a subshell to ensure that out cleanup routine runs even after
@@ -471,10 +470,10 @@ ${alternate_function_scope_name}_doctest_environment() {
     local BL_DOCTEST_TEMPORARY_FILE_PATH
     while read BL_DOCTEST_TEMPORARY_FILE_PATH; do
         rm --force --recursive "\$BL_DOCTEST_TEMPORARY_FILE_PATH"
-    done <"\$${alternate_globals_scope_name}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
-    rm --force --recursive "\$${alternate_globals_scope_name}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
+    done <"\$${global_scope_name_prefix}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
+    rm --force --recursive "\$${global_scope_name_prefix}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
 }
-${alternate_function_scope_name}_doctest_environment
+${alternate_function_scope_name_prefix}_doctest_environment
 bl.module.determine_declared_names >'$declared_names_after_run_file_path'
 EOF
     )"
@@ -502,8 +501,8 @@ EOF
         bl.string.get_unique_lines <<< "$BL_DOCTEST_NEW_DECLARED_NAMES" | \
             while read -r name; do
                 if \
-                    ! bl.module.check_name "$name" "$function_scope_name" && \
-                    ! bl.module.check_name "$name" "$globals_scope_name"
+                    ! bl.module.check_name "$name" "$function_scope_name_prefix" && \
+                    ! bl.module.check_name "$name" "$global_scope_name_prefix"
                 then
                     bl.logging.warn \
                         "Test for \"$test_name\" in module \"$module_name\"" \
@@ -863,7 +862,7 @@ bl_doctest_test() {
     local -r module_name="$(
         echo "$result" | command sed --regexp-extended 's:^.*/([^/]+)$:\1:'
     )"
-    local function_scope_name="$(
+    local function_scope_name_prefix="$(
         bl.module.rewrite_function_scope_name "$module_name" | \
             command sed --regexp-extended 's:\.:_:g'
     )"
@@ -904,7 +903,7 @@ bl_doctest_test() {
                             echo "$sub_file_path" | \
                                 command sed \
                                     --regexp-extended \
-                                    "s:${function_scope_name}/([^/]+):${function_scope_name}.\1:"
+                                    "s:${function_scope_name_prefix}/([^/]+):${function_scope_name_prefix}.\1:"
                         )")" && \
                             (( success++ ))
                 else
@@ -914,7 +913,7 @@ bl_doctest_test() {
                             echo "$sub_file_path" | \
                                 command sed \
                                     --regexp-extended \
-                                    "s:${function_scope_name}/([^/]+):${function_scope_name}.\1:"
+                                    "s:${function_scope_name_prefix}/([^/]+):${function_scope_name_prefix}.\1:"
                         )")" &
                 fi
             fi
@@ -943,7 +942,7 @@ bl_doctest_test() {
         declare -g BL_MODULE_PREVENT_NAMESPACE_CHECK="$module_prevent_namespace_check_backup"
         declare -g BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK="$module_complain_about_dirty_scope_before_namespace_check_backup"
 
-        function_scope_name="$(
+        function_scope_name_prefix="$(
             bl.module.rewrite_function_scope_name "${module_name^^}" | \
                 command sed --regexp-extended 's:\.:_:g'
         )"
@@ -953,8 +952,8 @@ bl_doctest_test() {
             if [[ "$function_names_to_test" != '' ]]; then
                 function_names_to_test+=' '
             fi
-            if [ "${name/$function_scope_name/}" = "$name" ]; then
-                function_names_to_test+="${function_scope_name}_${name}"
+            if [ "${name/$function_scope_name_prefix/}" = "$name" ]; then
+                function_names_to_test+="${function_scope_name_prefix}_${name}"
             else
                 function_names_to_test+="$name"
             fi
@@ -967,7 +966,7 @@ bl_doctest_test() {
             function_names_to_test+=" $(
                 ! declare -F | \
                     cut -d' ' -f3 | \
-                    command grep -e "^$function_scope_name"
+                    command grep -e "^$function_scope_name_prefix"
             )"
         fi
         function_names_to_test="$(bl.string.get_unique_lines <(
