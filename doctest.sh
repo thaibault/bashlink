@@ -1030,7 +1030,6 @@ bl_doctest_main() {
         1
     '
     declare -g module_resolving_cache_file_path_backup="$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH"
-    declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="${BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH}-doctest"
 
     bl.arguments.set "$@"
     local help
@@ -1072,6 +1071,8 @@ bl_doctest_main() {
         fi
     else
         # Reset global environment.
+        declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="${BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH}-doctest"
+        echo ''>"$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH"
         env -i
 
         if ! $BL_DOCTEST_SYNCHRONIZED && [[ "$#" -gt 1 ]]; then
