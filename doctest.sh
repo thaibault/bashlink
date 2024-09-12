@@ -1029,6 +1029,9 @@ bl_doctest_main() {
         error: Module file path for "non_existing_module" could not be
         1
     '
+    declare -g module_resolving_cache_file_path_backup="$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH"
+    declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="${BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH}-doctest"
+
     bl.arguments.set "$@"
     local help
     bl.arguments.get_flag --help -h help
@@ -1068,9 +1071,13 @@ bl_doctest_main() {
             bl.doctest.test bashlink &
         fi
     else
+        # Reset global environment.
+        env -i
+
         if ! $BL_DOCTEST_SYNCHRONIZED && [[ "$#" -gt 1 ]]; then
             BL_DOCTEST_IS_SYNCHRONIZED=false
         fi
+
         local name
         for name in "$@"; do
             if [[ "$item_names" != '' ]]; then
@@ -1091,6 +1098,7 @@ bl_doctest_main() {
             item_names+="$name"
         done
     fi
+
     if ! $BL_DOCTEST_SYNCHRONIZED; then
         local -i subprocess_id
         for subprocess_id in $(jobs -p); do
@@ -1099,11 +1107,15 @@ bl_doctest_main() {
                 (( success++ ))
         done
     fi
+
+    declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="$module_resolving_cache_file_path_backup"
+
     bl.logging.info \
         "Total: passed $success/$total items in $(bl.time.get_elapsed) ms" \
         "from \"$item_names\""
     (( success != total )) && \
         return 1
+
     return 0
 }
 # endregion
