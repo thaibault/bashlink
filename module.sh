@@ -310,6 +310,7 @@ bl_module_is_imported() {
             return 0
         fi
     done
+
     return 1
 }
 alias bl.module.log_plain=bl_module_log_plain
@@ -818,10 +819,10 @@ bl_module_resolve() {
     if [ "$file_path" = '' ]; then
         bl.module.log \
             error_exception \
-            "Module file path for \"$1\" could not be resolved for" \
-            "\"${BASH_SOURCE[1]}\" in \"$caller_path\", \"$execution_path\"" \
-            "or \"$current_path\" for one of the file extension:" \
-            "${extension_description}." || \
+            "Module file path for \"${1}\" could not be resolved for" \
+            "\"${BASH_SOURCE[1]}\" in \"${caller_path}\"," \
+            "\"${execution_path}\" or \"$current_path\" for one of the file" \
+            "extension: ${extension_description}." || \
                 return $?
     fi
     file_path="$(bl.path.convert_to_absolute "$file_path")"
