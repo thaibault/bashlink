@@ -119,13 +119,14 @@ then
     BL_MODULE_TIDY_UP=true
 fi
 declare -g BL_MODULE_PREVENT_NAMESPACE_CHECK=true
+declare -g BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK=true
 declare -ag BL_MODULE_FUNCTION_SCOPE_REWRITES=(
     '^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/'
     '[^a-zA-Z0-9._]/./g'
 )
 declare -ag BL_MODULE_GLOBAL_SCOPE_REWRITES=(
     '^BASHLINK(([._]mockup)?[._][a-zA-Z_-]+)$/BL\1/'
-    '[^a-zA-Z0-9._]/_/g'
+    '[^a-zA-Z0-9_]/_/g'
 )
 declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-resolve-cache-${USER:-unknown-user}"
 # endregion
@@ -133,7 +134,7 @@ declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-r
 alias bl.module.check_name=bl_module_check_name
 bl_module_check_name() {
     local -r __documentation__='
-        checks if given name is belongs to given scope.
+        Checks if given name belongs to given scope.
 
         >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
         0
@@ -206,9 +207,11 @@ bl_module_determine_declared_names() {
             )"
         ```
     '
-    local only_functions="${1:-}"
-    [ "$only_functions" = '--only-functions' ] && \
-        only_functions=false
+    local only_functions=false
+    if [ "$1" = '--only-functions' ]; then
+        only_functions=true
+    fi
+
     {
         declare -F | \
             cut --delimiter ' ' --fields 3
@@ -392,19 +395,24 @@ bl_module_import_with_namespace_check() {
         Sources a script and checks variable definitions before and after
         sourcing.
 
-        >>> bl.module.import_with_namespace_check test bashlink.module bl_module; echo $?
+        >>> bl.module.import_with_namespace_check test bashlink.module; echo $?
         +bl.doctest.multiline_contains
         warning: Namespace "bl_module" in "bashlink.module" is not clean: Name "
     '
     local -r file_path="$1"
     local -r scope_name="$2"
-    local -r alternate_scope_name="$3"
+    local -r function_scope_name_prefix="$(
+        bl.module.rewrite_function_scope_name "$scope_name"
+    )"
+    local -r variable_scope_name_prefix="$(
+        bl.module.rewrite_function_scope_name "$scope_name"
+    )"
 
     if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
         BL_MODULE_DECLARED_FUNCTION_NAMES_BEFORE_SOURCE_FILE_PATH="$(
             mktemp \
                 --suffix \
-                    -bashlink-module-declared-function-names-before-source-"$scope_name"
+                    "-bashlink-module-declared-function-names-before-source-${scope_name}"
         )"
     fi
     BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE=''
@@ -412,7 +420,7 @@ bl_module_import_with_namespace_check() {
     local -r declared_names_after_source_file_path="$(
         mktemp \
             --suffix \
-                "-bashlink-module-declared-function-names-after-source-$scope_name"
+                "-bashlink-module-declared-names-after-source-${scope_name}"
     )"
     # NOTE: All unprefixed variables which are declared after
     # "bl.module.determine_declared_names" will be interpreted as newly
@@ -427,7 +435,7 @@ bl_module_import_with_namespace_check() {
         BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH="$(
             mktemp \
                 --suffix \
-                    "-bashlink-module-declared-names-before-source-$scope_name"
+                    "-bashlink-module-declared-names-before-source-${scope_name}"
         )"
     fi
 
@@ -435,14 +443,20 @@ bl_module_import_with_namespace_check() {
     bl.module.determine_declared_names \
         >"$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH"
 
-    while read -r name; do
-        if bl.module.check_name "$name" "$resolved_scope_name" true; then
-            bl.module.log warn \
-                "Namespace \"${resolved_scope_name}\" in \"${scope_name}\"" \
-                "is not clean: Name \"${name}\" is already defined." \
-                1>&2
-        fi
-    done < "$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH"
+    if $BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK; then
+        while read -r name; do
+            if \
+                bl.module.check_name "$name" "$function_scope_name_prefix" true && \
+                bl.module.check_name "$name" "$variable_scope_name_prefix" true
+            then
+                bl.module.log warn \
+                    "Namespace \"${resolved_scope_name}\" in" \
+                    "\"${scope_name}\" is not clean: Name \"${name}\" is" \
+                    "already defined." \
+                    1>&2
+            fi
+        done < "$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH"
+    fi
     ## endregion
     bl.module.import_raw "$file_path"
     # Check if sourcing has introduced unprefixed names.
@@ -614,8 +628,7 @@ bl_module_import() {
                 )"
                 bl.module.import_with_namespace_check \
                     "$file_path" \
-                    "$scope_name" \
-                    "$(bl.module.rewrite_function_scope_name "$scope_name")"
+                    "$scope_name"
             fi
         fi
     else
