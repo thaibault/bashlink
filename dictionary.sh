@@ -64,9 +64,9 @@ bl_dictionary_get() {
         [[ ${BASH_VERSINFO[0]} -lt 4 ]] || \
         [ -n "${BL_DICTIONARY_BASH_VERSION_TEST:-}" ]
     then
-        store="bl_dictionary_store_${name}_${key}"
+        store="BL_DICTIONARY_STORE_${name}_${key}"
     else
-        store="bl_dictionary_store_${name}[${key}]"
+        store="BL_DICTIONARY_STORE_${name}[${key}]"
     fi
     bl.tools.is_defined "$store" || \
         return 1
@@ -102,7 +102,7 @@ bl_dictionary_get_keys() {
     '
     local -r name="$1"
     local keys
-    local store="bl_dictionary_store_${name}"
+    local store="BL_DICTIONARY_STORE_${name}"
     if \
         (( BASH_VERSINFO[0] < 4 )) || \
         [ -n "${BL_DICTIONARY_BASH_VERSION_TEST:-}" ]
@@ -158,6 +158,7 @@ bl_dictionary_set() {
         shift 2
         (( $# % 2 )) || \
             return 1
+
         if \
             (( BASH_VERSINFO[0] < 4 )) || \
             [ -n "${BL_DICTIONARY_BASH_VERSION_TEST:-}" ]
@@ -167,6 +168,7 @@ bl_dictionary_set() {
             declare -Ag "BL_DICTIONARY_STORE_${name}"
             eval "BL_DICTIONARY_STORE_${name}[${key}]=$value"
         fi
+
         (( $# == 1 )) && \
             return
     done
