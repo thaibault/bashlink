@@ -467,7 +467,7 @@ bl_filesystem_btrfs_subvolume_backup() {
     sudo umount /mnt &>/dev/null
     if [ "$action" = create ]; then
         sudo mount "$target" /mnt
-        local -r timestamp="$(date +"%d:%m:%y:%T")"
+        local -r timestamp="$(date +"%d-%m-%yT%T")"
         sudo btrfs subvolume snapshot /mnt/root "/mnt/rootBackup${timestamp}"
         # NOTE: Autocompletion should be done by sudo. Not bash as user.
         sudo bash -c "cp --recursive /boot/* \"/mnt/rootBackup${timestamp}/boot/\""
