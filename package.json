@@ -1,6 +1,6 @@
 {
   "name": "bashlink",
-  "version": "1.0.254",
+  "version": "1.0.257",
   "description": "Testable, predictable and scoped code in bash.",
   "keywords": [
     "bash",
@@ -71,7 +71,7 @@
     "update:documentation": "documentation-website"
   },
   "devDependencies": {
-    "documentation-website": "^1.0.336",
+    "documentation-website": "^1.0.337",
     "shellcheck": "^3.0.0"
   },
   "documentationWebsite": {

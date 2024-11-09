@@ -444,7 +444,7 @@ bl_filesystem_btrfs_subvolume_backup() {
         ```
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup delete /dev/sda rootBackup
+            bl.filesystem.btrfs_subvolume_backup delete /dev/sda root-backup
         ```
     '
     local action=list
@@ -467,10 +467,10 @@ bl_filesystem_btrfs_subvolume_backup() {
     sudo umount /mnt &>/dev/null
     if [ "$action" = create ]; then
         sudo mount "$target" /mnt
-        local -r timestamp="$(date +"%d:%m:%y:%T")"
-        sudo btrfs subvolume snapshot /mnt/root "/mnt/rootBackup${timestamp}"
+        local -r timestamp="$(date +"%d-%m-%yT%T:%S")"
+        sudo btrfs subvolume snapshot /mnt/root "/mnt/root-backup-${timestamp}"
         # NOTE: Autocompletion should be done by sudo. Not bash as user.
-        sudo bash -c "cp --recursive /boot/* \"/mnt/rootBackup${timestamp}/boot/\""
+        sudo bash -c "cp --recursive /boot/* \"/mnt/root-backup-${timestamp}/boot/\""
         sudo umount /mnt
     elif [ "$action" = delete ]; then
         if [ "$1" = '' ]; then
