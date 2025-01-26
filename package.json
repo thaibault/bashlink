@@ -67,7 +67,6 @@
     "lint:given": "shellcheck -x",
     "report:coverage": "true",
     "test": "./doctest.sh --verbose",
-    "update": "yarn version patch && yarn npm publish",
     "update:documentation": "documentation-website"
   },
   "devDependencies": {
