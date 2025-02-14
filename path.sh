@@ -361,6 +361,9 @@ bl_path_unpack() {
             *.bz2)
                 command='bzip2 --decompress "$@"'
                 ;;
+            *.deb)
+                command='ar x "$@"'
+                ;;
             # NOTE: Has to be after "*.tar.gz|*.tgz" to totally unwrap its
             # archive in the case above.
             *.gz)
