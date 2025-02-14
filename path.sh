@@ -375,7 +375,7 @@ bl_path_unpack() {
             *.rpm)
                 command='bsdtar -x -f "$@"'
                 ;;
-            *.tar)
+            *.tar|*.tar.xz)
                 command='tar --extract --verbose --file "$@"'
                 ;;
             *.tar.bz2|*.tbz2)
@@ -392,6 +392,9 @@ bl_path_unpack() {
                 ;;
             *.war|*.zip)
                 command='unzip -o "$@"'
+                ;;
+            *.xz)
+                command='xz --decompress "$@"'
                 ;;
             *.Z)
                 command='compress -d "$@"'
