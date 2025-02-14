@@ -387,6 +387,9 @@ bl_path_unpack() {
             *.tar.gz|*.tgz)
                 command='tar --extract --verbose --gzip --file "$@"'
                 ;;
+            *.tar.zst)
+                command='tar --zstd --extract --verbose --file "$@"'
+                ;;
             *.vdi)
                 command="qemu-img convert -f vdi -O raw '$1' '${1%.vdi}' || vboxmanage clonehd '$1' '${1%.vdi}' --format RAW || vbox-img convert --srcfilename '$1' --stdout --srcformat VDI --dstformat RAW '${1%.vdi}'"
                 ;;
