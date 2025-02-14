@@ -356,8 +356,24 @@ bl_path_unpack() {
     if [ -f "$source_path" ]; then
         local command
         case "$source_path" in
+            # NOTE: Has to be after "*.tar.bz2|*.tbz2" to totally unwrap its
+            # archive in the case above.
+            *.bz2)
+                command='bzip2 --decompress "$@"'
+                ;;
+            # NOTE: Has to be after "*.tar.gz|*.tgz" to totally unwrap its
+            # archive in the case above.
+            *.gz)
+                command='gzip --decompress "$@"'
+                ;;
+            *.qcow|qcow2)
+                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
+                ;;
             *.rar)
                 command='unrar x "$@"'
+                ;;
+            *.rpm)
+                command='bsdtar -x "$@"'
                 ;;
             *.tar)
                 command='tar --extract --verbose --file "$@"'
@@ -365,18 +381,14 @@ bl_path_unpack() {
             *.tar.bz2|*.tbz2)
                 command='tar --extract --verbose --bzip2 --file "$@"'
                 ;;
-            # NOTE: Has to be after "*.tar.bz2|*.tbz2" to totally unwrap its
-            # archive in the case above.
-            *.bz2)
-                command='bzip2 --decompress "$@"'
-                ;;
             *.tar.gz|*.tgz)
                 command='tar --extract --verbose --gzip --file "$@"'
                 ;;
-            # NOTE: Has to be after "*.tar.gz|*.tgz" to totally unwrap its
-            # archive in the case above.
-            *.gz)
-                command='gzip --decompress "$@"'
+            *.vdi)
+                command="qemu-img convert -f vdi -O raw '$1' '${1%.vdi}' || vboxmanage clonehd '$1' '${1%.vdi}' --format RAW || vbox-img convert --srcfilename '$1' --stdout --srcformat VDI --dstformat RAW '${1%.vdi}'"
+                ;;
+            *.vmdk)
+                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
                 ;;
             *.war|*.zip)
                 command='unzip -o "$@"'
@@ -386,15 +398,6 @@ bl_path_unpack() {
                 ;;
             *.7z)
                 command='7z x "$@"'
-                ;;
-            *.vdi)
-                command="qemu-img convert -f vdi -O raw '$1' '${1%.vdi}' || vboxmanage clonehd '$1' '${1%.vdi}' --format RAW || vbox-img convert --srcfilename '$1' --stdout --srcformat VDI --dstformat RAW '${1%.vdi}'"
-                ;;
-            *.vmdk)
-                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
-                ;;
-            *.qcow|qcow2)
-                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
                 ;;
             *)
                 echo Cannot extract \""$source_path"\".
