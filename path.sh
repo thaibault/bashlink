@@ -373,7 +373,7 @@ bl_path_unpack() {
                 command='unrar x "$@"'
                 ;;
             *.rpm)
-                command='bsdtar -x "$@"'
+                command='bsdtar -x -f "$@"'
                 ;;
             *.tar)
                 command='tar --extract --verbose --file "$@"'
