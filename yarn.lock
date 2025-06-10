@@ -16,7 +16,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "bashlink@workspace:."
   dependencies:
-    documentation-website: "npm:^1.0.345"
+    documentation-website: "npm:^1.0.366"
     shellcheck: "npm:^3.1.0"
   bin:
     bashlink-doctest: doctest.sh
@@ -188,12 +188,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"documentation-website@npm:^1.0.345":
-  version: 1.0.345
-  resolution: "documentation-website@npm:1.0.345"
+"documentation-website@npm:^1.0.366":
+  version: 1.0.366
+  resolution: "documentation-website@npm:1.0.366"
   bin:
     documentation-website: build/deploy.js
-  checksum: 10c0/3dc863cc78442054bde6b7bbad59b20eb3bc7f77bba270978284095eb0dbb6dd44a7662690a672b3167f56e2e559c4c8187d07a36d4c9b5f7585298c784e48e6
+  checksum: 10c0/db39444d23c9864ff7061e547f87da639e47ebe391a28ef236066d752d42cf0acb9e3d3dfe5a633be02967292260f5df4b15e4263b4fddab9875c782dfcac5b1
   languageName: node
   linkType: hard
 
