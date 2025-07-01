@@ -17,17 +17,17 @@ bl.module.import bashlink.exception
 bl.module.import bashlink.logging
 # endregion
 # region variables
-declare -gr bl_changeroot__documentation__='
+declare -gr BL_CHANGEROOT__DOCUMENTATION__='
     The changeroot module implements utility functions concerning advanced
     change roots with kernel filesystem application interfaces.
 '
-declare -agr bl_changeroot__dependencies__=(
+declare -agr BL_CHANGEROOT__DEPENDENCIES__=(
     chroot
     mountpoint mount umount
     mkdir
 )
-declare -agr bl_changeroot__optional_dependencies__=(fakeroot fakechroot)
-declare -agr bl_changeroot_kernel_api_locations=(
+declare -agr BL_CHANGEROOT__OPTIONAL_DEPENDENCIES__=(fakeroot fakechroot)
+declare -agr BL_CHANGEROOT_KERNEL_API_LOCATIONS=(
     /proc
     /sys
     /sys/firmware/efi/efivars
@@ -93,7 +93,7 @@ bl_changeroot_with_kernel_api() {
     local -a created_locations=()
     local -a mounted_locations=()
     local mountpoint_path
-    for mountpoint_path in "${bl_changeroot_kernel_api_locations[@]}"; do
+    for mountpoint_path in "${BL_CHANGEROOT_KERNEL_API_LOCATIONS[@]}"; do
         mountpoint_path="${mountpoint_path#/}"
         if [ ! -e "${new_root_location}${mountpoint_path}" ]; then
             mkdir --parents "${new_root_location}${mountpoint_path}"
@@ -138,6 +138,7 @@ bl_changeroot_with_kernel_api() {
     local -i return_code=0
     bl.changeroot.with_fake_fallback "$@" || \
         return_code=$?
+    local -i current_return_code=0
     for mountpoint_path in $(bl.array.reverse "${mounted_locations[*]}"); do
         if mountpoint -q "${new_root_location}${mountpoint_path}" || \
             [ -f "/${mountpoint_path}" ]
@@ -153,9 +154,9 @@ bl_changeroot_with_kernel_api() {
             fi
             # NOTE: "return_code" remains with an error code if there was
             # given one in all iterations.
-            # shellcheck disable=SC2181
-            [[ $? != 0 ]] && \
-                return_code=$?
+            current_return_code=$?
+            ((current_return_code != 0)) && \
+                return_code="$current_return_code"
         else
             bl.logging.warn \
                 "Location \"${new_root_location}${mountpoint_path}\" should be a mountpoint but isn't."
