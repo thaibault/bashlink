@@ -12,10 +12,10 @@
 # shellcheck disable=SC2016,SC2034,SC2155
 # region executable header
 if [ ! -f "$(dirname "${BASH_SOURCE[0]}")/module.sh" ]; then
-    for bl_doctest_sub_path in / lib/; do
-        if [ -f "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${bl_doctest_sub_path}bashlink/module.sh" ]
+    for BL_DOCTEST_SUB_PATH in / lib/; do
+        if [ -f "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${BL_DOCTEST_SUB_PATH}bashlink/module.sh" ]
         then
-            exec "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${bl_doctest_sub_path}bashlink/documentation.sh" "$@"
+            exec "$(dirname "$(dirname "$(readlink --canonicalize "${BASH_SOURCE[0]}")")")${BL_DOCTEST_SUB_PATH}bashlink/documentation.sh" "$@"
         fi
     done
 fi
@@ -31,7 +31,7 @@ bl.module.import bashlink.string
 bl.module.import bashlink.tools
 # endregion
 # region variables
-declare -gr bl_documentation__documentation__='
+declare -gr BL_DOCUMENTATION__DOCUMENTATION__='
     The documentation module implements function and module level documentation
     generation in markdown.
 '
@@ -104,23 +104,28 @@ bl_documentation_generate() {
     local -r module_name="$(
         echo "$result" | \
             command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
-    local -r scope_name="$(
-        bl.module.rewrite_scope_name "$module_name" | \
-            command sed --regexp-extended 's:\.:_:g')"
+    local -r function_scope_name="$(
+        bl.module.rewrite_function_scope_name "$module_name" | \
+            command sed --regexp-extended 's:\.:_:g'
+    )"
+    local -r globals_scope_name="$(
+        bl.module.rewrite_global_scope_name "$module_name" | \
+            command sed --regexp-extended 's:\.:_:g'
+    )"
     if [ -d "$file_path" ]; then
         echo "# Package $module_reference"
         local sub_file_path
         for sub_file_path in "${file_path}"/*; do
             local excluded=false
             local excluded_name
-            for excluded_name in "${bl_module_directory_names_to_ignore[@]}"; do
+            for excluded_name in "${BL_MODULE_DIRECTORY_NAMES_TO_IGNORE[@]}"; do
                 if [[ -d "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
                     excluded=true
                     break
                 fi
             done
             if ! $excluded; then
-                for excluded_name in "${bl_module_file_names_to_ignore[@]}"; do
+                for excluded_name in "${BL_MODULE_FILE_NAMES_TO_IGNORE[@]}"; do
                     if [[ -f "$sub_file_path" ]] && [ "$excluded_name" = "$(basename "$sub_file_path")" ]; then
                         excluded=true
                         break
@@ -134,7 +139,9 @@ bl_documentation_generate() {
                         echo "$sub_file_path" | \
                             command sed \
                                 --regexp-extended \
-                                "s:${scope_name}/([^/]+):${scope_name}.\1:")")"
+                                "s:${function_scope_name}/([^/]+):${function_scope_name}.\1:"
+                    )"
+                )"
                 bl.documentation.generate "$name"
             fi
         done
@@ -145,14 +152,15 @@ bl_documentation_generate() {
         # NOTE: Get all external module prefix and unprefixed function names.
         # shellcheck disable=SC2154
         local declared_function_names="$module_declared_function_names_after_source $(
-            ! declare -F | cut -d' ' -f3 | command grep -e "^$scope_name"
+            ! declare -F | cut -d' ' -f3 | command grep -e "^$function_scope_name"
         )"
         # NOTE: Removes duplicates.
         declared_function_names="$(bl.string.get_unique_lines <(
-            echo "$declared_function_names"))"
+            echo "$declared_function_names"
+        ))"
         # Module level documentation
         # shellcheck disable=SC2154
-        local -r module_documentation_variable_name="${scope_name}${bl_doctest_name_indicator}"
+        local -r module_documentation_variable_name="${globals_scope_name}${BL_DOCTEST_NAME_INDICATOR}"
         local docstring="${!module_documentation_variable_name}"
         echo "## Module $module_name"
         if [ "$docstring" = '' ]; then

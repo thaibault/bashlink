@@ -14,7 +14,7 @@
 # import any other modules (like "bashlink.logging") to avoid a cyclic
 # dependency graph.
 # region variables
-declare -gr bl_path__documentation__='
+declare -gr BL_PATH__DOCUMENTATION__='
     The path module implements utility functions concerning path.
 '
 # endregion
@@ -356,36 +356,39 @@ bl_path_unpack() {
     if [ -f "$source_path" ]; then
         local command
         case "$source_path" in
-            *.rar)
-                command='unrar x "$@"'
-                ;;
-            *.tar)
-                command='tar --extract --verbose --file "$@"'
-                ;;
-            *.tar.bz2|*.tbz2)
-                command='tar --extract --verbose --bzip2 --file "$@"'
-                ;;
             # NOTE: Has to be after "*.tar.bz2|*.tbz2" to totally unwrap its
             # archive in the case above.
             *.bz2)
                 command='bzip2 --decompress "$@"'
                 ;;
-            *.tar.gz|*.tgz)
-                command='tar --extract --verbose --gzip --file "$@"'
+            *.deb)
+                command='ar x "$@"'
                 ;;
             # NOTE: Has to be after "*.tar.gz|*.tgz" to totally unwrap its
             # archive in the case above.
             *.gz)
                 command='gzip --decompress "$@"'
                 ;;
-            *.war|*.zip)
-                command='unzip -o "$@"'
+            *.qcow|qcow2)
+                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
                 ;;
-            *.Z)
-                command='compress -d "$@"'
+            *.rar)
+                command='unrar x "$@"'
                 ;;
-            *.7z)
-                command='7z x "$@"'
+            *.rpm)
+                command='bsdtar -x -f "$@"'
+                ;;
+            *.tar|*.tar.xz)
+                command='tar --extract --verbose --file "$@"'
+                ;;
+            *.tar.bz2|*.tbz2)
+                command='tar --extract --verbose --bzip2 --file "$@"'
+                ;;
+            *.tar.gz|*.tgz)
+                command='tar --extract --verbose --gzip --file "$@"'
+                ;;
+            *.tar.zst)
+                command='tar --zstd --extract --verbose --file "$@"'
                 ;;
             *.vdi)
                 command="qemu-img convert -f vdi -O raw '$1' '${1%.vdi}' || vboxmanage clonehd '$1' '${1%.vdi}' --format RAW || vbox-img convert --srcfilename '$1' --stdout --srcformat VDI --dstformat RAW '${1%.vdi}'"
@@ -393,8 +396,17 @@ bl_path_unpack() {
             *.vmdk)
                 command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
                 ;;
-            *.qcow|qcow2)
-                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
+            *.war|*.zip)
+                command='unzip -o "$@"'
+                ;;
+            *.xz)
+                command='xz --decompress "$@"'
+                ;;
+            *.Z)
+                command='compress -d "$@"'
+                ;;
+            *.7z)
+                command='7z x "$@"'
                 ;;
             *)
                 echo Cannot extract \""$source_path"\".

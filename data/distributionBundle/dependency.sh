@@ -16,7 +16,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.logging
 # endregion
 # region variables
-declare -gr bl_dependency__documentation__='
+declare -gr BL_DEPENDENCY__DOCUMENTATION__='
     The dependency module implements utility functions to check current
     environment again needed assumptions.
 '
