@@ -19,12 +19,12 @@ bl.module.import bashlink.logging
 bl.module.import bashlink.path
 # endregion
 # region variables
-declare -gr bl_filesystem__documentation__='
+declare -gr BL_FILESYSTEM__DOCUMENTATION__='
     Provides filesystem aware utility functions.
 '
-declare -gr bl_filesystem__dependencies__=(pv)
+declare -gr BL_FILESYSTEM__DEPENDENCIES__=(pv)
 # shellcheck disable=SC1004
-declare -gr bl_filesystem__doctest_setup__='
+declare -gr BL_FILESYSTEM__DOCTEST_SETUP__='
     # Runs once before tests are started:
     # region import
     bl.module.import bashlink.array
@@ -43,22 +43,21 @@ boot_partition
 EOF
     }
     btrfs() {
-        if [[ $1 == subvolume ]] && [[ $2 == snapshot ]]; then
+        if [ "$1" = "subvolume" ] && [ "$2" = snapshot ]; then
             shift
             shift
             echo btrfs subvolume snapshot "$@"
         fi
-        if [[ $1 == send ]]; then
+        if [ "$1" = send ]; then
             shift
             echo btrfs send "$@"
         fi
-        if [[ $1 == receive ]]; then
+        if [ "$1" = receive ]; then
             cat - # print stdin
             shift
             echo btrfs receive "$@"
         fi
-        if [[ $1 == subvolume ]] && [[ $2 == list ]] && [[ "${!#}" == /broot ]]
-        then
+        if [ "$1" = subvolume ] && [ "$2" = list ] && [ "${!#}" = /root ]; then
             echo '\'' ID 256 parent 5 top level 5 path __active
                 ID 259 parent 256 top level 256 path __active/var
                 ID 258 parent 256 top level 256 path __active/usr
@@ -69,17 +68,17 @@ EOF
                 ID 1664 parent 1661 top level 1661 path __snapshot/backup_last/home'\''
         fi
         local paths=(
-            /broot/__active
-            /broot/__active/var
-            /broot/__active/usr
-            /broot/__active/home
-            /broot/__snapshot/backup_last
-            /broot/__snapshot/backup_last/var
-            /broot/__snapshot/backup_last/usr
-            /broot/__snapshot/backup_last/home
+            /root/__active
+            /root/__active/var
+            /root/__active/usr
+            /root/__active/home
+            /root/__snapshot/backup_last
+            /root/__snapshot/backup_last/var
+            /root/__snapshot/backup_last/usr
+            /root/__snapshot/backup_last/home
         )
-        if [[ $1 == subvolume ]] && [[ $2 == show ]]; then
-            if [[ $3 == /broot ]]; then
+        if [ "$1" = subvolume ] && [ "$2" = show ]; then
+            if [ "$3" = /root ]; then
                 cat <<EOF
 Name:             <FS_TREE>
 UUID:             123456ab-abc1-2345
@@ -90,14 +89,14 @@ EOF
             bl.array.contains "${paths[*]}" "$3"
             return $?
         fi
-        if [[ $1 == subvolume ]] && [[ $2 == delete ]]; then
+        if [ "$1" = subvolume ] && [ "$2" = delete ]; then
             # Check if subvolume present and return error if not.
             bl.array.contains "${paths[*]}" "$3"
             return $?
         fi
     }
     lsblk() {
-        if [[ "${@: -1}" == "" ]]; then
+        if [ "${@: -1}" = "" ]; then
             echo "lsblk: : not a block device"
             return 1
         fi
@@ -133,9 +132,9 @@ EOF
 alias bl.filesystem.btrfs_is_root=bl_filesystem_btrfs_is_root
 bl_filesystem_btrfs_is_root() {
     local -r __documentation__='
-        >>> bl.filesystem.btrfs_is_root /broot; echo $?
+        >>> bl.filesystem.btrfs_is_root /root; echo $?
         0
-        >>> bl.filesystem.btrfs_is_root /broot/foo; echo $?
+        >>> bl.filesystem.btrfs_is_root /root/foo; echo $?
         1
     '
     (
@@ -152,16 +151,16 @@ bl_filesystem_btrfs_is_root() {
             ) &>/dev/null || \
                 return 1
 }
-# NOTE: Depends on "bl.filesystem.is_root"
+# NOTE: Depends on "bl.filesystem.btrfs_is_root"
 alias bl.filesystem.btrfs_find_root=bl_filesystem_btrfs_find_root
 bl_filesystem_btrfs_find_root() {
     local -r __documentation__='
         Returns absolute path to btrfs root.
 
-        >>> bl.filesystem.btrfs_find_root /broot/__active
-        /broot
-        >>> bl.filesystem.btrfs_find_root /broot/__snapshot/backup_last
-        /broot
+        >>> bl.filesystem.btrfs_find_root /root/__active
+        /root
+        >>> bl.filesystem.btrfs_find_root /root/__snapshot/backup_last
+        /root
         >>> bl.filesystem.btrfs_find_root /not/a/valid/mountpoint; echo $?
         1
     '
@@ -176,15 +175,15 @@ bl_filesystem_btrfs_find_root() {
         path="$(dirname "$path")"
     done
 }
-# NOTE: Depends on "bl.filesystem.is_root"
+# NOTE: Depends on "bl.filesystem.btrfs_is_root"
 alias bl.filesystem.btrfs_subvolume_filter=bl_filesystem_btrfs_subvolume_filter
 bl_filesystem_btrfs_subvolume_filter() {
     local -r __documentation__='
-        >>> bl.filesystem.btrfs_subvolume_filter /broot parent 256
+        >>> bl.filesystem.btrfs_subvolume_filter /root parent 256
         ID 259 parent 256 top level 256 path __active/var
         ID 258 parent 256 top level 256 path __active/usr
         ID 257 parent 256 top level 256 path __active/home
-        >>> bl.filesystem.btrfs_subvolume_filter /broot id 256
+        >>> bl.filesystem.btrfs_subvolume_filter /root id 256
         ID 256 parent 5 top level 5 path __active
     '
     local -r btrfs_root="$(readlink --canonicalize "$1")"
@@ -211,13 +210,13 @@ bl_filesystem_btrfs_is_subvolume() {
         Checks if path is a subvolume. Note: The btrfs root is also a
         subvolume.
 
-        >>> bl.filesystem.btrfs_is_subvolume /broot; echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /root; echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /broot/__active; echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /root/__active; echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /broot/__active/usr; echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /root/__active/usr; echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /broot/__active/etc; echo $?
+        >>> bl.filesystem.btrfs_is_subvolume /root/__active/etc; echo $?
         1
     '
     btrfs subvolume show "$1" &>/dev/null
@@ -228,14 +227,14 @@ bl_filesystem_btrfs_get_child_volumes() {
     local -r __documentation__='
         Returns absolute paths to subvolumes.
 
-        >>> bl.filesystem.btrfs_get_child_volumes /broot/__active
-        /broot/__active/var
-        /broot/__active/usr
-        /broot/__active/home
-        >>> bl.filesystem.btrfs_get_child_volumes /broot/__snapshot/backup_last
-        /broot/__snapshot/backup_last/var
-        /broot/__snapshot/backup_last/usr
-        /broot/__snapshot/backup_last/home
+        >>> bl.filesystem.btrfs_get_child_volumes /root/__active
+        /root/__active/var
+        /root/__active/usr
+        /root/__active/home
+        >>> bl.filesystem.btrfs_get_child_volumes /root/__snapshot/backup_last
+        /root/__snapshot/backup_last/var
+        /root/__snapshot/backup_last/usr
+        /root/__snapshot/backup_last/home
     '
     local -r volume="$1"
     bl.filesystem.btrfs_is_subvolume "${volume}" || \
@@ -256,7 +255,7 @@ bl_filesystem_btrfs_get_child_volumes() {
 alias bl.filesystem.btrfs_get_subvolume_list_field=bl_filesystem_btrfs_get_subvolume_list_field
 bl_filesystem_btrfs_get_subvolume_list_field() {
     local -r __documentation__='
-        >>> local entry="$(btrfs subvolume list /broot | head -n1)"
+        >>> local entry="$(btrfs subvolume list /root | head -n1)"
         >>> bl.filesystem.btrfs_get_subvolume_list_field path "$entry"
         >>> bl.filesystem.btrfs_get_subvolume_list_field ID "$entry"
         >>> bl.filesystem.btrfs_get_subvolume_list_field parent "$entry"
@@ -308,11 +307,11 @@ bl_filesystem_btrfs_send() {
     local -r __documentation__='
         Sends snapshots.
 
-        >>> bl.filesystem.btrfs_send /broot/__active /backup/__active_backup
-        btrfs send /broot/__active | pv | btrfs receive /backup
-        btrfs send /broot/__active/var | pv | btrfs receive /backup/__active
-        btrfs send /broot/__active/usr | pv | btrfs receive /backup/__active
-        btrfs send /broot/__active/home | pv | btrfs receive /backup/__active
+        >>> bl.filesystem.btrfs_send /root/__active /backup/__active_backup
+        btrfs send /root/__active | pv | btrfs receive /backup
+        btrfs send /root/__active/var | pv | btrfs receive /backup/__active
+        btrfs send /root/__active/usr | pv | btrfs receive /backup/__active
+        btrfs send /root/__active/home | pv | btrfs receive /backup/__active
         mv /backup/__active /backup/__active_backup
     '
     local -r volume="$1"
@@ -343,16 +342,16 @@ bl_filesystem_btrfs_send_update() {
     local -r __documentation__='
         Update snapshot (needs backing snapshot).
 
-        >>> bl.filesystem.btrfs_send_update /broot/__active \
-        >>>     /broot/backing \
+        >>> bl.filesystem.btrfs_send_update /root/__active \
+        >>>     /root/backing \
         >>>     /backup
-        btrfs send -p /broot/backing /broot/__active | pv | btrfs receive /backup
+        btrfs send -p /root/backing /root/__active | pv | btrfs receive /backup
         rmdir /backup/__active/var
-        btrfs send -p /broot/backing/var /broot/__active/var | pv | btrfs receive /backup/__active
+        btrfs send -p /root/backing/var /root/__active/var | pv | btrfs receive /backup/__active
         rmdir /backup/__active/usr
-        btrfs send -p /broot/backing/usr /broot/__active/usr | pv | btrfs receive /backup/__active
+        btrfs send -p /root/backing/usr /root/__active/usr | pv | btrfs receive /backup/__active
         rmdir /backup/__active/home
-        btrfs send -p /broot/backing/home /broot/__active/home | pv | btrfs receive /backup/__active
+        btrfs send -p /root/backing/home /root/__active/home | pv | btrfs receive /backup/__active
     '
     local -r volume="$1"
     local -r volume_name="$(basename "$1")"
@@ -381,22 +380,22 @@ bl_filesystem_btrfs_snapshot() {
     local -r __documentation__='
         Make snapshot of subvolume.
 
-        >>> bl.filesystem.btrfs_snapshot /broot/__active /backup/__active_backup
-        btrfs subvolume snapshot /broot/__active /backup/__active_backup
+        >>> bl.filesystem.btrfs_snapshot /root/__active /backup/__active_backup
+        btrfs subvolume snapshot /root/__active /backup/__active_backup
         rmdir /backup/__active_backup/var
-        btrfs subvolume snapshot /broot/__active/var /backup/__active_backup/var
+        btrfs subvolume snapshot /root/__active/var /backup/__active_backup/var
         rmdir /backup/__active_backup/usr
-        btrfs subvolume snapshot /broot/__active/usr /backup/__active_backup/usr
+        btrfs subvolume snapshot /root/__active/usr /backup/__active_backup/usr
         rmdir /backup/__active_backup/home
-        btrfs subvolume snapshot /broot/__active/home /backup/__active_backup/home
+        btrfs subvolume snapshot /root/__active/home /backup/__active_backup/home
 
         Third parameter can be used to exclude a subvolume (currently only one)
-        >>> bl.filesystem.btrfs_snapshot /broot/__active /backup/__active_backup usr
-        btrfs subvolume snapshot /broot/__active /backup/__active_backup
+        >>> bl.filesystem.btrfs_snapshot /root/__active /backup/__active_backup usr
+        btrfs subvolume snapshot /root/__active /backup/__active_backup
         rmdir /backup/__active_backup/var
-        btrfs subvolume snapshot /broot/__active/var /backup/__active_backup/var
+        btrfs subvolume snapshot /root/__active/var /backup/__active_backup/var
         rmdir /backup/__active_backup/home
-        btrfs subvolume snapshot /broot/__active/home /backup/__active_backup/home
+        btrfs subvolume snapshot /root/__active/home /backup/__active_backup/home
     '
     local -r volume="$1"
     local -r target="$2"
@@ -445,7 +444,7 @@ bl_filesystem_btrfs_subvolume_backup() {
         ```
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup delete /dev/sda rootBackup
+            bl.filesystem.btrfs_subvolume_backup delete /dev/sda root-backup
         ```
     '
     local action=list
@@ -468,10 +467,10 @@ bl_filesystem_btrfs_subvolume_backup() {
     sudo umount /mnt &>/dev/null
     if [ "$action" = create ]; then
         sudo mount "$target" /mnt
-        local -r timestamp="$(date +"%d:%m:%y:%T")"
-        sudo btrfs subvolume snapshot /mnt/root "/mnt/rootBackup${timestamp}"
+        local -r timestamp="$(date +"%d-%m-%yT%T:%S")"
+        sudo btrfs subvolume snapshot /mnt/root "/mnt/root-backup-${timestamp}"
         # NOTE: Autocompletion should be done by sudo. Not bash as user.
-        sudo bash -c "cp --recursive /boot/* \"/mnt/rootBackup${timestamp}/boot/\""
+        sudo bash -c "cp --recursive /boot/* \"/mnt/root-backup-${timestamp}/boot/\""
         sudo umount /mnt
     elif [ "$action" = delete ]; then
         if [ "$1" = '' ]; then
@@ -516,9 +515,9 @@ bl_filesystem_btrfs_subvolume_delete() {
     local -r __documentation__='
         Delete a subvolume. Also deletes child subvolumes.
 
-        >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/backup_last; echo $?
+        >>> bl.filesystem.btrfs_subvolume_delete /root/__snapshot/backup_last; echo $?
         0
-        >>> bl.filesystem.btrfs_subvolume_delete /broot/__snapshot/foo; echo $?
+        >>> bl.filesystem.btrfs_subvolume_delete /root/__snapshot/foo; echo $?
         1
     '
     local -r volume="$1"
@@ -722,7 +721,7 @@ bl_filesystem_make_uefi_boot_entry() {
                 vmlinuz-linux-lts
         ```
     '
-    local -r kernel_parameter_file_path="${bl_globals_configuration_path}linux/kernel/${1}CommandLine"
+    local -r kernel_parameter_file_path="${BL_GLOBALS_CONFIGURATION_PATH}linux/kernel/${1}CommandLine"
     local kernel=vmlinuz-linux
     if [[ "$2" ]]; then
         kernel="$2"
@@ -806,7 +805,7 @@ bl_filesystem_write_blockdevice_to_image() {
     if [[ "$1" ]]; then
         source="$1"
     fi
-    local target="${bl_globals_data_path}private/backup/backup-sd-card.img"
+    local target="${BL_GLOBALS_DATA_PATH}private/backup/backup-sd-card.img"
     if [[ "$2" ]]; then
         target="$2"
     fi
@@ -825,7 +824,7 @@ bl_filesystem_write_image_to_blockdevice() {
         ```
     '
     # shellcheck disable=SC2125
-    local source="${bl_globals_data_path}temp/image/"*.img
+    local source="${BL_GLOBALS_DATA_PATH}temp/image/"*.img
     if [[ "$1" ]]; then
         source="$1"
     fi

@@ -16,7 +16,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.logging
 # endregion
 # region variables
-declare -gr bl_exception__documentation__='
+declare -gr BL_EXCEPTION__DOCUMENTATION__='
     >>> _() {
     >>>    bl.exception.try {
     >>>        echo $1
@@ -150,7 +150,7 @@ declare -gr bl_exception__documentation__='
     >>>     false
     >>> } bl.exception.catch {
     >>>     echo caught
-    >>>     echo "$bl_exception_last_traceback"
+    >>>     echo "$BL_EXCEPTION_LAST_TRACEBACK"
     >>> }
     +bl.doctest.multiline_contains
     caught
@@ -194,12 +194,12 @@ declare -gr bl_exception__documentation__='
     >>> }
     caught
 '
-declare -g bl_exception_active=false
-declare -g bl_exception_active_before_try=false
-declare -g bl_exception_last_traceback=''
-declare -g bl_exception_last_traceback_file_path=''
-declare -g bl_exception_supported=true
-declare -ig bl_exception_try_catch_level=0
+declare -g BL_EXCEPTION_ACTIVE=false
+declare -g BL_EXCEPTION_ACTIVE_BEFORE_TRY=false
+declare -g BL_EXCEPTION_LAST_TRACEBACK=''
+declare -g BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH=''
+declare -g BL_EXCEPTION_SUPPORTED=true
+declare -ig BL_EXCEPTION_TRY_CATCH_LEVEL=0
 # endregion
 # region functions
 alias bl.exception.check_context=bl_exception_check_context
@@ -251,7 +251,7 @@ bl_exception_activate() {
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
         >>> bl.exception.deactivate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-        bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
+        bl_exception_error_handler || declare -i BL_EXCEPTION_RETURN_CODE=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $BL_EXCEPTION_RETURN_CODE; return $BL_EXCEPTION_RETURN_CODE
         echo foo
     '
     if [[ "$1" != true ]]; then
@@ -260,29 +260,30 @@ bl_exception_activate() {
             # NOTE: We should call exception trap logic by hand in this case.
             bl_exception_error_handler true
             local -r message='Error: Context does not allow error traps.'
-            bl_exception_supported=false
-            if [ -f "$bl_exception_last_traceback_file_path" ]; then
-                bl_exception_last_traceback="$(
-                    cat "$bl_exception_last_traceback_file_path")"
-                rm "$bl_exception_last_traceback_file_path"
+            BL_EXCEPTION_SUPPORTED=false
+            if [ -f "$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH" ]; then
+                BL_EXCEPTION_LAST_TRACEBACK="$(
+                    cat "$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH"
+                )"
+                rm "$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH"
                 bl.logging.warn "$message"
                 # NOTE: This would show where failing try catch error is.
                 # bl.logging.error_exception \
                 #     "$message" \
                 #     $'\n' \
-                #     "$bl_exception_last_traceback"
+                #     "$BL_EXCEPTION_LAST_TRACEBACK"
             else
                 bl.logging.error_exception "$message"
             fi
         fi
     fi
-    $bl_exception_active && \
+    $BL_EXCEPTION_ACTIVE && \
         return 0
-    bl_exception_errtrace_saved=$(set -o | awk '/errtrace/ {print $2}')
-    bl_exception_pipefail_saved=$(set -o | awk '/pipefail/ {print $2}')
-    bl_exception_functrace_saved=$(set -o | awk '/functrace/ {print $2}')
-    bl_exception_error_traps=$(trap -p ERR | cut --delimiter "'" --fields 2)
-    bl_exception_ps4_saved="$PS4"
+    BL_EXCEPTION_ERRTRACE_SAVED=$(set -o | awk '/errtrace/ {print $2}')
+    BL_EXCEPTION_PIPEFAIL_SAVED=$(set -o | awk '/pipefail/ {print $2}')
+    BL_EXCEPTION_FUNCTRACE_SAVED=$(set -o | awk '/functrace/ {print $2}')
+    BL_EXCEPTION_ERROR_TRAPS=$(trap -p ERR | cut --delimiter "'" --fields 2)
+    BL_EXCEPTION_PS4_SAVED="$PS4"
     # improve xtrace output (set -x)
     export PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
     # If set, any trap on ERR is inherited by shell functions,
@@ -331,10 +332,10 @@ bl_exception_activate() {
     # _
     # false
     #
-    trap 'bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code' ERR
+    trap 'bl_exception_error_handler || declare -i BL_EXCEPTION_RETURN_CODE=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $BL_EXCEPTION_RETURN_CODE; return $BL_EXCEPTION_RETURN_CODE' ERR
     # trap bl_exception_debug_handler DEBUG
     # trap bl_exception_exit_handler EXIT
-    bl_exception_active=true
+    BL_EXCEPTION_ACTIVE=true
 }
 alias bl.exception.deactivate=bl_exception_deactivate
 bl_exception_deactivate() {
@@ -348,21 +349,21 @@ bl_exception_deactivate() {
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
         >>> bl.exception.deactivate
         >>> trap -p ERR | cut --delimiter "'\''" --fields 2
-        bl_exception_error_handler || declare -i bl_exception_return_code=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $bl_exception_return_code; return $bl_exception_return_code
+        bl_exception_error_handler || declare -i BL_EXCEPTION_RETURN_CODE=$? && (( ${#FUNCNAME[@]} == 0 )) && exit $BL_EXCEPTION_RETURN_CODE; return $BL_EXCEPTION_RETURN_CODE
         echo $foo
     '
-    $bl_exception_active || \
+    $BL_EXCEPTION_ACTIVE || \
         return 0
-    [ "$bl_exception_errtrace_saved" = off ] && \
+    [ "$BL_EXCEPTION_ERRTRACE_SAVED" = off ] && \
         set +o errtrace
-    [ "$bl_exception_pipefail_saved" = off ] && \
+    [ "$BL_EXCEPTION_PIPEFAIL_SAVED" = off ] && \
         set +o pipefail
-    [ "$bl_exception_functrace_saved" = off ] && \
+    [ "$BL_EXCEPTION_FUNCTRACE_SAVED" = off ] && \
         set +o functrace
-    export PS4="$bl_exception_ps4_saved"
+    export PS4="$BL_EXCEPTION_PS4_SAVED"
     # shellcheck disable=SC2064
-    trap "$bl_exception_error_traps" ERR
-    bl_exception_active=false
+    trap "$BL_EXCEPTION_ERROR_TRAPS" ERR
+    BL_EXCEPTION_ACTIVE=false
 }
 alias bl.exception.enter_try=bl_exception_enter_try
 bl_exception_enter_try() {
@@ -376,10 +377,11 @@ bl_exception_enter_try() {
         >>> }
         caught
     '
-    if (( bl_exception_try_catch_level == 0 )); then
-        bl_exception_last_traceback_file_path="$(
-            mktemp --suffix -bashlink-exception-last-traceback)"
-        bl_exception_active_before_try=$bl_exception_active
+    if (( BL_EXCEPTION_TRY_CATCH_LEVEL == 0 )); then
+        BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH="$(
+            mktemp --suffix -bashlink-exception-last-traceback
+        )"
+        BL_EXCEPTION_ACTIVE_BEFORE_TRY=$BL_EXCEPTION_ACTIVE
     fi
     # NOTE: We have to deactivate exceptions here to avoid calling the error
     # trap a second time after running the catch wrapper function. The nested
@@ -387,7 +389,7 @@ bl_exception_enter_try() {
     # other than 0. The nested error trap converts an error into such a
     # `return !=0`.
     bl.exception.deactivate
-    (( bl_exception_try_catch_level++ ))
+    (( BL_EXCEPTION_TRY_CATCH_LEVEL++ ))
 }
 alias bl.exception.error_handler=bl_exception_error_handler
 bl_exception_error_handler() {
@@ -414,11 +416,11 @@ bl_exception_error_handler() {
         traceback+="\n[$index] ${filename}:${line}: ${subroutine}"
         (( index++ ))
     done
-    if (( bl_exception_try_catch_level == 0 )) && [ "$do_not_throw" != true ]
+    if (( BL_EXCEPTION_TRY_CATCH_LEVEL == 0 )) && [ "$do_not_throw" != true ]
     then
         bl.logging.error "$traceback"
     else
-        echo "$traceback" >"$bl_exception_last_traceback_file_path"
+        echo "$traceback" >"$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH"
     fi
     return $error_code
 }
@@ -434,27 +436,29 @@ bl_exception_exit_try() {
         >>> }
         caught
     '
-    local -ir bl_exception_return_code=$1
-    (( bl_exception_try_catch_level-- ))
-    if (( bl_exception_try_catch_level == 0 )); then
-        if $bl_exception_active_before_try; then
+    local -ir BL_EXCEPTION_RETURN_CODE=$1
+    (( BL_EXCEPTION_TRY_CATCH_LEVEL-- ))
+    if (( BL_EXCEPTION_TRY_CATCH_LEVEL == 0 )); then
+        if $BL_EXCEPTION_ACTIVE_BEFORE_TRY; then
             bl.exception.activate true
         else
             bl.exception.deactivate
         fi
-        if [ -f "$bl_exception_last_traceback_file_path" ]; then
-            bl_exception_last_traceback="$(
-                cat "$bl_exception_last_traceback_file_path")"
-            rm "$bl_exception_last_traceback_file_path"
-        elif $bl_exception_supported; then
+        if [ -f "$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH" ]; then
+            BL_EXCEPTION_LAST_TRACEBACK="$(
+                cat "$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH"
+            )"
+            rm "$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH"
+        elif $BL_EXCEPTION_SUPPORTED; then
             bl.logging.warn \
-                "Traceback file under \"$bl_exception_last_traceback_file_path\" is missing."
+                Traceback file under \
+                "\"$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH\" is missing."
         fi
     else
         bl.exception.activate true
     fi
     # shellcheck disable=SC2086
-    return $bl_exception_return_code
+    return $BL_EXCEPTION_RETURN_CODE
 }
 alias bl.exception.try='bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; '
 # shellcheck disable=SC2142

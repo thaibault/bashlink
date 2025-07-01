@@ -10,14 +10,12 @@
 # 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
-# region variables
-declare -gr bl_globals__documentation__='
+declare -gr BL_GLOBALS__DOCUMENTATION__='
     The globals module provides generic re-usable variables.
 '
-declare -g bl_globals_configuration_path=~/configuration/
-declare -g bl_globals_data_path=~/
-declare -g bl_globals_user_e_mail_address=example@domain.tld
-# endregion
+declare -g BL_GLOBALS_CONFIGURATION_PATH=~/configuration/
+declare -g BL_GLOBALS_DATA_PATH=~/
+declare -g BL_GLOBALS_USER_E_MAIL_ADDRESS=example@domain.tld
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:

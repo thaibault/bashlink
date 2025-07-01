@@ -16,7 +16,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.logging
 # endregion
 # region variables
-declare -gr bl_display__documentation__='
+declare -gr BL_DISPLAY__DOCUMENTATION__='
     The display module implements utility functions concerning display
     configuration.
 '

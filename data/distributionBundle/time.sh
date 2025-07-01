@@ -11,10 +11,10 @@
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region variables
-declare -gr bl_time__documentation__='
+declare -gr BL_TIME__DOCUMENTATION__='
     The time module implements utility functions concerning time measurments.
 '
-declare -gi bl_time_start=0
+declare -gi BL_TIME_START=0
 # endregion
 # region functions
 alias bl.time.get_elapsed=bl_time_get_elapsed
@@ -32,7 +32,7 @@ bl_time_get_elapsed() {
         0
     '
     local -ir end_time="$(date +%s%N)"
-    local -ir elapsed_time_in_nano_seconds=$(( end_time - bl_time_start ))
+    local -ir elapsed_time_in_nano_seconds=$(( end_time - BL_TIME_START ))
     echo $(( elapsed_time_in_nano_seconds / 1000000 ))
 }
 alias bl.time.start=bl_time_start
@@ -46,7 +46,7 @@ bl_time_start() {
         >>> (( time > 0 )); echo $?
         0
     '
-    bl_time_start=$(date +%s%N)
+    BL_TIME_START=$(date +%s%N)
 }
 # endregion
 # region vim modline

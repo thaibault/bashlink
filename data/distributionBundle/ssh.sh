@@ -18,7 +18,7 @@ bl.module.import bashlink.globals
 bl.module.import bashlink.logging
 # endregion
 # region variables
-declare -gr bl_ssh__documentation__='
+declare -gr BL_SSH__DOCUMENTATION__='
     This module implements utility functions concerning ssh connections.
 '
 # endregion
@@ -33,7 +33,7 @@ bl_ssh_make_key() {
         bl.ssh.make_key hans
     ```
     '
-    local user="$bl_globals_user_e_mail_address"
+    local user="$BL_GLOBALS_USER_E_MAIL_ADDRESS"
     if [ "$1" ]; then
         user="$1"
     fi

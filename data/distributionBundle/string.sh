@@ -18,7 +18,7 @@ bl.module.import bashlink.cli
 bl.module.import bashlink.logging
 # endregion
 # region variables
-declare -gr bl_string__documentation__='
+declare -gr BL_STRING__DOCUMENTATION__='
     This module implements utility functions concerning strings.
 '
 # endregion
@@ -122,54 +122,84 @@ bl_string_images_to_css_classes() {
         fi
     done
 }
-alias bl.string.make_command_promt_prefix=bl_string_make_command_promt_prefix
-bl_string_make_command_promt_prefix() {
+alias bl.string.make_command_prompt_prefix=bl_string_make_command_prompt_prefix
+bl_string_make_command_prompt_prefix() {
     # NOTE: This have to be the first statement to retrieve last return code.
-    local -ir return_code=$?
+    # NOTE: Cannot be an integer (local -i) because we need to overwrite with a
+    # given arguments which always has to be a string.
+    local return_code="$?"
 
     local -r __documentation__='
         Generates a new user prompt with useful runtime parameters.
 
         ```bash
-            bl.string.make_command_promt_prefix
+            bl.string.make_command_prompt_prefix
+            > ...@$... (...) ...
+
+            bl.string.make_command_prompt_prefix 0
+            > ...@$... (...) ...
+
+            bl.string.make_command_prompt_prefix -s 0
+            (1) ... ...@$... ...
+
+            bl.string.make_command_prompt_prefix --simple 1
+            (1) ... ...@$... ...
+
+            bl.string.make_command_prompt_prefix --simple 123
+            (123) ... ...@$... ...
         ```
     '
-
-    local error_promt="(${bl_cli_color_masked_red}${return_code}${bl_cli_color_masked_default})"
-    if  (( return_code == 0 )); then
-        error_promt="${bl_cli_color_masked_green}>${bl_cli_color_masked_default}"
+    local simple=false
+    if [[ "$1" = '-s' || "$1" = '--simple' ]]; then
+        simple=true
+        shift
     fi
 
-    local system_load_average="$(
-        uptime | \
-            command grep --extended-regexp --only-matching \
-                '[0-9]{1,2}[.,][0-9]{1,2}' | \
-                    head --lines 1)"
-
-    # shellcheck disable=SC1117
-    local git_branch="$(
-        git branch 2>/dev/null | \
-        command sed --regexp-extended "s/^\* (.*)$/ $(
-            bl.string.validate_regular_expression_replacement \
-                "$bl_cli_color_masked_red"
-        )\1$(
-            bl.string.validate_regular_expression_replacement \
-                "$bl_cli_color_masked_cyan"
-        )/g" | \
-            tr --delete "\n" | \
-                command sed 's/  / /g' | \
-                    command sed 's/^ *//g' | \
-                        command sed 's/ *$//g')"
-    if [ "$git_branch" ]; then
-        git_branch="(${bl_cli_color_masked_light_gray}git${bl_cli_color_masked_default})-(${bl_cli_color_masked_cyan}${git_branch}${bl_cli_color_masked_default})"
+    if [[ "$1" && "$1" != '0' ]]; then
+        return_code="$1"
     fi
 
-    local user_name="$bl_cli_color_masked_blue"
+    local error_prompt="(${BL_CLI_COLOR_MASKED_RED}${return_code}${BL_CLI_COLOR_MASKED_DEFAULT})"
+    if [ "$return_code" = '0' ]; then
+        error_prompt="${BL_CLI_COLOR_MASKED_GREEN}>${BL_CLI_COLOR_MASKED_DEFAULT}"
+    fi
+
+    local system_load_average=''
+    local git_branch=''
+    if ! "$simple"; then
+        system_load_average=" ($(
+            uptime | \
+                command grep --extended-regexp --only-matching \
+                    '[0-9]{1,2}[.,][0-9]{1,2}' | \
+                        head --lines 1
+        ))"
+
+        # shellcheck disable=SC1117
+        git_branch="$(
+            git branch 2>/dev/null | \
+            command sed --regexp-extended "s/^\* (.*)$/ $(
+                bl.string.validate_regular_expression_replacement \
+                    "$BL_CLI_COLOR_MASKED_RED"
+            )\1$(
+                bl.string.validate_regular_expression_replacement \
+                    "$BL_CLI_COLOR_MASKED_CYAN"
+            )/g" | \
+                tr --delete "\n" | \
+                    command sed 's/  / /g' | \
+                        command sed 's/^ *//g' | \
+                            command sed 's/ *$//g'
+        )"
+        if [ "$git_branch" ]; then
+            git_branch="(${BL_CLI_COLOR_MASKED_LIGHT_GRAY}git${BL_CLI_COLOR_MASKED_DEFAULT})-(${BL_CLI_COLOR_MASKED_CYAN}${git_branch}${BL_CLI_COLOR_MASKED_DEFAULT})"
+        fi
+    fi
+
+    local user_name="$BL_CLI_COLOR_MASKED_BLUE"
     if (( "$(id --user)" == 0 )); then
-        user_name="$bl_cli_color_masked_red"
+        user_name="$BL_CLI_COLOR_MASKED_RED"
     fi
     # shellcheck disable=SC1117
-    user_name+="\u$bl_cli_color_masked_default"
+    user_name+="\u$BL_CLI_COLOR_MASKED_DEFAULT"
 
     local title_bar=''
     if [[ "$TERM" != linux ]]; then
@@ -177,14 +207,14 @@ bl_string_make_command_promt_prefix() {
         title_bar="\[\e]0;\u@\h:$(pwd)\a\]"
     fi
 
-    local -r username="${bl_cli_color_masked_cyan}${user_name}${bl_cli_color_masked_light_gray}"
-    local -r usergroupname="${bl_cli_color_masked_cyan}\h${bl_cli_color_masked_default}"
-    local -r systemload="${bl_cli_color_masked_magenta}${system_load_average}${bl_cli_color_masked_default}"
-    local -r working_path="${bl_cli_color_masked_light_gray}\w${bl_cli_color_masked_default}"
-    local -r suffix="${bl_cli_color_masked_dark_gray}> ${bl_cli_color_masked_default}"
+    local -r username="${BL_CLI_COLOR_MASKED_CYAN}${user_name}${BL_CLI_COLOR_MASKED_LIGHT_GRAY}"
+    local -r usergroupname="${BL_CLI_COLOR_MASKED_CYAN}\h${BL_CLI_COLOR_MASKED_DEFAULT}"
+    local -r systemload="${BL_CLI_COLOR_MASKED_MAGENTA}${system_load_average}${BL_CLI_COLOR_MASKED_DEFAULT}"
+    local -r working_path="${BL_CLI_COLOR_MASKED_LIGHT_GRAY}\w${BL_CLI_COLOR_MASKED_DEFAULT}"
+    local -r suffix="${BL_CLI_COLOR_MASKED_DARK_GRAY}> ${BL_CLI_COLOR_MASKED_DEFAULT}"
 
     # shellcheck disable=SC1117
-    export PS1="${title_bar}${error_promt} ${username}@${usergroupname} (${systemload}) ${working_path}\n${git_branch}${suffix}"
+    command echo -n "${title_bar}${error_prompt} ${username}@${usergroupname}${systemload} ${working_path}\n${git_branch}${suffix}"
 }
 alias bl.string.merge_text_files=bl_string_merge_text_files
 bl_string_merge_text_files() {
@@ -387,6 +417,56 @@ EOF
         return $?
     fi
 }
+
+alias bl.string.ltrim=bl_string_ltrim
+bl_string_ltrim() {
+    local -r __documentation__='
+        Trims leading whitespaces from given string.
+
+        >>> bl.string.ltrim " hans "
+        hans
+        >>> bl.string.ltrim " hans"
+        hans
+        >>> bl.string.ltrim hans
+        hans
+        >>> bl.string.ltrim "hans "
+        hans
+    '
+    echo -e "$1" | sed -e 's/^[[:space:]]*//'
+}
+alias bl.string.rtrim=bl_string_rtrim
+bl_string_rtrim() {
+    local -r __documentation__='
+        Trims trailing whitespaces from given string.
+
+        >>> bl.string.rtrim " hans "
+         hans
+        >>> bl.string.rtrim " hans"
+         hans
+        >>> bl.string.rtrim hans
+        hans
+        >>> bl.string.rtrim "hans "
+        hans
+    '
+    echo -e "$1" | sed -e 's/[[:space:]]*$//'
+}
+alias bl.string.trim=bl_string_trim
+bl_string_trim() {
+    local -r __documentation__='
+        Trims leading and trailing whitespaces from given string.
+
+        >>> bl.string.trim " hans "
+        hans
+        >>> bl.string.trim " hans"
+        hans
+        >>> bl.string.trim hans
+        hans
+        >>> bl.string.trim "hans "
+        hans
+    '
+    bl.string.rtrim "$(bl.string.ltrim "$1")"
+}
+
 alias bl.string.validate_argument=bl_string_validate_argument
 bl_string_validate_argument() {
     local -r __documentation__='
