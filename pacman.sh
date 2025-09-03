@@ -35,7 +35,7 @@ bl_pacman_show_config_backups() {
     pushd / 1>/dev/null && \
     local pattern
     for pattern in '*.pacnew' '*.orig' '*_backup*' '*.pacorig'; do
-        sudo command find -name "$pattern" -and \( -type f -or -type l -or -type d \)
+        sudo find -name "$pattern" -and \( -type f -or -type l -or -type d \)
     done
     # shellcheck disable=SC2164
     popd 1>/dev/null
@@ -53,7 +53,7 @@ bl_pacman_show_not_maintained_by_pacman_system_files() {
     local -r paths_file_path="$(mktemp --suffix -bashlink-pacman-file-paths)"
     local -r maintained_paths_file_path="$(
         mktemp --suffix -bashlink-pacman-maintained-file-paths)"
-    sudo command find / | \
+    sudo find / | \
         sort | \
             command sed 's:/$::g' | \
                 sort | \
