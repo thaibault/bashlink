@@ -62,6 +62,15 @@ declare -gr BL_MODULE__DOCUMENTATION__='
     Central module import mechanism. To scope modules and ensure running each
     module only once.
 '
+declare -gr BL_MODULE_CURRENT_PATH="$(
+    dirname "$(readlink -f "${BASH_SOURCE[0]}")"
+)/"
+declare -gr BL_MODULE_INSTANCE_ID="$(
+    echo "$BL_MODULE_CURRENT_PATH" | \
+        sed 's:/:-:g' | \
+            sed 's/^-//' | \
+                sed 's/-$//'
+)"
 declare -ag BL_MODULE_ALLOWED_NAMES=(
     BASH_REMATCH
     COLUMNS
@@ -128,7 +137,7 @@ declare -ag BL_MODULE_GLOBAL_SCOPE_REWRITES=(
     '^BASHLINK(([._]mockup)?[._][a-zA-Z_-]+)$/BL\1/'
     '[^a-zA-Z0-9_]/_/g'
 )
-declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-resolve-cache-${USER:-unknown-user}"
+declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-resolve-cache-${BL_MODULE_INSTANCE_ID}-${USER:-unknown-user}"
 # endregion
 # region functions
 alias bl.module.check_name=bl_module_check_name
