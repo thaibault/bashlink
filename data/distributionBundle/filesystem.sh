@@ -660,7 +660,7 @@ bl_filesystem_find_hardlinks() {
             bl.filesystem.find_hardlinks /home/user/test.txt
         ```
     '
-    sudo command find / -samefile "$1" 2>/dev/null
+    sudo find / -samefile "$1" 2>/dev/null
 }
 alias bl.filesystem.show_symbolic_links=bl_filesystem_show_symbolic_links
 bl_filesystem_show_symbolic_links() {
