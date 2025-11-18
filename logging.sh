@@ -189,15 +189,16 @@ bl_logging_get_prefix() {
     local -r color=${BL_LOGGING_LEVELS_COLOR[$level_index]}
     # shellcheck disable=SC2154
     local -r loglevel=${color}${level}${BL_CLI_COLOR_DEFAULT}
+    local -r datetime="$(date --utc +'%Y-%m-%dT%H:%M:%S.%3NZ')"
     local path="${BASH_SOURCE[2]##./}"
     path="${path%.sh}"
     local line_number=''
     if [[ "$path" != '' ]]; then
         path=":${BL_CLI_COLOR_LIGHT_GRAY}$(basename "$path")${BL_CLI_COLOR_DEFAULT}"
-        line_number=":${BL_CLI_COLOR_LIGHT_CYAN}${BASH_LINENO[1]}${BL_CLI_COLOR_DEFAULT}"
+        line_number="-${BL_CLI_COLOR_LIGHT_CYAN}${BASH_LINENO[1]}${BL_CLI_COLOR_DEFAULT}"
     fi
     # shellcheck disable=SC2154
-    echo "${loglevel}${path}${line_number}:"
+    echo "${loglevel}${path}${line_number}:${datetime}:"
 }
 alias bl.logging.is_enabled=bl_logging_is_enabled
 bl_logging_is_enabled() {
