@@ -53,7 +53,11 @@ then
 fi
 # shellcheck source=./path.sh
 source "$(dirname "${BASH_SOURCE[0]}")/path.sh"
-if $BL_MODULE_RETRIEVE_REMOTE_MODULES && $BL_MODULE_TIDY_UP_PATH; then
+if \
+    $BL_MODULE_RETRIEVE_REMOTE_MODULES && \
+    $BL_MODULE_TIDY_UP_PATH && \
+    [[ $BL_MODULE_AVOID_TIDY_UP_PATH != true ]];
+then
     rm "$(dirname "${BASH_SOURCE[0]}")/path.sh"
 fi
 # endregion
