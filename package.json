@@ -70,7 +70,7 @@
     "update:documentation": "documentation-website"
   },
   "devDependencies": {
-    "documentation-website": "^1.0.394",
+    "documentation-website": "^1.0.395",
     "shellcheck": "^4.1.0"
   },
   "documentationWebsite": {
