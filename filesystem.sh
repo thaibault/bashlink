@@ -86,12 +86,12 @@ EOF
                 return 0
             fi
             # Check if subvolume present and return error if not.
-            bl.array.contains "${paths[*]}" "$3"
+            bl.array.contains "$3" "${paths[@]}"
             return $?
         fi
         if [ "$1" = subvolume ] && [ "$2" = delete ]; then
             # Check if subvolume present and return error if not.
-            bl.array.contains "${paths[*]}" "$3"
+            bl.array.contains "$3" "${paths[@]}"
             return $?
         fi
     }
