@@ -34,9 +34,12 @@ bl_array_contains() {
         >>> bl.array.contains d a b c; echo $?
         1
     '
+    local match="$1"
+    shift
+
     local item
-    for item; do
-        if [ "$1" = "$item" ]; then
+    for item ; do
+        if [ "$match" = "$item" ]; then
             return 0
         fi
     done
