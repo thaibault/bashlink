@@ -42,7 +42,6 @@ source=(
     number.sh
     pacman.sh
     path.sh
-    ssh.sh
     string.sh
     time.sh
     tools.sh
