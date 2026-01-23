@@ -339,7 +339,7 @@ if [[ "${TERM}" == *"xterm"* ]]; then
 else
     bl_cli_disable_color
 fi
-# TODO this breaks dracut (segfault)
+# NOTE: this breaks dracut (segfault)
 #(echo -e $'\u1F3B7' | command grep -v F3B7) &> /dev/null
 # NOTE: "bl.tools.is_defined" results in an dependency cycle.
 if bl.module.is_defined NO_UNICODE || ! bl.cli.glyph_available_in_font; then
