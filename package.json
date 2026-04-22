@@ -66,10 +66,10 @@
     "lint:given": "shellcheck -x",
     "report:coverage": "true",
     "test": "./doctest.sh --verbose",
-    "update:documentation": "documentation-website"
+    "update:documentation": "web-documentation"
   },
   "devDependencies": {
-    "documentation-website": "^1.0.397",
+    "web-documentation": "^1.0.0",
     "shellcheck": "^4.1.0"
   },
   "documentationWebsite": {
