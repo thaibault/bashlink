@@ -1,6 +1,6 @@
 # Package bashlink
 ## Module bashlink.arguments
-warning:documentation:167: No top level documentation for module "bashlink.arguments" referenced by "/__w/bashlink.bashlink/arguments".
+warning:documentation-167:2026-04-22T09:48:20.320Z: No top level documentation for module "bashlink.arguments" referenced by "/__w/bashlink.bashlink/arguments".
 ### Function bl_arguments_apply_new
 Call this function after you are finished with argument parsing. The
 arguments array ($@) will then contain all unparsed arguments that are
@@ -144,21 +144,21 @@ $@
 >>> }
 ```
 ## Module bashlink.array
-warning:documentation:167: No top level documentation for module "bashlink.array" referenced by "/__w/bashlink.bashlink/array".
+warning:documentation-167:2026-04-22T09:48:20.555Z: No top level documentation for module "bashlink.array" referenced by "/__w/bashlink.bashlink/array".
 ### Function bl_array_contains
 Checks if given item equals to one item in given array.
 
 ```bash
 >>> local a=(a b c)
->>> bl.array.contains "${a[*]}" c; echo $?
+>>> bl.array.contains c "${a[@]}"; echo $?
 0
 ```
 ```bash
->>> bl.array.contains "a b c" b; echo $?
+>>> bl.array.contains b a b c; echo $?
 0
 ```
 ```bash
->>> bl.array.contains "a b c" d; echo $?
+>>> bl.array.contains d a b c; echo $?
 1
 ```
 ### Function bl_array_filter
@@ -337,7 +337,7 @@ Removes duplicates in given array.
 1 11 2 3
 ```
 ## Module bashlink.changeroot
-warning:documentation:167: No top level documentation for module "bashlink.changeroot" referenced by "/__w/bashlink.bashlink/changeroot".
+warning:documentation-167:2026-04-22T09:48:20.918Z: No top level documentation for module "bashlink.changeroot" referenced by "/__w/bashlink.bashlink/changeroot".
 ### Function bl_changeroot
 This function performs a linux change root if needed and provides all
 kernel api filesystems in target root by using a change root interface
@@ -363,7 +363,7 @@ bl_changeroot_with_kernel_api \
 /usr/bin/env bash some arguments
 ```
 ## Module bashlink.cli
-warning:documentation:167: No top level documentation for module "bashlink.cli" referenced by "/__w/bashlink.bashlink/cli".
+warning:documentation-167:2026-04-22T09:48:21.058Z: No top level documentation for module "bashlink.cli" referenced by "/__w/bashlink.bashlink/cli".
 ### Function bl_cli_disable_color
 Disables color output explicitly.
 
@@ -407,7 +407,7 @@ Check if unicode glyphicons are available.
 >>> bl.cli.glyph_available_in_font
 ```
 ## Module bashlink.cracking
-warning:documentation:167: No top level documentation for module "bashlink.cracking" referenced by "/__w/bashlink.bashlink/cracking".
+warning:documentation-167:2026-04-22T09:48:21.301Z: No top level documentation for module "bashlink.cracking" referenced by "/__w/bashlink.bashlink/cracking".
 ### Function bl_cracking_endless_loop
 Starts an endless loop.
 
@@ -464,29 +464,15 @@ kills the whole process tree.
 bl.cracking.stress_system_with_fork_bomb
 ```
 ## Module bashlink.dependency
-warning:documentation:167: No top level documentation for module "bashlink.dependency" referenced by "/__w/bashlink.bashlink/dependency".
+warning:documentation-167:2026-04-22T09:48:21.530Z: No top level documentation for module "bashlink.dependency" referenced by "/__w/bashlink.bashlink/dependency".
 ### Function bl_dependency_check
 This function check if all given dependencies are present.
 ### Function bl_dependency_check_pkgconfig
 This function check if all given libraries can be found.
 ### Function bl_dependency_check_shared_library
 This function check if all given shared libraries can be found.
-### Function bl_dependency_determine_files
-Determines all needed files for given packages.
-
-```bash
->>> ! hash pacman &>/dev/null || bl.dependency.determine_files glibc 1>/dev/null; echo $?
-0
-```
-### Function bl_dependency_determine_packages
-Determines all needed packages for given packages.
-
-```bash
->>> ! hash pacman &>/dev/null || bl.dependency.determine_packages glibc 1>/dev/null; echo $?
-0
-```
 ## Module bashlink.dictionary
-warning:documentation:167: No top level documentation for module "bashlink.dictionary" referenced by "/__w/bashlink.bashlink/dictionary".
+warning:documentation-167:2026-04-22T09:48:21.730Z: No top level documentation for module "bashlink.dictionary" referenced by "/__w/bashlink.bashlink/dictionary".
 ### Function bl_dictionary_get
 ```bash
 variable=$(bl.dictionary.get dictionary_name key)
@@ -589,7 +575,7 @@ a b c
 a b c
 ```
 ## Module bashlink.display
-warning:documentation:167: No top level documentation for module "bashlink.display" referenced by "/__w/bashlink.bashlink/display".
+warning:documentation-167:2026-04-22T09:48:21.941Z: No top level documentation for module "bashlink.display" referenced by "/__w/bashlink.bashlink/display".
 ### Function bl_display_load_xinit_sources
 This functions loads all xinit source scripts.
 
@@ -597,7 +583,7 @@ This functions loads all xinit source scripts.
 bl.display.load_xinit_sources
 ```
 ## Module bashlink.doctest
-warning:documentation:167: No top level documentation for module "bashlink.doctest" referenced by "/__w/bashlink.bashlink/doctest".
+warning:documentation-167:2026-04-22T09:48:22.046Z: No top level documentation for module "bashlink.doctest" referenced by "/__w/bashlink.bashlink/doctest".
 ### Function bl_doctest_compare_result
 Compares specified result with given one.
 
@@ -859,7 +845,7 @@ Given function "bl_doctest_not_existing" is not documented.
 1
 ```
 ## Module bashlink.documentation
-warning:documentation:167: No top level documentation for module "bashlink.documentation" referenced by "/__w/bashlink.bashlink/documentation".
+warning:documentation-167:2026-04-22T09:48:22.292Z: No top level documentation for module "bashlink.documentation" referenced by "/__w/bashlink.bashlink/documentation".
 ### Function bl_documentation_format_buffers
 Converts given docstring into markdown compatible code description
 block.
@@ -912,7 +898,7 @@ arguments.
 ...
 ```
 ## Module bashlink.exception
-warning:documentation:167: No top level documentation for module "bashlink.exception" referenced by "/__w/bashlink.bashlink/exception".
+warning:documentation-167:2026-04-22T09:48:22.513Z: No top level documentation for module "bashlink.exception" referenced by "/__w/bashlink.bashlink/exception".
 ### Function bl_exception_activate
 Activates exception handling for following code.
 
@@ -997,7 +983,7 @@ Introduces an exception handling code block.
 caught
 ```
 ## Module bashlink.filesystem
-warning:documentation:167: No top level documentation for module "bashlink.filesystem" referenced by "/__w/bashlink.bashlink/filesystem".
+warning:documentation-167:2026-04-22T09:48:22.833Z: No top level documentation for module "bashlink.filesystem" referenced by "/__w/bashlink.bashlink/filesystem".
 ### Function bl_filesystem_btrfs_find_root
 Returns absolute path to btrfs root.
 
@@ -1290,9 +1276,9 @@ bl.filesystem.write_image_to_blockdevice \
 /dev/mmcblk0
 ```
 ## Module bashlink.globals
-warning:documentation:167: No top level documentation for module "bashlink.globals" referenced by "/__w/bashlink.bashlink/globals".
+warning:documentation-167:2026-04-22T09:48:23.406Z: No top level documentation for module "bashlink.globals" referenced by "/__w/bashlink.bashlink/globals".
 ## Module bashlink.logging
-warning:documentation:167: No top level documentation for module "bashlink.logging" referenced by "/__w/bashlink.bashlink/logging".
+warning:documentation-167:2026-04-22T09:48:23.496Z: No top level documentation for module "bashlink.logging" referenced by "/__w/bashlink.bashlink/logging".
 ### Function bl_logging_cat
 This function prints files
 (e.g `bl.logging.cat < file.txt`) or heredocs. Like `bl.logging.plain`,
@@ -1561,7 +1547,7 @@ test
 3
 ```
 ## Module bashlink.module
-warning:documentation:167: No top level documentation for module "bashlink.module" referenced by "/__w/bashlink.bashlink/module".
+warning:documentation-167:2026-04-22T09:48:23.854Z: No top level documentation for module "bashlink.module" referenced by "/__w/bashlink.bashlink/module".
 ### Function bl_module_check_name
 Checks if given name belongs to given scope.
 
@@ -1795,7 +1781,7 @@ BL_MODULE
 a_b_a
 ```
 ## Module bashlink.number
-warning:documentation:167: No top level documentation for module "bashlink.number" referenced by "/__w/bashlink.bashlink/number".
+warning:documentation-167:2026-04-22T09:48:24.332Z: No top level documentation for module "bashlink.number" referenced by "/__w/bashlink.bashlink/number".
 ### Function bl_number_calculate_percent
 Calculates percent of second argument from the first argument.
 
@@ -1844,7 +1830,7 @@ Normalizes given version number to a raw number.
 0
 ```
 ## Module bashlink.pacman
-warning:documentation:167: No top level documentation for module "bashlink.pacman" referenced by "/__w/bashlink.bashlink/pacman".
+warning:documentation-167:2026-04-22T09:48:24.592Z: No top level documentation for module "bashlink.pacman" referenced by "/__w/bashlink.bashlink/pacman".
 ### Function bl_pacman_show_config_backups
 Shows all config backups created by pacman.
 
@@ -1859,7 +1845,7 @@ system.
 bl.pacman.show_not_maintained_by_pacman_system_file
 ```
 ## Module bashlink.path
-warning:documentation:167: No top level documentation for module "bashlink.path" referenced by "/__w/bashlink.bashlink/path".
+warning:documentation-167:2026-04-22T09:48:24.715Z: No top level documentation for module "bashlink.path" referenced by "/__w/bashlink.bashlink/path".
 ### Function bl_path_backup
 Backs up given location into given target file to be able to restore
 given file structure including all rights and ownerships.
@@ -1979,43 +1965,11 @@ unpack path/to/archiv.zip`
 ```
 # Package /__w/bashlink.bashlink/prompt
 ## Module bashlink.main
-warning:documentation:167: No top level documentation for module "bashlink.main" referenced by "/__w/bashlink/bashlink/prompt/main".
+warning:documentation-167:2026-04-22T09:48:25.071Z: No top level documentation for module "bashlink.main" referenced by "/__w/bashlink/bashlink/prompt/main".
 ## Module bashlink.timeout
-warning:documentation:167: No top level documentation for module "bashlink.timeout" referenced by "/__w/bashlink/bashlink/prompt/timeout".
-## Module bashlink.ssh
-warning:documentation:167: No top level documentation for module "bashlink.ssh" referenced by "/__w/bashlink.bashlink/ssh".
-### Function bl_ssh_make_key
-Generates a new ssh key.
-
-```
-bl.ssh.make_key
-bl.ssh.make_key hans
-```
-### Function bl_ssh_print
-Prints a file via ssh. A given printable file will be sent to a given
-location via scp. The file be stored in remotes home directory with
-given name. After this procedure a remote print order will be sent.
-
-```bash
-bl.ssh.print /home/hans/document.txt
-```
-
-```bash
-bl.ssh.print /home/hans/document.txt hans
-```
-
-```bash
-bl.ssh.print /home/hans/document.txt hans hp15
-```
-### Function bl_ssh_screen
-Wraps the ssh client for automatically starting a screen session on
-server.
-
-```bash
-bl.ssh.screen user@host [SSH_OPTIONS]
-```
+warning:documentation-167:2026-04-22T09:48:25.459Z: No top level documentation for module "bashlink.timeout" referenced by "/__w/bashlink/bashlink/prompt/timeout".
 ## Module bashlink.string
-warning:documentation:167: No top level documentation for module "bashlink.string" referenced by "/__w/bashlink.bashlink/string".
+warning:documentation-167:2026-04-22T09:48:25.554Z: No top level documentation for module "bashlink.string" referenced by "/__w/bashlink.bashlink/string".
 ### Function bl_string_generate_random
 Generates a random string with given length.
 
@@ -2203,7 +2157,7 @@ replacement.
 sed "s/myInputString/$(bl.string.validate_regular_expression_replacement "\hans/peter&klaus")/g"
 ```
 ## Module bashlink.time
-warning:documentation:167: No top level documentation for module "bashlink.time" referenced by "/__w/bashlink.bashlink/time".
+warning:documentation-167:2026-04-22T09:48:25.845Z: No top level documentation for module "bashlink.time" referenced by "/__w/bashlink.bashlink/time".
 ### Function bl_time_get_elapsed
 Prints elapsed time in milliseconds since last `bl.time.start` call.
 
@@ -2229,7 +2183,7 @@ Prints elapsed time in milliseconds since last `bl.time.start` call.
 0
 ```
 ## Module bashlink.tools
-warning:documentation:167: No top level documentation for module "bashlink.tools" referenced by "/__w/bashlink.bashlink/tools".
+warning:documentation-167:2026-04-22T09:48:25.972Z: No top level documentation for module "bashlink.tools" referenced by "/__w/bashlink.bashlink/tools".
 ### Function bl_tools_compile_and_install_without_root
 Compiles and installs a program by its given source code. Your have to
 be inside the source code folder to run this function.
@@ -2314,7 +2268,7 @@ address \
 "Sun, 2 Feb 1986 14:23:56 +0100"
 ```
 ## Module bashlink.ui
-warning:documentation:167: No top level documentation for module "bashlink.ui" referenced by "/__w/bashlink.bashlink/ui".
+warning:documentation-167:2026-04-22T09:48:26.316Z: No top level documentation for module "bashlink.ui" referenced by "/__w/bashlink.bashlink/ui".
 ### Function bl_ui_dialog
 Shows a dialog box. Forwards all given parameter to dialog.
 
