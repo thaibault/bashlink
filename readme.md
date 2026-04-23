@@ -22,7 +22,7 @@ Project status
 [![test](https://img.shields.io/github/actions/workflow/status/thaibault/bashlink/test.yaml?label=test&style=for-the-badge)](https://github.com/thaibault/bashlink/actions/workflows/test.yaml)
 
 [![deploy web documentation](https://img.shields.io/github/actions/workflow/status/thaibault/bashlink/deploy-web-documentation.yaml?label=deploy%20web%20documentation&style=for-the-badge)](https://github.com/thaibault/bashlink/actions/workflows/deploy-web-documentation.yaml)
-[![documentation website](https://img.shields.io/website-up-down-green-red/https/torben.website/bashlink.svg?label=web-documentation&style=for-the-badge)](https://torben.website/bashlink)
+[![web documentation](https://img.shields.io/website-up-down-green-red/https/torben.website/bashlink.svg?label=web-documentation&style=for-the-badge)](https://torben.website/bashlink)
 
 Use case
 --------
