@@ -72,12 +72,11 @@
     "shellcheck": "^4.1.0",
     "web-documentation": "^1.0.2"
   },
-  "documentationWebsite": {
+  "webDocumentation": {
     "languages": [
       "deDE",
       "enUS"
     ],
-    "name": "bashlink",
     "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
     "trackingCode": "UA-40192634-14"
   },
