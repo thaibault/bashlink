@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="1699eccb-baf4-42d7-834e-6c90da7b5067" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/PKGBUILD" beforeDir="false" afterPath="$PROJECT_DIR$/PKGBUILD" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/arguments.sh" beforeDir="false" afterPath="$PROJECT_DIR$/arguments.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/array.sh" beforeDir="false" afterPath="$PROJECT_DIR$/array.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/changeroot.sh" beforeDir="false" afterPath="$PROJECT_DIR$/changeroot.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cli.sh" beforeDir="false" afterPath="$PROJECT_DIR$/cli.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cracking.sh" beforeDir="false" afterPath="$PROJECT_DIR$/cracking.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dependency.sh" beforeDir="false" afterPath="$PROJECT_DIR$/dependency.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dictionary.sh" beforeDir="false" afterPath="$PROJECT_DIR$/dictionary.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/display.sh" beforeDir="false" afterPath="$PROJECT_DIR$/display.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doctest.sh" beforeDir="false" afterPath="$PROJECT_DIR$/doctest.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/documentation.sh" beforeDir="false" afterPath="$PROJECT_DIR$/documentation.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exception.sh" beforeDir="false" afterPath="$PROJECT_DIR$/exception.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/filesystem.sh" beforeDir="false" afterPath="$PROJECT_DIR$/filesystem.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/globals.sh" beforeDir="false" afterPath="$PROJECT_DIR$/globals.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logging.sh" beforeDir="false" afterPath="$PROJECT_DIR$/logging.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mockup/a.sh" beforeDir="false" afterPath="$PROJECT_DIR$/mockup/a.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mockup/b.sh" beforeDir="false" afterPath="$PROJECT_DIR$/mockup/b.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mockup/c.sh" beforeDir="false" afterPath="$PROJECT_DIR$/mockup/c.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module.sh" beforeDir="false" afterPath="$PROJECT_DIR$/module.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/number.sh" beforeDir="false" afterPath="$PROJECT_DIR$/number.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pacman.sh" beforeDir="false" afterPath="$PROJECT_DIR$/pacman.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/path.sh" beforeDir="false" afterPath="$PROJECT_DIR$/path.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prompt/main.sh" beforeDir="false" afterPath="$PROJECT_DIR$/prompt/main.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prompt/timeout.sh" beforeDir="false" afterPath="$PROJECT_DIR$/prompt/timeout.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/string.sh" beforeDir="false" afterPath="$PROJECT_DIR$/string.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/time.sh" beforeDir="false" afterPath="$PROJECT_DIR$/time.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tools.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui.sh" beforeDir="false" afterPath="$PROJECT_DIR$/ui.sh" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotChats">
+    <option name="panelChat">
+      <chat>
+        <option name="activeSessionId" value="21acf7a7-702b-4e40-a8b9-ba758eede98e" />
+        <option name="sessions">
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="21acf7a7-702b-4e40-a8b9-ba758eede98e" />
+            <option name="modeId" value="Ask" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="auto" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+        </option>
+        <option name="type" value="PANEL" />
+      </chat>
+    </option>
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_/Users/torben.sickert/local/public/project/repository/bashlink" value="3DzZJuK9t1UuGZTJK4teJqvqHvu" />
+    </persistenceIdMap>
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3DzZJuK9t1UuGZTJK4teJqvqHvu" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/torben.sickert/local/public/project/repository/bashlink&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-WS-261.24374.125" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1699eccb-baf4-42d7-834e-6c90da7b5067" name="Changes" comment="" />
+      <created>1779286789943</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1779286789943</updated>
+      <workItem from="1779286791172" duration="13000" />
+      <workItem from="1779286819497" duration="1000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>
