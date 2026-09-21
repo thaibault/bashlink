@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 # region header
-# Copyright Torben Sickert (info["~at~"]torben.website) 16.12.2012
+# Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
 
 # License
 # -------
@@ -14,7 +14,7 @@ pkgver=1.0.40
 pkgrel=38
 pkgdesc='A high reliable bash library.'
 arch=(any)
-url=https://torben.website/bashlink
+url=https://tsickert.com/bashlink
 license=(CC-BY-3.0)
 devdepends=(shellcheck)
 depends=()
