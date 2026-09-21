@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 # region header
-# [Project page](https://torben.website/bashlink)
+# [Project page](https://tsickert.com/bashlink)
 
-# Copyright Torben Sickert (info["~at~"]torben.website) 16.12.2012
+# Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
 
 # License
 # -------
@@ -21,7 +21,7 @@ if [ "${BL_MODULE_RETRIEVE_REMOTE_MODULES:-}" = '' ]; then
     declare -g BL_MODULE_RETRIEVE_REMOTE_MODULES=false
 fi
 declare -g BL_MODULE_KNOWN_REMOTE_URLS=(
-    https://torben.website/bashlink/data/distributionBundle
+    https://tsickert.com/bashlink/data/distributionBundle
 )
 # region import
 alias bl.module.download=bl_module_download
