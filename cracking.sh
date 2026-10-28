@@ -81,7 +81,7 @@ bl_cracking_grab_sudo_password() {
     local password
     local -r user="$(whoami)"
     local buffer_file_path="$(
-        mktemp --suffix -bashlink-cracking-grap-sudo-password)"
+        mktemp --suffix=-bashlink-cracking-grap-sudo-password)"
     local -i number
     for number in 1 2 3; do
         read -rsp "[sudo] password for $user: " password

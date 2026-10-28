@@ -61,7 +61,7 @@ bl_ui_dialog() {
         ```
     '
     local -i return_code
-    local -r output_buffer_file_path="$(mktemp --suffix -bashlink-ui-input)"
+    local -r output_buffer_file_path="$(mktemp --suffix=-bashlink-ui-input)"
     bl.exception.try
     {
         dialog "$@" 1>&5 2>"$output_buffer_file_path"
