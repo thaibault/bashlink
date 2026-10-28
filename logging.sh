@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 # region header
-# Copyright Torben Sickert (info["~at~"]torben.website) 16.12.2012
+# Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
 
 # License
 # -------
@@ -448,7 +448,7 @@ bl_logging_set_file_descriptors() {
             [ "$BL_LOGGING_COMMAND_OUTPUT_TARGET" = file ] || \
             [ "$BL_LOGGING_COMMAND_OUTPUT_TARGET" = tee ]
         then
-            BL_LOGGING_FILE_PATH="$(mktemp --suffix -bash-logging)"
+            BL_LOGGING_FILE_PATH="$(mktemp --suffix=-bash-logging)"
         fi
     fi
 
@@ -473,7 +473,7 @@ bl_logging_set_file_descriptors() {
         [ "$BL_LOGGING_COMMAND_OUTPUT_TARGET" = tee ]
     then
         local -r output_fifo_directory_path="$(
-            mktemp --directory --suffix -bashlink-logging-output-fifo
+            mktemp --directory --suffix=-bashlink-logging-output-fifo
         )"
         # shellcheck disable=SC2064
         trap "rm --force --recursive '$output_fifo_directory_path'" EXIT

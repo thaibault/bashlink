@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 # region header
-# Copyright Torben Sickert (info["~at~"]torben.website) 16.12.2012
+# Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
 
 # License
 # -------
@@ -61,7 +61,7 @@ bl_ui_dialog() {
         ```
     '
     local -i return_code
-    local -r output_buffer_file_path="$(mktemp --suffix -bashlink-ui-input)"
+    local -r output_buffer_file_path="$(mktemp --suffix=-bashlink-ui-input)"
     bl.exception.try
     {
         dialog "$@" 1>&5 2>"$output_buffer_file_path"

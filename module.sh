@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 # region header
-# [Project page](https://torben.website/bashlink)
+# [Project page](https://tsickert.com/bashlink)
 
-# Copyright Torben Sickert (info["~at~"]torben.website) 16.12.2012
+# Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
 
 # License
 # -------
@@ -21,7 +21,7 @@ if [ "${BL_MODULE_RETRIEVE_REMOTE_MODULES:-}" = '' ]; then
     declare -g BL_MODULE_RETRIEVE_REMOTE_MODULES=false
 fi
 declare -g BL_MODULE_KNOWN_REMOTE_URLS=(
-    https://torben.website/bashlink/data/distributionBundle
+    https://tsickert.com/bashlink/data/distributionBundle
 )
 # region import
 alias bl.module.download=bl_module_download
@@ -127,7 +127,7 @@ then
     declare -g BL_MODULE_REMOTE_MODULE_CACHE_PATH="$(
         mktemp \
             --directory \
-            --suffix "-bashlink-module-cache-${USER:-unknown-user}"
+            --suffix="-bashlink-module-cache-${USER:-unknown-user}"
     )"
     BL_MODULE_TIDY_UP=true
 fi
@@ -425,16 +425,14 @@ bl_module_import_with_namespace_check() {
     if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
         BL_MODULE_DECLARED_FUNCTION_NAMES_BEFORE_SOURCE_FILE_PATH="$(
             mktemp \
-                --suffix \
-                    "-bashlink-module-declared-function-names-before-source-${scope_name}"
+                --suffix="-bashlink-module-declared-function-names-before-source-${scope_name}"
         )"
     fi
     BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE=''
 
     local -r declared_names_after_source_file_path="$(
         mktemp \
-            --suffix \
-                "-bashlink-module-declared-names-after-source-${scope_name}"
+            --suffix="-bashlink-module-declared-names-after-source-${scope_name}"
     )"
     # NOTE: All unprefixed variables which are declared after
     # "bl.module.determine_declared_names" will be interpreted as newly
@@ -448,8 +446,7 @@ bl_module_import_with_namespace_check() {
     if [ "$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH" = '' ]; then
         BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH="$(
             mktemp \
-                --suffix \
-                    "-bashlink-module-declared-names-before-source-${scope_name}"
+                --suffix="-bashlink-module-declared-names-before-source-${scope_name}"
         )"
     fi
 
@@ -510,8 +507,7 @@ bl_module_import_with_namespace_check() {
         BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH=''
         BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE_FILE_PATH="$(
             mktemp \
-                --suffix \
-                    -bashlink-module-declared-names-after-source-"$scope_name"
+                --suffix=-bashlink-module-declared-names-after-source-"$scope_name"
         )"
         bl.module.determine_declared_names \
             --only-functions \

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 # region header
-# Copyright Torben Sickert (info["~at~"]torben.website) 16.12.2012
+# Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
 
 # License
 # -------
@@ -379,7 +379,7 @@ bl_exception_enter_try() {
     '
     if (( BL_EXCEPTION_TRY_CATCH_LEVEL == 0 )); then
         BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH="$(
-            mktemp --suffix -bashlink-exception-last-traceback
+            mktemp --suffix=-bashlink-exception-last-traceback
         )"
         BL_EXCEPTION_ACTIVE_BEFORE_TRY=$BL_EXCEPTION_ACTIVE
     fi

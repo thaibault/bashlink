@@ -2,7 +2,7 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 9
+  version: 10
   cacheKey: 10c0
 
 "@borewit/text-codec@npm:^0.1.0":
@@ -90,7 +90,7 @@ __metadata:
   resolution: "bashlink@workspace:."
   dependencies:
     shellcheck: "npm:^4.1.0"
-    web-documentation: "npm:^1.0.40"
+    web-documentation: "npm:^1.0.65"
   bin:
     bashlink-doctest: doctest.sh
     bashlink-document: documentation.sh
@@ -868,12 +868,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-documentation@npm:^1.0.40":
-  version: 1.0.40
-  resolution: "web-documentation@npm:1.0.40"
+"web-documentation@npm:^1.0.65":
+  version: 1.0.65
+  resolution: "web-documentation@npm:1.0.65"
   bin:
     web-documentation: build/deploy.js
-  checksum: 10c0/e9110d45bccccc0811b1970dea5701476ed3df8836a3875de98e9887c03888933040262ea57056cdc1f8534238e31deb644e17cbcf5bada92c2281040270e011
+  checksum: 10c0/8648ece86e15d030a1e1b07623d52c7c2456d02904f7ec56a469ba6693ace71a5e917633e67d917befb5164c5d94046e8f25ab3e9c3d3d9f1cdd268faa7ed627
   languageName: node
   linkType: hard
 
