@@ -146,7 +146,7 @@ rm --recursive "\$executable_directory_path"
 exit \$?
 EOF
     local -r temporary_archiv_file_path="$(
-        mktemp --suffix -bashlink-tools-single-executable-archiv.tar.gz)"
+        mktemp --suffix=-bashlink-tools-single-executable-archiv.tar.gz)"
     tar --create --verbose --gzip --posix --file \
         "$temporary_archiv_file_path" "$1"
     cat "$temporary_archiv_file_path" 1>>"$file_name"

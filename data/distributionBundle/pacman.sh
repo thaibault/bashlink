@@ -50,9 +50,9 @@ bl_pacman_show_not_maintained_by_pacman_system_files() {
             bl.pacman.show_not_maintained_by_pacman_system_file
         ```
     '
-    local -r paths_file_path="$(mktemp --suffix -bashlink-pacman-file-paths)"
+    local -r paths_file_path="$(mktemp --suffix=-bashlink-pacman-file-paths)"
     local -r maintained_paths_file_path="$(
-        mktemp --suffix -bashlink-pacman-maintained-file-paths)"
+        mktemp --suffix=-bashlink-pacman-maintained-file-paths)"
     sudo find / | \
         sort | \
             command sed 's:/$::g' | \
