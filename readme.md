@@ -84,7 +84,7 @@ Integrate bashlink into your standalone bash script:
 
 ```bash
 declare -gr MODULE_NAME_BASHLINK_PATH="$(
-    mktemp --directory --suffix -module-name-bashlink
+    mktemp --directory --suffix=-module-name-bashlink
 )/bashlink/"
 mkdir "$MODULE_NAME_BASHLINK_PATH"
 if curl \
@@ -113,7 +113,7 @@ elif [ -f "/usr/lib/bashlink/module.sh" ]; then
     source "/usr/lib/bashlink/module.sh"
 else
     declare -gr MODULE_NAME_BASHLINK_PATH="$(
-        mktemp --directory --suffix -module-name-bashlink
+        mktemp --directory --suffix=-module-name-bashlink
     )/bashlink/"
     mkdir "$MODULE_NAME_BASHLINK_PATH"
     if curl \
@@ -143,7 +143,7 @@ elif [ -f "/usr/lib/bashlink/module.sh" ]; then
     source "/usr/lib/bashlink/module.sh"
 else
     declare -gr MODULE_NAME_BASHLINK_PATH="$(
-        mktemp --directory --suffix -module-name-bashlink
+        mktemp --directory --suffix=-module-name-bashlink
     )/bashlink/"
     mkdir "$MODULE_NAME_BASHLINK_PATH"
     if curl \

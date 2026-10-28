@@ -415,13 +415,13 @@ bl_doctest_eval() {
     fi
     local -r declared_names_before_run_file_path="$(
         mktemp \
-            --suffix "-bashlink-doctest-declared-names-before-${module_name}${function_name_description}.test"
+            --suffix="-bashlink-doctest-declared-names-before-${module_name}${function_name_description}.test"
     )"
     # shellcheck disable=SC2064
     trap "rm --force $declared_names_before_run_file_path; exit" EXIT
     local -r declared_names_after_run_file_path="$(
         mktemp \
-            --suffix "-bashlink-doctest-declared-names-before-${module_name}${function_name_description}.test")"
+            --suffix="-bashlink-doctest-declared-names-before-${module_name}${function_name_description}.test")"
     # shellcheck disable=SC2064
     trap "rm --force $declared_names_after_run_file_path; exit" EXIT
     local function_name_description=''
@@ -450,12 +450,12 @@ $($BL_DOCTEST_NOUNSET && echo 'set -o nounset')
 # keyword has an effect inside.
 ${alternate_function_scope_name_prefix}_doctest_environment() {
     ${global_scope_name_prefix}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH="\$(
-        mktemp --suffix "-bashlink-doctest-${function_scope_name_prefix}${function_name_description}.paths"
+        mktemp --suffix="-bashlink-doctest-${function_scope_name_prefix}${function_name_description}.paths"
     )"
     ${alternate_function_scope_name_prefix}_bl_doctest_mktemp() {
         local result
         if [ "\$#" = 0 ]; then
-            result="\$(mktemp --suffix -bashlink-doctest-${function_scope_name_prefix}${function_name_description})"
+            result="\$(mktemp --suffix=-bashlink-doctest-${function_scope_name_prefix}${function_name_description})"
         else
             result="\$(mktemp "\$@")"
         fi
