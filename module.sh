@@ -134,14 +134,19 @@ fi
 declare -g BL_MODULE_PREVENT_NAMESPACE_CHECK=true
 declare -g BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK=true
 declare -ag BL_MODULE_FUNCTION_SCOPE_REWRITES=(
-    '^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/'
+    '^bashlink(([._][a-zA-Z_-]+)+)$/bl\1/'
     '[^a-zA-Z0-9._]/./g'
 )
 declare -ag BL_MODULE_GLOBAL_SCOPE_REWRITES=(
-    '^BASHLINK(([._]mockup)?[._][a-zA-Z_-]+)$/BL\1/'
+    '^BASHLINK(([._][a-zA-Z_-]+)+)$/BL\1/'
     '[^a-zA-Z0-9_]/_/g'
 )
-declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-resolve-cache-${BL_MODULE_INSTANCE_ID}-${USER:-unknown-user}"
+# NOTE: The checksum invalidates cached resolutions whenever the resolving
+# logic changes (e.g. after an update). Modification times are not reliable
+# since npm normalizes them.
+declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-resolve-cache-${BL_MODULE_INSTANCE_ID}-$(
+    cksum <"${BASH_SOURCE[0]}" | cut --delimiter ' ' --fields 1
+)-${USER:-unknown-user}"
 # endregion
 # region functions
 alias bl.module.check_name=bl_module_check_name
@@ -720,6 +725,17 @@ bl_module_resolve() {
         >>> bl.module.resolve bashlink.module
         +bl.doctest.contains
         /bashlink/module.sh
+
+        >>> bl.module.resolve bashlink.mockup.a true
+        +bl.doctest.contains
+        /bashlink/mockup/a.sh/bashlink.mockup.a
+
+        Relative references resolve to the same scope:
+
+        >>> bl.module.resolve a true \
+        >>>     "$(dirname "$(bl.module.resolve bashlink.mockup.a)")/b.sh"
+        +bl.doctest.contains
+        /bashlink/mockup/a.sh/bashlink.mockup.a
     '
     # NOTE: We have to declare variable first to avoid shadowing the return
     # code coming from "grep".
@@ -880,7 +896,15 @@ bl_module_resolve() {
     local result
     if [ "$2" = true ]; then
         local scope_name="$(basename "$1")"
-        if \
+        local -r library_path="$(dirname "$(
+            bl.path.convert_to_absolute "${BASH_SOURCE[0]}"
+        )")"
+        if [[ "$file_path" == "$library_path"/* ]]; then
+            # Derive scope from location to be independent of the reference
+            # (e.g. "c" referenced from "mockup/b.sh" is "bashlink.mockup.c").
+            scope_name="${file_path#"$library_path"/}"
+            scope_name="bashlink.${scope_name//\//.}"
+        elif \
             [[ "$file_path" == "$current_path"* ]] && \
             [[ "$(basename "$1")" != bashlink.* ]] && \
             [[ "$(basename "$1")" != bashlink ]]
@@ -933,6 +957,12 @@ bl_module_rewrite_function_scope_name() {
         >>> bl.module.rewrite_function_scope_name bashlink.module
         bl.module
 
+        >>> bl.module.rewrite_function_scope_name bashlink.prompt.main
+        bl.prompt.main
+
+        >>> bl.module.rewrite_function_scope_name bashlink
+        bashlink
+
         >>> bl.module.rewrite_function_scope_name a-b+a
         a.b.a
     '
@@ -953,6 +983,9 @@ bl_module_rewrite_global_scope_name() {
 
         >>> bl.module.rewrite_global_scope_name BASHLINK_MODULE
         BL_MODULE
+
+        >>> bl.module.rewrite_global_scope_name BASHLINK.PROMPT.MAIN
+        BL_PROMPT_MAIN
 
         >>> bl.module.rewrite_global_scope_name a-b+a
         a_b_a

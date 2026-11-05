@@ -15,7 +15,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/../module.sh"
 bl.module.import bashlink.string
 bl.module.import bashlink.tools
 
-declare -gr BL_MAIN__DOCUMENTATION__='
+declare -gr BL_PROMPT_MAIN__DOCUMENTATION__='
     This module produces a command prompt to be set as output for "$PS0":
 
     set_prompt() {
