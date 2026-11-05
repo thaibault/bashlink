@@ -79,7 +79,14 @@ declare -gr BL_DOCTEST__DOCUMENTATION__='
     (e.g. "bl_path_bl_doctest_mktemp") instead of "mktemp" to get temporary
     files and directories which are removed after each test.
 
+    While tests are running "BL_DOCTEST_RUNNING" is exported as "true". This
+    way modules can skip side effects when they are sourced for testing (e.g.
+    `[ "${BL_DOCTEST_RUNNING:-false}" = true ] || initialize`).
+
     +bl.documentation.exclude_print
+    >>> echo "$BL_DOCTEST_RUNNING"
+    true
+
     >>> echo bar
     bar
     >>> echo $(( 1 + 2 ))
@@ -164,6 +171,9 @@ declare -g BL_DOCTEST_DEBUG=false
 declare -g BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST=''
 declare -gr BL_DOCTEST_NAME_INDICATOR=__documentation__
 declare -g BL_DOCTEST_NOUNSET=false
+# NOTE: Keep an inherited value since test environments import this module
+# after the module under test has been sourced with this variable exported.
+declare -g BL_DOCTEST_RUNNING="${BL_DOCTEST_RUNNING:-false}"
 declare -g BL_DOCTEST_SYNCHRONIZED=false
 declare -g BL_DOCTEST_IS_SYNCHRONIZED=true
 declare -g BL_DOCTEST_SUPRESS_UNDOCUMENTED=false
@@ -868,7 +878,16 @@ bl_doctest_test() {
         +bl.doctest.contains
         Given function "bl_doctest_not_existing" is not documented.
         1
+
+        Unprefixed functions (e.g. of non bashlink modules) can be selected
+        as well.
+
+        >>> bl.doctest.test bashlink.mockup.c foo123 &>/dev/null 3>&1 4>&1
+        >>> echo $?
+        0
     '
+    # Indicate running tests to modules sourced here and in test environments.
+    export BL_DOCTEST_RUNNING=true
     BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST="$1"
     local -r given_function_names_to_test="$2"
     local result
@@ -979,10 +998,17 @@ bl_doctest_test() {
             if [[ "$function_names_to_test" != '' ]]; then
                 function_names_to_test+=' '
             fi
-            if [ "${name/$function_scope_name_prefix/}" = "$name" ]; then
-                function_names_to_test+="${function_scope_name_prefix}_${name}"
-            else
+            if [ "${name/$function_scope_name_prefix/}" != "$name" ]; then
                 function_names_to_test+="$name"
+            elif \
+                ! declare -F "${function_scope_name_prefix}_${name}" \
+                    &>/dev/null && \
+                declare -F "$name" &>/dev/null
+            then
+                # NOTE: Supports unprefixed functions of non bashlink modules.
+                function_names_to_test+="$name"
+            else
+                function_names_to_test+="${function_scope_name_prefix}_${name}"
             fi
         done
         if [ "$function_names_to_test" = '' ]; then

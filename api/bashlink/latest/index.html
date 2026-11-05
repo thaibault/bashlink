@@ -468,64 +468,6 @@ Check if unicode glyphicons are available.
 ```bash
 >>> bl.cli.glyph_available_in_font
 ```
-## Module bashlink.cracking
-The cracking module implements utility functions to make a system
-unusable or trigger unexpected behavior.
-### Function bl_cracking_endless_loop
-Starts an endless loop.
-
-```bash
-bl.cracking.endless_loop
-```
-### Function bl_cracking_fake_sudo_password_attempt
-Shows a fake sudo password attempt.
-
-```bash
-bl.cracking.fake_sudo_password_attempt
-```
-### Function bl_cracking_fork_bomb
-Implementation for fork bomb. Note short version:
-
-```bash
-:() { : | : & }; :
-```
-
-```bash
-bl.cracking.fork_bomb
-```
-### Function bl_cracking_grab_sudo_password
-Shows a fake sudo password attempt and send to password to server.
-
-```bash
-bl.cracking.grab_sudo_password
-```
-### Function bl_cracking_make_simple_ddos_attack
-Makes a ddos attack to given host on given port. First argument: Number
-of requests. Second argument: Port
-
-```bash
-bl.cracking.make_simple_ddos_attack 100 80`
-```
-### Function bl_cracking_make_system_unattainable
-Uses a stress system algorithm in its own process to avoid solving the
-problem by process tree killing.
-
-```bash
-bl.cracking.make_system_unattainable
-```
-### Function bl_cracking_stress_system
-Stress system with given number of endless loops.
-
-```bash
-bl.cracking.stress_system 10`
-```
-### Function bl_cracking_stress_system_with_fork_bomb
-Runs a forkbomb in an endless loop. This is useful if operating system
-kills the whole process tree.
-
-```bash
-bl.cracking.stress_system_with_fork_bomb
-```
 ## Module bashlink.dependency
 The dependency module implements utility functions to check current
 environment again needed assumptions.
@@ -692,6 +634,14 @@ throughout all tests. Use "<function_scope_name>_bl_doctest_mktemp"
 (e.g. "bl_path_bl_doctest_mktemp") instead of "mktemp" to get temporary
 files and directories which are removed after each test.
 
+While tests are running "BL_DOCTEST_RUNNING" is exported as "true". This
+way modules can skip side effects when they are sourced for testing (e.g.
+`[ "${BL_DOCTEST_RUNNING:-false}" = true ] || initialize`).
+
+```bash
+>>> echo "$BL_DOCTEST_RUNNING"
+true
+```
 ```bash
 >>> echo bar
 bar
@@ -1063,6 +1013,14 @@ Runs tests from given package, module or module function.
 +bl.doctest.contains
 Given function "bl_doctest_not_existing" is not documented.
 1
+```
+Unprefixed functions (e.g. of non bashlink modules) can be selected
+as well.
+
+```bash
+>>> bl.doctest.test bashlink.mockup.c foo123 &>/dev/null 3>&1 4>&1
+>>> echo $?
+0
 ```
 ## Module bashlink.documentation
 The documentation module implements function and module level documentation
@@ -2102,6 +2060,18 @@ A scope has to be followed by a delimiter:
 >>> bl.module.check_name "bl_c_enable_color" "bl.c"; echo $?
 0
 ```
+Names starting with an allowed scope name prefix or its uppercase
+variant are accepted as well:
+
+```bash
+>>> local BL_MODULE_ALLOWED_SCOPE_NAME_PREFIXES=(abc)
+>>> bl.module.check_name "abc_foo" "bl_module"; echo $?
+>>> bl.module.check_name "ABC_FOO" "bl_module"; echo $?
+>>> bl.module.check_name "xyz_foo" "bl_module"; echo $?
+0
+0
+1
+```
 ### Function bl_module_determine_aliases
 Returns all defined aliases in the current scope.
 
@@ -2150,6 +2120,17 @@ Simply downloads missing modules.
 >>> bl.module.download --silent https://domain.tld/path/to/file.ext; echo $?
 6
 ```
+### Function bl_module_get_nested_declared_names
+Prints names introduced by imports nested deeper than current import
+level (see "BL_MODULE_NESTED_DECLARED_NAMES").
+
+```bash
+>>> local BL_MODULE_IMPORT_LEVEL=1
+>>> local BL_MODULE_NESTED_DECLARED_NAMES=$'1 a\n2 b\n3 c\n'
+>>> bl.module.get_nested_declared_names
+b
+c
+```
 ### Function bl_module_import
 Main function to do all checks and module reference resolves to source
 given module.
@@ -2197,6 +2178,16 @@ imported module b
 imported module c
 introduces a global unprefixed name: "foo123". Maybe it should be
 foo123
+```
+Functions of nested imports are not attributed to the importing
+module, even if they are imported without namespace check.
+
+```bash
+>>> (
+>>>     bl.module.import bashlink.mockup.d
+>>>     echo $BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE
+>>> )
+bl_mockup_d_after bl_mockup_d_before
 ```
 ### Function bl_module_import_raw
 Imports given module into current scope.
@@ -2650,7 +2641,7 @@ local prompt
 prompt="$("/PATH/TO/BASHLINK/prompt/timeout.sh" "$last_exit_code")"
 
 local timeout_result=$?
-if (( timeout_result = 124 )); then
+if (( timeout_result == 124 )); then
 prompt="$(
 "/PATH/TO/BASHLINK/prompt/main.sh" --simple "$last_exit_code"
 )"
@@ -2659,6 +2650,9 @@ fi
 export PS1="$prompt"
 }
 export PROMPT_COMMAND=set_prompt
+
+The timeout can be configured by exporting
+"BL_GLOBALS_COMMAND_PROMPT_TIMEOUT_IN_SECONDS" (defaults to "1").
 ## Module bashlink.string
 This module implements utility functions concerning strings.
 ### Function bl_string_generate_random
