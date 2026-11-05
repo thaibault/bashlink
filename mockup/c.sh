@@ -16,6 +16,14 @@ bl.module.import bashlink.logging
 bl.module.import b
 # endregion
 foo123() {
+    local -r __documentation__='
+        Unprefixed function to check selecting unprefixed functions to test.
+
+        >>> foo123
+        +bl.doctest.multiline_ellipsis
+        ...
+        c
+    '
     bl.logging.plain c
 }
 bl.logging.plain imported module c
