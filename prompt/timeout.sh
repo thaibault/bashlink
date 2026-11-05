@@ -22,7 +22,7 @@ declare -gr BL_PROMPT_TIMEOUT__DOCUMENTATION__='
         prompt="$("/PATH/TO/BASHLINK/prompt/timeout.sh" "$last_exit_code")"
 
         local timeout_result=$?
-        if (( timeout_result = 124 )); then
+        if (( timeout_result == 124 )); then
             prompt="$(
                 "/PATH/TO/BASHLINK/prompt/main.sh" --simple "$last_exit_code"
             )"
@@ -31,14 +31,20 @@ declare -gr BL_PROMPT_TIMEOUT__DOCUMENTATION__='
         export PS1="$prompt"
     }
     export PROMPT_COMMAND=set_prompt
+
+    The timeout can be configured by exporting
+    "BL_GLOBALS_COMMAND_PROMPT_TIMEOUT_IN_SECONDS" (defaults to "1").
 '
 declare -gr BL_PROMPT_TIMEOUT_CURRENT_PATH="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/"
-declare -gir BL_PROMPT_TIMEOUT_IN_SECONDS=1
+# NOTE: Source globals directly instead of importing via "module.sh" to keep
+# prompt generation fast.
+# shellcheck source=SCRIPTDIR/../globals.sh
+source "${BL_PROMPT_TIMEOUT_CURRENT_PATH}../globals.sh"
 
 if [ "$BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST" = '' ]; then
     timeout \
-        --kill-after="$((BL_PROMPT_TIMEOUT_IN_SECONDS * 3))" \
-        "$BL_PROMPT_TIMEOUT_IN_SECONDS" \
+        --kill-after="$((BL_GLOBALS_COMMAND_PROMPT_TIMEOUT_IN_SECONDS * 3))" \
+        "$BL_GLOBALS_COMMAND_PROMPT_TIMEOUT_IN_SECONDS" \
         "${BL_PROMPT_TIMEOUT_CURRENT_PATH}main.sh" \
        "$@"
 fi
