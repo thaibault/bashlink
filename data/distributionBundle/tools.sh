@@ -109,7 +109,7 @@ bl_tools_make_openssl_pem_file() {
     bl.logging.info Creating a pem file.
     cat "${host}.key" "${host}.crt" 1>"${host}.pem"
 }
-alias bl.tools.make_single_executbale=bl_tools_make_single_executable
+alias bl.tools.make_single_executable=bl_tools_make_single_executable
 bl_tools_make_single_executable() {
     local -r __documentation__='
         Creates a bsd and virtually posix shell compatible single executable
@@ -118,6 +118,19 @@ bl_tools_make_single_executable() {
         ```bash
             bl.tools.make_single_executable /applicationDirectory startFile
         ```
+
+        >>> local directory_path="$(bl_tools_bl_doctest_mktemp --directory)"
+        >>> mkdir "${directory_path}/application"
+        >>> echo "echo \"started with \$*\"; exit 3" \
+        >>>     >"${directory_path}/application/index"
+        >>> chmod +x "${directory_path}/application/index"
+        >>> cd "$directory_path"
+        >>> bl.tools.make_single_executable \
+        >>>     "${directory_path}/application" run.sh 1>/dev/null
+        >>> rm --recursive "${directory_path}/application"
+        >>> ./run.sh a b; echo $?
+        started with a b
+        3
     '
     if [[ ! "$1" ]]; then
         bl.logging.plain \
@@ -132,23 +145,28 @@ bl_tools_make_single_executable() {
     if [[ $3 ]]; then
         relative_start_file_path="$3"
     fi
-    local -ar directory_name="$(basename "$(readlink --canonicalize "$1")")"
-    # NOTE: short option is necessary for mac compatibility.
+    local -r directory_path="$(readlink --canonicalize "$1")"
+    local -r directory_name="$(basename "$directory_path")"
+    # NOTE: short options are necessary for mac compatibility. The last line
+    # marks where the appended archive starts.
     cat << EOF 1>"$file_name"
 #!/usr/bin/env bash
 executable_directory_path="\$(mktemp -d 2>/dev/null || mktemp -d -t '' 2>/dev/null)" && \\
-data_offset="\$(("\$(command grep --text --line-number '^exit \\\$?$' "\$0" | \\
+data_offset="\$(("\$(command grep --text --line-number -m 1 '^exit \\\$result$' "\$0" | \\
     cut -d ':' -f 1)" + 1))" && \\
-tail -n +\$dataOffset "\$0" | tar -xzf - -C "\$executableDirectory" \\
+tail -n +\$data_offset "\$0" | tar -xzf - -C "\$executable_directory_path" \\
     1>/dev/null && \\
 "\${executable_directory_path}/${directory_name}/${relative_start_file_path}" "\$@"
-rm --recursive "\$executable_directory_path"
-exit \$?
+result=\$?
+rm -r "\$executable_directory_path"
+exit \$result
 EOF
     local -r temporary_archiv_file_path="$(
         mktemp --suffix=-bashlink-tools-single-executable-archiv.tar.gz)"
     tar --create --verbose --gzip --posix --file \
-        "$temporary_archiv_file_path" "$1"
+        "$temporary_archiv_file_path" \
+        --directory "$(dirname "$directory_path")" \
+        "$directory_name"
     cat "$temporary_archiv_file_path" 1>>"$file_name"
     rm "$temporary_archiv_file_path"
     chmod +x "$file_name"
@@ -173,6 +191,22 @@ bl_tools_run_with_appended_shebang() {
                 argument1 \
                 argument2
         ```
+
+        >>> local file_path="$(bl_tools_bl_doctest_mktemp)"
+        >>> echo "#!/usr/bin/env bash" >"$file_path"
+        >>> echo "echo \"\$#: \$2\"; exit 4" >>"$file_path"
+        >>> bl.tools.run_with_appended_shebang -- "$file_path" a "b c"; echo $?
+        2: b c
+        4
+
+        Arguments before "--" are appended to the shebang command:
+
+        >>> local file_path="$(bl_tools_bl_doctest_mktemp)"
+        >>> echo "#!/usr/bin/env cat" >"$file_path"
+        >>> echo content >>"$file_path"
+        >>> bl.tools.run_with_appended_shebang -e -- "$file_path"
+        #!/usr/bin/env cat$
+        content$
     '
     local shebang_arguments=''
     local arguments=''

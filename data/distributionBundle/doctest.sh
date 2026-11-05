@@ -72,9 +72,12 @@ declare -gr BL_DOCTEST__DOCUMENTATION__='
     variable name should be "<module_name>__DOCUMENTATION__" (e.g.
     "BL_ARGUMENTS__DOCUMENTATION__" for the example above). NOTE: The
     "docstring" needs to be defined with single quotes. Code contained in a
-    module level variable named "<module_name>__BL_DOCTEST_SETUP__" will be run
-    once before all the tests of a module are run. This is useful for defining
-    mockup functions/data that can be used throughout all tests.
+    module level variable named "<module_name>__DOCTEST_SETUP__" (e.g.
+    "BL_FILESYSTEM__DOCTEST_SETUP__") will be run before each test of a module.
+    This is useful for defining mockup functions/data that can be used
+    throughout all tests. Use "<function_scope_name>_bl_doctest_mktemp"
+    (e.g. "bl_path_bl_doctest_mktemp") instead of "mktemp" to get temporary
+    files and directories which are removed after each test.
 
     +bl.documentation.exclude_print
     >>> echo bar
@@ -374,6 +377,25 @@ bl_doctest_compare_result() {
         fi
     done 3<<< "$buffer" 4<<< "$got"
 }
+alias bl.doctest.contains_tests=bl_doctest_contains_tests
+bl_doctest_contains_tests() {
+    local -r __documentation__='
+        Checks if given docstring contains at least one test.
+
+        >>> bl.doctest.contains_tests "
+        >>>     Some text.
+        >>>
+        >>>     >>> echo test
+        >>>     test
+        >>> "; echo $?
+        0
+
+        >>> bl.doctest.contains_tests "Only text mentioning >>> inline."; \
+        >>>     echo $?
+        1
+    '
+    [[ $'\n'"$1" =~ $'\n'[[:space:]]*'>>>' ]]
+}
 alias bl.doctest.eval=bl_doctest_eval
 bl_doctest_eval() {
     local -r __documentation__='
@@ -460,7 +482,7 @@ ${alternate_function_scope_name_prefix}_doctest_environment() {
             result="\$(mktemp "\$@")"
         fi
         echo "\$result" \
-          >"\$${global_scope_name_prefix}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
+          >>"\$${global_scope_name_prefix}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
         echo "\$result"
     }
     # We run in a subshell to ensure that out cleanup routine runs even after
@@ -868,9 +890,13 @@ bl_doctest_test() {
     )"
     local -i success=0
     local -i total=0
+    local -i untested=0
+    # NOTE: "jobs -p" omits already finished jobs, so we have to remember the
+    # process ids to not miss any (failing) result.
+    local -a subprocess_ids=()
     if [ -d "$file_path" ]; then
         shopt -s nullglob
-        local file_paths=(*)
+        local file_paths=("${file_path}"/*)
         if (( ${#file_paths[@]} > 1 )); then
             BL_DOCTEST_IS_SYNCHRONIZED=false
         fi
@@ -915,12 +941,13 @@ bl_doctest_test() {
                                     --regexp-extended \
                                     "s:${function_scope_name_prefix}/([^/]+):${function_scope_name_prefix}.\1:"
                         )")" &
+                    subprocess_ids+=("$!")
                 fi
             fi
         done
         if ! $BL_DOCTEST_SYNCHRONIZED; then
             local -i subprocess_id
-            for subprocess_id in $(jobs -p); do
+            for subprocess_id in "${subprocess_ids[@]}"; do
                 (( total++ ))
                 wait "$subprocess_id" && \
                     (( success++ ))
@@ -943,7 +970,7 @@ bl_doctest_test() {
         declare -g BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK="$module_complain_about_dirty_scope_before_namespace_check_backup"
 
         function_scope_name_prefix="$(
-            bl.module.rewrite_function_scope_name "${module_name^^}" | \
+            bl.module.rewrite_function_scope_name "$module_name" | \
                 command sed --regexp-extended 's:\.:_:g'
         )"
         local name
@@ -983,6 +1010,8 @@ bl_doctest_test() {
             local docstring="${!module_documentation_variable_name}"
             if [ "$docstring" = '' ]; then
                 bl.logging.warn "Module \"${module_name}\" is not documented."
+            elif ! bl.doctest.contains_tests "$docstring"; then
+                (( untested++ ))
             else
                 (( total++ ))
                 bl.doctest.run_test "$docstring" "$module_name" && \
@@ -994,7 +1023,12 @@ bl_doctest_test() {
         for name in $function_names_to_test; do
             # shellcheck disable=SC2089
             local docstring="$(bl.doctest.get_function_docstring "$name")"
-            if [[ "$docstring" != '' ]]; then
+            if \
+                [[ "$docstring" != '' ]] && \
+                ! bl.doctest.contains_tests "$docstring"
+            then
+                (( untested++ ))
+            elif [[ "$docstring" != '' ]]; then
                 (( total++ ))
                 bl.doctest.run_test "$docstring" "$module_name" "$name" && \
                     (( success++ ))
@@ -1005,8 +1039,12 @@ bl_doctest_test() {
                 bl.logging.warn "Function \"${name}\" is not documented."
             fi
         done
-        bl.logging.info "$module_name - passed $success/$total tests in" \
-            "$(bl.time.get_elapsed) ms from \"${module_name}\"."
+        local untested_description=''
+        (( untested > 0 )) && \
+            untested_description=" (${untested} documented without tests)"
+        bl.logging.info \
+            "$module_name - passed $success/$total tests${untested_description}" \
+            "in $(bl.time.get_elapsed) ms from \"${module_name}\"."
         (( success != total )) && \
             exit 1
         exit 0
@@ -1060,6 +1098,9 @@ bl_doctest_main() {
     local item_names=''
     local -i success=0
     local -i total=0
+    # NOTE: "jobs -p" omits already finished jobs, so we have to remember the
+    # process ids to not miss any (failing) result.
+    local -a subprocess_ids=()
     if [ "$#" = 0 ]; then
         item_names=bashlink
         if $BL_DOCTEST_SYNCHRONIZED; then
@@ -1068,6 +1109,7 @@ bl_doctest_main() {
                 (( success++ ))
         else
             bl.doctest.test bashlink &
+            subprocess_ids+=("$!")
         fi
     else
         # Reset global environment.
@@ -1095,6 +1137,7 @@ bl_doctest_main() {
                     (( success++ ))
             else
                 bl.doctest.test "$module_name" "$function_name" &
+                subprocess_ids+=("$!")
             fi
             item_names+="$name"
         done
@@ -1102,7 +1145,7 @@ bl_doctest_main() {
 
     if ! $BL_DOCTEST_SYNCHRONIZED; then
         local -i subprocess_id
-        for subprocess_id in $(jobs -p); do
+        for subprocess_id in "${subprocess_ids[@]}"; do
             (( total++ ))
             wait "$subprocess_id" && \
                 (( success++ ))

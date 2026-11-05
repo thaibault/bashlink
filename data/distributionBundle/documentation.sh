@@ -109,7 +109,7 @@ bl_documentation_generate() {
             command sed --regexp-extended 's:\.:_:g'
     )"
     local -r globals_scope_name="$(
-        bl.module.rewrite_global_scope_name "$module_name" | \
+        bl.module.rewrite_global_scope_name "${module_name^^}" | \
             command sed --regexp-extended 's:\.:_:g'
     )"
     if [ -d "$file_path" ]; then
@@ -151,7 +151,7 @@ bl_documentation_generate() {
         bl.module.import "$module_reference" 1>&2
         # NOTE: Get all external module prefix and unprefixed function names.
         # shellcheck disable=SC2154
-        local declared_function_names="$module_declared_function_names_after_source $(
+        local declared_function_names="$BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE $(
             ! declare -F | cut -d' ' -f3 | command grep -e "^$function_scope_name"
         )"
         # NOTE: Removes duplicates.
@@ -160,7 +160,7 @@ bl_documentation_generate() {
         ))"
         # Module level documentation
         # shellcheck disable=SC2154
-        local -r module_documentation_variable_name="${globals_scope_name}${BL_DOCTEST_NAME_INDICATOR}"
+        local -r module_documentation_variable_name="${globals_scope_name}${BL_DOCTEST_NAME_INDICATOR^^}"
         local docstring="${!module_documentation_variable_name}"
         echo "## Module $module_name"
         if [ "$docstring" = '' ]; then

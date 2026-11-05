@@ -40,7 +40,7 @@ bl_pacman_show_config_backups() {
     # shellcheck disable=SC2164
     popd 1>/dev/null
 }
-alias bl.pacman.show_not_maintained_by_pacman_system_files=bl_tools_show_not_maintained_by_pacman_system_files
+alias bl.pacman.show_not_maintained_by_pacman_system_files=bl_pacman_show_not_maintained_by_pacman_system_files
 bl_pacman_show_not_maintained_by_pacman_system_files() {
     local -r __documentation__='
         Shows all files which are not maintained by pacman on currently running

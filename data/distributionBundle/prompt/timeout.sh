@@ -9,9 +9,8 @@
 # This library written by Torben Sickert stands under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-CURRENT_PATH="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/"
-
-declare -gr BL_TIMEOUT__DOCUMENTATION__='
+# shellcheck disable=SC2016,SC2034,SC2155
+declare -gr BL_PROMPT_TIMEOUT__DOCUMENTATION__='
     This module produces a command prompt to be set as output for "$PS0".
 
     set_prompt() {
@@ -33,13 +32,14 @@ declare -gr BL_TIMEOUT__DOCUMENTATION__='
     }
     export PROMPT_COMMAND=set_prompt
 '
-declare -i TIMEOUT_IN_SECONDS=1
+declare -gr BL_PROMPT_TIMEOUT_CURRENT_PATH="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/"
+declare -gir BL_PROMPT_TIMEOUT_IN_SECONDS=1
 
 if [ "$BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST" = '' ]; then
     timeout \
-        --kill-after="$((TIMEOUT_IN_SECONDS * 3))" \
-        "$TIMEOUT_IN_SECONDS" \
-        "${CURRENT_PATH}main.sh" \
+        --kill-after="$((BL_PROMPT_TIMEOUT_IN_SECONDS * 3))" \
+        "$BL_PROMPT_TIMEOUT_IN_SECONDS" \
+        "${BL_PROMPT_TIMEOUT_CURRENT_PATH}main.sh" \
        "$@"
 fi
 # region vim modline
