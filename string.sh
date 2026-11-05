@@ -80,6 +80,17 @@ bl_string_images_to_css_classes() {
         ```bash
             bl.string.images_to_css_classes
         ```
+
+        >>> local directory_path="$(bl_string_bl_doctest_mktemp -d)"
+        >>> printf "\x89PNG\r\n\x1a\n" >"${directory_path}/logo.png"
+        >>> bl.string.images_to_css_classes "$directory_path"
+        +bl.doctest.contains
+        -logo-png{background-image: url("data:
+
+        >>> local directory_path="$(bl_string_bl_doctest_mktemp -d)"
+        >>> touch "${directory_path}/logo.png"
+        >>> bl.string.images_to_css_classes "$directory_path" ".*\.png" \
+        >>>     "$directory_path"
     '
     local source='.'
     if [ -d "$1" ]; then
@@ -232,12 +243,24 @@ bl_string_merge_text_files() {
                 b.txt \
                 c.txt \
                 --append "\n# area\n" \
-                --between "\n# end\n\n# area %s\n"
+                --between "\n# end\n\n# area %s\n" \
                 --prepend "# area %s\n"
         ```
+
+        >>> local directory_path="$(bl_string_bl_doctest_mktemp -d)"
+        >>> echo a >"${directory_path}/a.txt"
+        >>> echo b >"${directory_path}/b.txt"
+        >>> cd "$directory_path"
+        >>> bl.string.merge_text_files a.txt b.txt --prepend "[%s]\n" \
+        >>>     --between "[%s]\n" --append "[end]\n"
+        [a.txt]
+        a
+        [b.txt]
+        b
+        [end]
     '
     local append='\n// endre''gion'
-    local file_paths=''
+    local -a file_paths=()
     local prepend='// re''gion %s\n\n'
     local between='\n// endre''gion\n\n// re''gion %s\n\n'
     while true; do
@@ -260,21 +283,13 @@ bl_string_merge_text_files() {
             '')
                 break ;;
             *)
-                if [ "$file_paths" = '' ]; then
-                    file_paths+=" $1"
-                else
-                    file_paths="$1"
-                fi
+                file_paths+=("$1")
                 shift
                 ;;
         esac
     done
     # shellcheck disable=SC2059
-    printf "$prepend" "$(
-        echo "$file_paths" | \
-            command grep \
-                --extended-regexp '^[^ ]+' \
-                --only-matching)"
+    printf "$prepend" "${file_paths[0]}"
     local -i index=0
     local file_path
     for file_path in "${file_paths[@]}"; do
@@ -499,6 +514,14 @@ bl_string_validate_regular_expression_replacement() {
         ```bash
             sed "s/myInputString/$(bl.string.validate_regular_expression_replacement "\hans/peter&klaus")/g"
         ```
+
+        >>> bl.string.validate_regular_expression_replacement "a/b&c"
+        a\/b\&c
+
+        >>> echo foo | sed "s/foo/$(
+        >>>     bl.string.validate_regular_expression_replacement "a/b&c\\d"
+        >>> )/"
+        a/b&c\d
     '
     echo "$1" | \
         command sed \

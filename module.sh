@@ -152,8 +152,13 @@ bl_module_check_name() {
         >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
         0
 
-        >>> bl.module.check_name "BL_MODULE_CHECK_NAME" "bl_module"; echo $?
+        >>> bl.module.check_name "BL_MODULE_CHECK_NAME" "BL_MODULE"; echo $?
         0
+
+        Scope names are case sensitive:
+
+        >>> bl.module.check_name "BL_MODULE_CHECK_NAME" "bl_module"; echo $?
+        1
 
         >>> bl.module.check_name "bl_module_check_name" "bl_other_module"; echo $?
         1
@@ -163,16 +168,27 @@ bl_module_check_name() {
 
         >>> bl.module.check_name "BL_OTHER_MODULE_NOT_EXISTING" "bl_module"; echo $?
         1
+
+        A scope has to be followed by a delimiter:
+
+        >>> bl.module.check_name "bl_modules" "bl_module"; echo $?
+        1
+
+        >>> bl.module.check_name "bl_cli_enable_color" "bl.c"; echo $?
+        1
+
+        >>> bl.module.check_name "bl_c_enable_color" "bl.c"; echo $?
+        0
     '
     local -r name="$1"
     local -r resolved_scope_name="$2"
-    local -r alternate_resolved_scope_name="$(
-        echo "$resolved_scope_name" | \
-            command sed --regexp-extended 's/\./_/g'
-    )"
+    # NOTE: Avoid sub shells here since this function is called for each
+    # declared name during namespace checks.
+    local -r alternate_resolved_scope_name="${resolved_scope_name//./_}"
+    # NOTE: Quoted parts are matched literally.
     if ! [[ \
-        "$name" =~ ^${resolved_scope_name}([_a-zA-Z]+|$) || \
-        "$name" =~ ^${alternate_resolved_scope_name//\./\\./}([_a-zA-Z]+|$) \
+        "$name" =~ ^"${resolved_scope_name}"([._]|$) || \
+        "$name" =~ ^"${alternate_resolved_scope_name}"([._]|$) \
     ]]; then
         local excluded=false
         if [[ -z "$3" ]]; then
@@ -418,8 +434,9 @@ bl_module_import_with_namespace_check() {
     local -r function_scope_name_prefix="$(
         bl.module.rewrite_function_scope_name "$scope_name"
     )"
+    local -r alternate_function_scope_name_prefix="${function_scope_name_prefix//./_}"
     local -r variable_scope_name_prefix="$(
-        bl.module.rewrite_function_scope_name "$scope_name"
+        bl.module.rewrite_global_scope_name "${scope_name^^}"
     )"
 
     if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
@@ -457,11 +474,11 @@ bl_module_import_with_namespace_check() {
     if $BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK; then
         while read -r name; do
             if \
-                bl.module.check_name "$name" "$function_scope_name_prefix" true && \
+                bl.module.check_name "$name" "$function_scope_name_prefix" true || \
                 bl.module.check_name "$name" "$variable_scope_name_prefix" true
             then
                 bl.module.log warn \
-                    "Namespace \"${resolved_scope_name}\" in" \
+                    "Namespace \"${alternate_function_scope_name_prefix}\" in" \
                     "\"${scope_name}\" is not clean: Name \"${name}\" is" \
                     "already defined." \
                     1>&2
@@ -483,17 +500,17 @@ bl_module_import_with_namespace_check() {
                     command sed 's/^> //'
     )"
     for name in $new_declared_names; do
-        if ! bl.module.check_name "$name" "$resolved_scope_name"; then
-            local alternate_resolved_scope_name="$(
-                echo "$resolved_scope_name" | \
-                    command sed --regexp-extended 's/\./_/g'
-            )"
+        if \
+            ! bl.module.check_name "$name" "$function_scope_name_prefix" && \
+            ! bl.module.check_name "$name" "$variable_scope_name_prefix"
+        then
             bl.module.log \
                 warn \
-                "Module \"${scope_name}\" introduces a global unprefixed " \
+                "Module \"${scope_name}\" introduces a global unprefixed" \
                 "name: \"$name\". Maybe it should be prefixed with" \
-                "\"${resolved_scope_name}\" or" \
-                "\"${alternate_resolved_scope_name}\"." \
+                "\"${function_scope_name_prefix}\"," \
+                "\"${alternate_function_scope_name_prefix}\" or" \
+                "\"${variable_scope_name_prefix}\"." \
                 1>&2
         fi
     done

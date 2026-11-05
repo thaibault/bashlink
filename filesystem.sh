@@ -25,12 +25,10 @@ declare -gr BL_FILESYSTEM__DOCUMENTATION__='
 declare -gr BL_FILESYSTEM__DEPENDENCIES__=(pv)
 # shellcheck disable=SC1004
 declare -gr BL_FILESYSTEM__DOCTEST_SETUP__='
-    # Runs once before tests are started:
+    # Runs before each test:
     # region import
     bl.module.import bashlink.array
-    bl.module.import bashlink.doctest
     # endregion
-    doc_test_capture_stderr=false
     blkid() {
         if [[ "${@: -1}" != "/dev/sda2" ]]; then
             return 0

@@ -72,9 +72,12 @@ declare -gr BL_DOCTEST__DOCUMENTATION__='
     variable name should be "<module_name>__DOCUMENTATION__" (e.g.
     "BL_ARGUMENTS__DOCUMENTATION__" for the example above). NOTE: The
     "docstring" needs to be defined with single quotes. Code contained in a
-    module level variable named "<module_name>__BL_DOCTEST_SETUP__" will be run
-    once before all the tests of a module are run. This is useful for defining
-    mockup functions/data that can be used throughout all tests.
+    module level variable named "<module_name>__DOCTEST_SETUP__" (e.g.
+    "BL_FILESYSTEM__DOCTEST_SETUP__") will be run before each test of a module.
+    This is useful for defining mockup functions/data that can be used
+    throughout all tests. Use "<function_scope_name>_bl_doctest_mktemp"
+    (e.g. "bl_path_bl_doctest_mktemp") instead of "mktemp" to get temporary
+    files and directories which are removed after each test.
 
     +bl.documentation.exclude_print
     >>> echo bar
@@ -460,7 +463,7 @@ ${alternate_function_scope_name_prefix}_doctest_environment() {
             result="\$(mktemp "\$@")"
         fi
         echo "\$result" \
-          >"\$${global_scope_name_prefix}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
+          >>"\$${global_scope_name_prefix}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
         echo "\$result"
     }
     # We run in a subshell to ensure that out cleanup routine runs even after
@@ -943,7 +946,7 @@ bl_doctest_test() {
         declare -g BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK="$module_complain_about_dirty_scope_before_namespace_check_backup"
 
         function_scope_name_prefix="$(
-            bl.module.rewrite_function_scope_name "${module_name^^}" | \
+            bl.module.rewrite_function_scope_name "$module_name" | \
                 command sed --regexp-extended 's:\.:_:g'
         )"
         local name

@@ -264,6 +264,32 @@ bl_path_pack() {
         ```bash
             bl.path.pack archiv.zip /path/to/directory
         ```
+
+        >>> cd "$(bl_path_bl_doctest_mktemp --directory)"
+        >>> mkdir source
+        >>> echo content >source/file
+        >>> bl.path.pack archive.tgz source 1>/dev/null
+        >>> rm --recursive source
+        >>> bl.path.unpack archive.tgz 1>/dev/null
+        >>> cat source/file
+        content
+
+        >>> cd "$(bl_path_bl_doctest_mktemp --directory)"
+        >>> echo content >file
+        >>> bl.path.pack file.bz2 file 1>/dev/null
+        >>> rm file
+        >>> bl.path.unpack file.bz2 1>/dev/null
+        >>> cat file
+        content
+
+        >>> bl.path.pack archive.unknown "$(pwd)"; echo $?
+        +bl.doctest.contains
+        Cannot pack "archive.unknown"
+        1
+
+        >>> bl.path.pack archive.tgz not_existing; echo $?
+        "not_existing" is not a valid file or directory.
+        1
     '
     local source_path
     for source_path; do true; done
@@ -273,7 +299,7 @@ bl_path_pack() {
             *.tar.bz2|*.tbz2)
                 command='tar --create --dereference --verbose --bzip2 --file "$@"'
                 ;;
-            *.tar.gz|.*tgz)
+            *.tar.gz|*.tgz)
                 command='tar --create --dereference --verbose --gzip --file "$@"'
                 ;;
             *.bz2)
@@ -291,7 +317,7 @@ bl_path_pack() {
                 ;;
             *.zip)
                 if [ -d "$2" ]; then
-                    command='zip --recurse-paths "$@1"'
+                    command='zip --recurse-paths "$@"'
                 else
                     command='zip "$@"'
                 fi
@@ -308,13 +334,12 @@ bl_path_pack() {
             *.vmdk)
                 command="qemu-img convert -O vmdk '$source_path' '$1'"
                 ;;
-            *.qcow|qcow2)
+            *.qcow|*.qcow2)
                 command="qemu-img convert -f raw -O qcow2 '$source_path' '$1'"
                 ;;
             *)
-                local -r result=$?
                 echo "Cannot pack \"$1\" (to \"$source_path\")."
-                return $result
+                return 1
         esac
         if [ "$command" ]; then
             echo Running: \""$command"\".
@@ -323,6 +348,7 @@ bl_path_pack() {
         fi
     else
         echo "\"$source_path\" is not a valid file or directory."
+        return 1
     fi
 }
 alias bl.path.run_in_programs_location=bl_path_run_in_programs_location
@@ -334,10 +360,23 @@ bl_path_run_in_programs_location() {
         ```bash
             bl.path.run_in_programs_location /usr/bin/python3.2
         ```
+
+        >>> local directory_path="$(bl_path_bl_doctest_mktemp --directory)"
+        >>> echo "echo \"\$(basename \"\$(pwd)\"): \$*\"" \
+        >>>     >"${directory_path}/program"
+        >>> chmod +x "${directory_path}/program"
+        >>> bl.path.run_in_programs_location "${directory_path}/program" a b \
+        >>>     | sed "s:$(basename "$directory_path"):directory:"
+        directory: a b
+
+        >>> bl.path.run_in_programs_location not_existing
+        Please insert a path to an executable file.
     '
     if [ "$1" ] && [ -f "$1" ]; then
-        cd "$(dirname "$1")" && \
-        "./$(basename "$1")" "$@"
+        local -r file_path="$1"
+        shift
+        cd "$(dirname "$file_path")" && \
+        "./$(basename "$file_path")" "$@"
         return $?
     fi
     echo Please insert a path to an executable file.
@@ -359,8 +398,8 @@ bl_path_unpack() {
             *.deb)
                 command='ar x "$@"'
                 ;;
-            *.qcow|qcow2)
-                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
+            *.qcow|*.qcow2)
+                command="qemu-img convert -p -O raw '$source_path' '${source_path%.*}'"
                 ;;
             *.rar)
                 command='unrar x "$@"'
@@ -394,7 +433,7 @@ bl_path_unpack() {
                 command="qemu-img convert -f vdi -O raw '$1' '${1%.vdi}' || vboxmanage clonehd '$1' '${1%.vdi}' --format RAW || vbox-img convert --srcfilename '$1' --stdout --srcformat VDI --dstformat RAW '${1%.vdi}'"
                 ;;
             *.vmdk)
-                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vdi}'"
+                command="qemu-img convert -p -O raw '$source_path' '${source_path%.vmdk}'"
                 ;;
             *.war|*.zip)
                 command='unzip -o "$@"'
@@ -410,6 +449,7 @@ bl_path_unpack() {
                 ;;
             *)
                 echo Cannot extract \""$source_path"\".
+                return 1
                 ;;
         esac
         if [ "$command" ]; then
@@ -419,6 +459,7 @@ bl_path_unpack() {
         fi
     else
         echo \""$source_path"\" is not a valid file.
+        return 1
     fi
 }
 # endregion
