@@ -27,7 +27,6 @@ source=(
     array.sh
     changeroot.sh
     cli.sh
-    cracking.sh
     dependency.sh
     dictionary.sh
     display.sh
