@@ -1,10 +1,46 @@
 # Package bashlink
 ## Module bashlink.arguments
-warning:documentation-167:2026-11-05T14:52:17.330Z: No top level documentation for module "bashlink.arguments" referenced by "/__w/bashlink.bashlink/arguments".
+The arguments module provides an argument parser that can be used in
+functions and scripts.
+
+Different functions are provided in order to parse an arguments array.
+
+```bash
+>>> _() {
+>>>     local value
+>>>     bl.arguments.set "$@"
+>>>     bl.arguments.get_parameter param1 value
+>>>     echo "param1: $value"
+>>>     bl.arguments.get_keyword keyword2 value
+>>>     echo "keyword2: $value"
+>>>     bl.arguments.get_flag --flag4 value
+>>>     echo "--flag4: $value"
+>>>     # NOTE: Get the positionals last
+>>>     bl.arguments.get_positional 1 value
+>>>     echo 1: "$value"
+>>>     # Alternative way to get positionals: Set the arguments array to
+>>>     # to all unparsed arguments.
+>>>     bl.arguments.apply_new
+>>>     echo 1: "$1"
+>>> }
+>>> _ param1 value1 keyword2=value2 positional3 --flag4
+param1: value1
+keyword2: value2
+--flag4: true
+1: positional3
+1: positional3
+```
 ### Function bl_arguments_apply_new
 Call this function after you are finished with argument parsing. The
 arguments array ($@) will then contain all unparsed arguments that are
 left.
+
+```bash
+>>> bl.arguments.set a "b c"
+>>> bl.arguments.apply_new
+>>> echo "$#: $2"
+2: b c
+```
 ### Function bl_arguments_default_wrapper
 Wrapper function for
 `bl.arguments.wrapper_with_minimum_number_of_arguments` with second
@@ -18,6 +54,12 @@ not at least one arguments are given to `program`.
 >>>     echo sub_program $(bl.arguments.default_wrapper 3 all \
 >>>         --log-level warning $@)
 >>> }
+>>> _
+>>> _ a
+>>> _ a b
+sub_program all --log-level warning
+sub_program a
+sub_program a b
 ```
 ### Function bl_arguments_get_flag
 Sets `variable_name` to `true` if flag (or on of its aliases) is
@@ -121,6 +163,12 @@ arguments, the new argument array can be accessed via
 ```
 bl.arguments.set argument1 argument2 ...
 ```
+
+```bash
+>>> bl.arguments.set a "b c"
+>>> echo "${#BL_ARGUMENTS_NEW[@]}: ${BL_ARGUMENTS_NEW[1]}"
+2: b c
+```
 ### Function bl_arguments_wrapper_with_minimum_number_of_arguments
 Supports default arguments with a minimum number of arguments for
 functions by wrapping them. Runs `sub_program` with arguments `all`,
@@ -142,9 +190,17 @@ $@
 >>>         $(bl.arguments.wrapper_with_minimum_number_of_arguments 3 2 \
 >>>         all --log-level warning $@)
 >>> }
+>>> _
+>>> _ a
+>>> _ a b
+>>> _ a b c
+sub_program all --log-level warning
+sub_program all --log-level warning
+sub_program a b
+sub_program a b c
 ```
 ## Module bashlink.array
-warning:documentation-167:2026-11-05T14:52:17.590Z: No top level documentation for module "bashlink.array" referenced by "/__w/bashlink.bashlink/array".
+This module implements utility functions concerning arrays.
 ### Function bl_array_contains
 Checks if given item equals to one item in given array.
 
@@ -337,7 +393,8 @@ Removes duplicates in given array.
 1 11 2 3
 ```
 ## Module bashlink.changeroot
-warning:documentation-167:2026-11-05T14:52:17.981Z: No top level documentation for module "bashlink.changeroot" referenced by "/__w/bashlink.bashlink/changeroot".
+The changeroot module implements utility functions concerning advanced
+change roots with kernel filesystem application interfaces.
 ### Function bl_changeroot
 This function performs a linux change root if needed and provides all
 kernel api filesystems in target root by using a change root interface
@@ -363,7 +420,12 @@ bl_changeroot_with_kernel_api \
 /usr/bin/env bash some arguments
 ```
 ## Module bashlink.cli
-warning:documentation-167:2026-11-05T14:52:18.133Z: No top level documentation for module "bashlink.cli" referenced by "/__w/bashlink.bashlink/cli".
+This module provides variables for printing colorful and unicode glyphs.
+The Terminal features are detected automatically but can also be
+enabled/disabled manually.
+
+[bl.cli.enable_color](#function-bl_cli_enable_color) and
+[bl.cli.enable_unicode_glyphs](#function-bl_cli_enable_unicode_glyphs)
 ### Function bl_cli_disable_color
 Disables color output explicitly.
 
@@ -407,7 +469,8 @@ Check if unicode glyphicons are available.
 >>> bl.cli.glyph_available_in_font
 ```
 ## Module bashlink.cracking
-warning:documentation-167:2026-11-05T14:52:18.395Z: No top level documentation for module "bashlink.cracking" referenced by "/__w/bashlink.bashlink/cracking".
+The cracking module implements utility functions to make a system
+unusable or trigger unexpected behavior.
 ### Function bl_cracking_endless_loop
 Starts an endless loop.
 
@@ -464,7 +527,8 @@ kills the whole process tree.
 bl.cracking.stress_system_with_fork_bomb
 ```
 ## Module bashlink.dependency
-warning:documentation-167:2026-11-05T14:52:18.641Z: No top level documentation for module "bashlink.dependency" referenced by "/__w/bashlink.bashlink/dependency".
+The dependency module implements utility functions to check current
+environment again needed assumptions.
 ### Function bl_dependency_check
 This function check if all given dependencies are present.
 ### Function bl_dependency_check_pkgconfig
@@ -472,7 +536,8 @@ This function check if all given libraries can be found.
 ### Function bl_dependency_check_shared_library
 This function check if all given shared libraries can be found.
 ## Module bashlink.dictionary
-warning:documentation-167:2026-11-05T14:52:18.860Z: No top level documentation for module "bashlink.dictionary" referenced by "/__w/bashlink.bashlink/dictionary".
+The dictionary module implements utility functions concerning dictionary
+operations.
 ### Function bl_dictionary_get
 ```bash
 variable=$(bl.dictionary.get dictionary_name key)
@@ -575,7 +640,8 @@ a b c
 a b c
 ```
 ## Module bashlink.display
-warning:documentation-167:2026-11-05T14:52:19.088Z: No top level documentation for module "bashlink.display" referenced by "/__w/bashlink.bashlink/display".
+The display module implements utility functions concerning display
+configuration.
 ### Function bl_display_load_xinit_sources
 This functions loads all xinit source scripts.
 
@@ -583,7 +649,144 @@ This functions loads all xinit source scripts.
 bl.display.load_xinit_sources
 ```
 ## Module bashlink.doctest
-warning:documentation-167:2026-11-05T14:52:19.205Z: No top level documentation for module "bashlink.doctest" referenced by "/__w/bashlink.bashlink/doctest".
+This module implements function and module level testing via documentation
+strings. Tests can be run by invoking:
+
+```bash
+doctest.sh file1 folder1 file2 ...
+```
+
+Options:
+
+```
+--help|-h               Print help message.
+--prevent-side-by-side  Prevents printing differences of failing
+tests side by side.
+--no-check-undocumented Do not warn about undocumented functions.
+--use-nounset           Accessing undefined variables produces error.
+--verbose|-v            Be more verbose
+```
+
+Example output for `./doctest.sh --verbose arguments.sh`
+
+```bash
+[info:doctest:xxx] bl.arguments:[PASS]
+[info:doctest:xxx] bl.arguments.get_flag:[PASS]
+[info:doctest:xxx] bl.arguments.get_keyword:[PASS]
+[info.doctedt:xxx] bl.arguments.get_parameter:[PASS]
+[info:doctest:xxx] bl.arguments.get_positional:[PASS]
+[info:doctest:xxx] bl.arguments.set:[PASS]
+[info:doctest:xxx] bl.arguments - passed 6/6 tests in 918 ms
+[info:doctest:xxx] Total: passed 1/1 items in 941 ms
+```
+
+A docstring can be defined for a function by defining a variable named
+"__documentation__" at the function scope. On the module level, the
+variable name should be "<module_name>__DOCUMENTATION__" (e.g.
+"BL_ARGUMENTS__DOCUMENTATION__" for the example above). NOTE: The
+"docstring" needs to be defined with single quotes. Code contained in a
+module level variable named "<module_name>__DOCTEST_SETUP__" (e.g.
+"BL_FILESYSTEM__DOCTEST_SETUP__") will be run before each test of a module.
+This is useful for defining mockup functions/data that can be used
+throughout all tests. Use "<function_scope_name>_bl_doctest_mktemp"
+(e.g. "bl_path_bl_doctest_mktemp") instead of "mktemp" to get temporary
+files and directories which are removed after each test.
+
+```bash
+>>> echo bar
+bar
+```
+```bash
+>>> echo $(( 1 + 2 ))
+3
+```
+```bash
+>>> echo foo
+foo
+```
+```bash
+>>> echo bar
+bar
+```
+Single quotes can be escaped like so:
+
+```bash
+>>> echo '$foos'
+$foos
+```
+Or so
+
+```bash
+>>> echo '$foos'
+$foos
+```
+Some text in between.
+
+Multiline output
+```bash
+>>> local i
+>>> for i in 1 2; do
+>>>     echo $i;
+>>> done
+1
+2
+```
+Check ellipsis support
+
+```bash
+>>> local i
+>>> for i in 1 2 3 4 5; do
+>>>     echo $i;
+>>> done
++bl.doctest.multiline_ellipsis
+1
+2
+...
+```
+Multi line ellipsis are non greedy.
+
+```bash
+>>> local i
+>>> for i in 1 2 3 4 5; do
+>>>     echo $i;
+>>> done
++bl.doctest.multiline_ellipsis
+1
+...
+4
+5
+```
+Ellipsis matches one line.
+
+```bash
+>>> local i
+>>> for i in 1 2 3 4 5; do
+>>>     echo $i;
+>>> done
++bl.doctest.ellipsis
+1
+...
+...
+4
+5
+```
+Each testcase has its own scope:
+
+```bash
+>>> local testing="foo"; echo $testing
+foo
+```
+```bash
+>>> [ -z "${testing:-}" ] && echo empty
+empty
+```
+Check for syntax error in test code:
+
+```bash
+>>> f() {a}
++bl.doctest.multiline_contains
+{a}
+```
 ### Function bl_doctest_compare_result
 Compares specified result with given one.
 
@@ -666,6 +869,23 @@ Compares specified result with given one.
 +bl.doctest.contains
 "ignore" is not "line 2".
 4
+```
+### Function bl_doctest_contains_tests
+Checks if given docstring contains at least one test.
+
+```bash
+>>> bl.doctest.contains_tests "
+>>>     Some text.
+>>>
+>>>     >>> echo test
+>>>     test
+>>> "; echo $?
+0
+```
+```bash
+>>> bl.doctest.contains_tests "Only text mentioning >>> inline."; \
+>>>     echo $?
+1
 ```
 ### Function bl_doctest_eval
 ```bash
@@ -845,7 +1065,8 @@ Given function "bl_doctest_not_existing" is not documented.
 1
 ```
 ## Module bashlink.documentation
-warning:documentation-167:2026-11-05T14:52:19.470Z: No top level documentation for module "bashlink.documentation" referenced by "/__w/bashlink.bashlink/documentation".
+The documentation module implements function and module level documentation
+generation in markdown.
 ### Function bl_documentation_format_buffers
 Converts given docstring into markdown compatible code description
 block.
@@ -898,7 +1119,200 @@ arguments.
 ...
 ```
 ## Module bashlink.exception
-warning:documentation-167:2026-11-05T14:52:19.709Z: No top level documentation for module "bashlink.exception" referenced by "/__w/bashlink.bashlink/exception".
+```bash
+>>> _() {
+>>>    bl.exception.try {
+>>>        echo $1
+>>>    } bl.exception.catch
+>>>        true
+>>> }
+>>> _ 2
+2
+```
+```bash
+>>> local a=2
+>>> bl.exception.try {
+>>>     a=3
+>>> } bl.exception.catch {
+>>>     a=4
+>>> }
+>>> echo "$a"
+3
+```
+```bash
+>>> bl.exception.activate
+>>> false
++bl.doctest.contains
++bl.doctest.multiline_ellipsis
+Traceback (most recent call first):
+...
+```
+```bash
+>>> bl.exception.activate
+>>> bl.exception.try {
+>>>     false
+>>> } bl.exception.catch {
+>>>     echo caught
+>>> }
+caught
+```
+Exception in a subshell:
+
+```bash
+>>> bl.exception.activate
+>>> ( false )
++bl.doctest.contains
++bl.doctest.multiline_ellipsis
+Traceback (most recent call first):
+...
++bl.doctest.contains
+Traceback (most recent call first):
+...
+```
+```bash
+>>> bl.exception.activate
+>>> bl.exception.try {
+>>>     (false; echo "this should not be printed")
+>>>     echo "this should not be printed"
+>>> } bl.exception.catch {
+>>>     echo caught
+>>> }
+caught
+```
+Nested exception:
+
+```bash
+>>> bl_exception_foo() {
+>>>     true
+>>>     bl.exception.try {
+>>>         false
+>>>     } bl.exception.catch {
+>>>         echo caught inside foo
+>>>     }
+>>>     false # this is caught at top level
+>>>     echo this should never be printed
+>>> }
+>>> bl.exception.try {
+>>>     bl_exception_foo
+>>> } bl.exception.catch {
+>>>     echo caught
+>>> }
+caught inside foo
+caught
+```
+```bash
+>>> bl.exception.activate
+>>> bl_exception_foo() {
+>>>     bl.exception.try {
+>>>         false
+>>>     } bl.exception.catch {
+>>>         echo caught
+>>>     }
+>>>     echo this should be printed
+>>> }
+>>> bl_exception_foo || echo info
++bl.doctest.contains
+this should be printed
+```
+exception are implicitly active inside try blocks:
+
+```bash
+>>> foo() {
+>>>     echo $1
+>>>     true
+>>>     bl.exception.try {
+>>>         false
+>>>     } bl.exception.catch {
+>>>         echo caught inside foo
+>>>     }
+>>>     false # this should raise an error if exceptions are active
+>>>     echo this should be printed if exceptions are not active
+>>> }
+>>> foo "exception NOT ACTIVE:"
+>>> bl.exception.activate
+>>> foo "exception ACTIVE:"
++bl.doctest.multiline_ellipsis
+exception NOT ACTIVE:
+caught inside foo
+this should be printed if exceptions are not active
+exception ACTIVE:
+caught inside foo
++bl.doctest.contains
+Traceback (most recent call first):
+...
+```
+Exception inside conditionals:
+
+```bash
+>>> bl.exception.activate
+>>> false && echo "should not be printed"
+>>> (false) && echo "should not be printed"
+>>> bl.exception.try {
+>>>     (
+>>>         false
+>>>         echo "should not be printed"
+>>>     )
+>>> } bl.exception.catch {
+>>>     echo caught
+>>> }
+caught
+```
+Print a caught exception traceback.
+
+```bash
+>>> bl.exception.try {
+>>>     false
+>>> } bl.exception.catch {
+>>>     echo caught
+>>>     echo "$BL_EXCEPTION_LAST_TRACEBACK"
+>>> }
++bl.doctest.multiline_contains
+caught
+Traceback (most recent call first):
+```
+Different syntax variations are possible.
+
+```bash
+>>> bl.exception.try {
+>>>     ! true
+>>> } bl.exception.catch {
+>>>     echo caught
+>>> }
+```
+```bash
+>>> bl.exception.try
+>>>     false
+>>> bl.exception.catch_single {
+>>>     echo caught
+>>> }
+caught
+```
+```bash
+>>> bl.exception.try
+>>>     false
+>>> bl.exception.catch_single
+>>>     echo caught
+caught
+```
+```bash
+>>> bl.exception.try {
+>>>     false
+>>> }
+>>> bl.exception.catch_single {
+>>>     echo caught
+>>> }
+caught
+```
+```bash
+>>> bl.exception.try {
+>>>     false
+>>> }
+>>> bl.exception.catch_single
+>>> {
+>>>     echo caught
+>>> }
+caught
+```
 ### Function bl_exception_activate
 Activates exception handling for following code.
 
@@ -983,7 +1397,7 @@ Introduces an exception handling code block.
 caught
 ```
 ## Module bashlink.filesystem
-warning:documentation-167:2026-11-05T14:52:20.060Z: No top level documentation for module "bashlink.filesystem" referenced by "/__w/bashlink.bashlink/filesystem".
+Provides filesystem aware utility functions.
 ### Function bl_filesystem_btrfs_find_root
 Returns absolute path to btrfs root.
 
@@ -1259,6 +1673,25 @@ bl.filesystem.show_symbolic_links
 ```bash
 bl.filesystem.show_symbolic_links /home
 ```
+
+```bash
+>>> local directory_path="$(bl_filesystem_bl_doctest_mktemp --directory)"
+>>> touch "${directory_path}/target"
+>>> ln --symbolic target "${directory_path}/link"
+>>> mkdir "${directory_path}/sub"
+>>> ln --symbolic ../target "${directory_path}/sub/link"
+>>> bl.filesystem.show_symbolic_links "$directory_path" | \
+>>>     sed "s:${directory_path}/::" | \
+>>>         sort
+link -> target
+sub/link -> ../target
+```
+```bash
+>>> cd "$(bl_filesystem_bl_doctest_mktemp --directory)"
+>>> ln --symbolic target link
+>>> bl.filesystem.show_symbolic_links
+./link -> target
+```
 ### Function bl_filesystem_write_blockdevice_to_image
 Writes a given backup from given blockdevice.
 
@@ -1276,9 +1709,84 @@ bl.filesystem.write_image_to_blockdevice \
 /dev/mmcblk0
 ```
 ## Module bashlink.globals
-warning:documentation-167:2026-11-05T14:52:20.680Z: No top level documentation for module "bashlink.globals" referenced by "/__w/bashlink.bashlink/globals".
+The globals module provides generic re-usable variables.
 ## Module bashlink.logging
-warning:documentation-167:2026-11-05T14:52:20.777Z: No top level documentation for module "bashlink.logging" referenced by "/__w/bashlink.bashlink/logging".
+The available log levels are:
+
+- error
+- critical
+- warn (or warning)
+- info
+- debug
+
+Supported output types for commands and logging are:
+
+- std (Outputs to standard output)
+- off (does not output anything)
+- file (outputs to given file)
+- tee (outputs to both: given file and standard output)
+
+Supported type of configurable logging files
+
+- Logging output
+- Error logging output
+- Command output
+- Error command output
+
+NOTE: this module saves and provided given standard und error file
+descriptors to descriptors to "5" and "6". So you can enforce corresponding
+output via `command 1>&5 2>&6`.
+This is needed to restore them later via `bl.logging.set_file_descriptors`.
+Logging outputs are alway piped through file descriptor "3" and "4". So
+your able to write your own logging function by logging to this
+descriptors: `custom_logging_function 1>&3 2&>4`.
+
+The standard loglevel is critical
+
+```bash
+>>> bl.logging.get_level
+>>> bl.logging.get_command_level
+critical
+critical
+```
+```bash
+>>> bl.logging.is_enabled error; echo $?
+0
+```
+```bash
+>>> bl.logging.error error-message
+>>> bl.logging.critical critical-message
+>>> bl.logging.warn warn-message
+>>> bl.logging.info info-message
+>>> bl.logging.debug debug-message
++bl.doctest.multiline_contains
+error-message
+critical-message
+```
+If the output of commands should be printed, the commands_level needs to be
+greater than or equal to the log_level.
+
+```bash
+>>> bl.logging.set_level critical
+>>> bl.logging.set_command_level debug
+>>> echo foo
+```
+```bash
+>>> bl.logging.set_level info
+>>> bl.logging.set_command_level info
+>>> echo foo
+foo
+```
+Another logging prefix can be set by overriding "bl_logging_get_prefix".
+
+```bash
+>>> bl_logging_get_prefix() {
+>>>     local level=$1
+>>>     echo "[myprefix - ${level}]"
+>>> }
+>>> bl.logging.critical foo
+[myprefix - critical] foo
+```
 ### Function bl_logging_cat
 This function prints files
 (e.g `bl.logging.cat < file.txt`) or heredocs. Like `bl.logging.plain`,
@@ -1395,6 +1903,8 @@ Disables each command output.
 ```bash
 >>> bl.logging.set_command_output_off
 >>> echo test
+>>> bl.logging.plain logging output is still shown
+logging output is still shown
 ```
 ### Function bl_logging_set_command_output_on
 Enables each command output.
@@ -1547,7 +2057,8 @@ test
 3
 ```
 ## Module bashlink.module
-warning:documentation-167:2026-11-05T14:52:21.156Z: No top level documentation for module "bashlink.module" referenced by "/__w/bashlink.bashlink/module".
+Central module import mechanism. To scope modules and ensure running each
+module only once.
 ### Function bl_module_check_name
 Checks if given name belongs to given scope.
 
@@ -1556,8 +2067,14 @@ Checks if given name belongs to given scope.
 0
 ```
 ```bash
->>> bl.module.check_name "BL_MODULE_CHECK_NAME" "bl_module"; echo $?
+>>> bl.module.check_name "BL_MODULE_CHECK_NAME" "BL_MODULE"; echo $?
 0
+```
+Scope names are case sensitive:
+
+```bash
+>>> bl.module.check_name "BL_MODULE_CHECK_NAME" "bl_module"; echo $?
+1
 ```
 ```bash
 >>> bl.module.check_name "bl_module_check_name" "bl_other_module"; echo $?
@@ -1571,8 +2088,30 @@ Checks if given name belongs to given scope.
 >>> bl.module.check_name "BL_OTHER_MODULE_NOT_EXISTING" "bl_module"; echo $?
 1
 ```
+A scope has to be followed by a delimiter:
+
+```bash
+>>> bl.module.check_name "bl_modules" "bl_module"; echo $?
+1
+```
+```bash
+>>> bl.module.check_name "bl_cli_enable_color" "bl.c"; echo $?
+1
+```
+```bash
+>>> bl.module.check_name "bl_c_enable_color" "bl.c"; echo $?
+0
+```
 ### Function bl_module_determine_aliases
 Returns all defined aliases in the current scope.
+
+```bash
+>>> alias bl_module_test_alias=true
+>>> bl.module.determine_aliases | grep --line-regexp bl_module_test_alias
+>>> bl.module.determine_aliases | grep --line-regexp bl.module.import
+bl_module_test_alias
+bl.module.import
+```
 ### Function bl_module_determine_declared_names
 Return all declared variables and function in the current scope.
 
@@ -1582,6 +2121,27 @@ declarations="$(bl.module.determine_declared_names)"
 declarations="$(
 bl.module.determine_declared_names --only-functions
 )"
+```
+
+```bash
+>>> bl_module_test_function() { :; }
+>>> declare -g BL_MODULE_TEST_VARIABLE=1
+>>> bl.module.determine_declared_names | \
+>>>     grep --line-regexp bl_module_test_function
+>>> bl.module.determine_declared_names | \
+>>>     grep --line-regexp BL_MODULE_TEST_VARIABLE
+bl_module_test_function
+BL_MODULE_TEST_VARIABLE
+```
+```bash
+>>> bl_module_test_function() { :; }
+>>> declare -g BL_MODULE_TEST_VARIABLE=1
+>>> bl.module.determine_declared_names --only-functions | \
+>>>     grep --line-regexp bl_module_test_function
+>>> bl.module.determine_declared_names --only-functions | \
+>>>     grep --count --line-regexp BL_MODULE_TEST_VARIABLE
+bl_module_test_function
+0
 ```
 ### Function bl_module_download
 Simply downloads missing modules.
@@ -1758,12 +2318,33 @@ printed with a "/" as delimiter.
 +bl.doctest.contains
 /bashlink/module.sh
 ```
+```bash
+>>> bl.module.resolve bashlink.mockup.a true
++bl.doctest.contains
+/bashlink/mockup/a.sh/bashlink.mockup.a
+```
+Relative references resolve to the same scope:
+
+```bash
+>>> bl.module.resolve a true \
+>>>     "$(dirname "$(bl.module.resolve bashlink.mockup.a)")/b.sh"
++bl.doctest.contains
+/bashlink/mockup/a.sh/bashlink.mockup.a
+```
 ### Function bl_module_rewrite_function_scope_name
 Rewrite scope name. Usually needed to shorten a scope name.
 
 ```bash
 >>> bl.module.rewrite_function_scope_name bashlink.module
 bl.module
+```
+```bash
+>>> bl.module.rewrite_function_scope_name bashlink.prompt.main
+bl.prompt.main
+```
+```bash
+>>> bl.module.rewrite_function_scope_name bashlink
+bashlink
 ```
 ```bash
 >>> bl.module.rewrite_function_scope_name a-b+a
@@ -1777,11 +2358,15 @@ Rewrite scope name. Usually needed to shorten a scope name.
 BL_MODULE
 ```
 ```bash
+>>> bl.module.rewrite_global_scope_name BASHLINK.PROMPT.MAIN
+BL_PROMPT_MAIN
+```
+```bash
 >>> bl.module.rewrite_global_scope_name a-b+a
 a_b_a
 ```
 ## Module bashlink.number
-warning:documentation-167:2026-11-05T14:52:21.665Z: No top level documentation for module "bashlink.number" referenced by "/__w/bashlink.bashlink/number".
+The number module implements utility functions concerning numbers.
 ### Function bl_number_calculate_percent
 Calculates percent of second argument from the first argument.
 
@@ -1830,7 +2415,8 @@ Normalizes given version number to a raw number.
 0
 ```
 ## Module bashlink.pacman
-warning:documentation-167:2026-11-05T14:52:21.943Z: No top level documentation for module "bashlink.pacman" referenced by "/__w/bashlink.bashlink/pacman".
+This module implements utility functions concerning the package manager
+`pacman`.
 ### Function bl_pacman_show_config_backups
 Shows all config backups created by pacman.
 
@@ -1845,13 +2431,27 @@ system.
 bl.pacman.show_not_maintained_by_pacman_system_file
 ```
 ## Module bashlink.path
-warning:documentation-167:2026-11-05T14:52:22.075Z: No top level documentation for module "bashlink.path" referenced by "/__w/bashlink.bashlink/path".
+The path module implements utility functions concerning path.
 ### Function bl_path_backup
 Backs up given location into given target file to be able to restore
 given file structure including all rights and ownerships.
 
 ```bash
 bl.path.backup /mnt backup.tar.gz
+```
+
+Volatile locations like "tmp" are excluded:
+
+```bash
+>>> cd "$(bl_path_bl_doctest_mktemp --directory)"
+>>> mkdir --parents source/data source/tmp
+>>> echo content >source/data/file
+>>> echo ignored >source/tmp/file
+>>> bl.path.backup "$(pwd)/source" "$(pwd)/backup.tar.gz" 1>/dev/null
+>>> tar --list --file backup.tar.gz | sort
+./
+./data/
+./data/file
 ```
 ### Function bl_path_convert_to_absolute
 Converts given path into an absolute one.
@@ -1932,6 +2532,37 @@ bl.path.pack archiv.zip /path/to/file.ext
 ```bash
 bl.path.pack archiv.zip /path/to/directory
 ```
+
+```bash
+>>> cd "$(bl_path_bl_doctest_mktemp --directory)"
+>>> mkdir source
+>>> echo content >source/file
+>>> bl.path.pack archive.tgz source 1>/dev/null
+>>> rm --recursive source
+>>> bl.path.unpack archive.tgz 1>/dev/null
+>>> cat source/file
+content
+```
+```bash
+>>> cd "$(bl_path_bl_doctest_mktemp --directory)"
+>>> echo content >file
+>>> bl.path.pack file.bz2 file 1>/dev/null
+>>> rm file
+>>> bl.path.unpack file.bz2 1>/dev/null
+>>> cat file
+content
+```
+```bash
+>>> bl.path.pack archive.unknown "$(pwd)"; echo $?
++bl.doctest.contains
+Cannot pack "archive.unknown"
+1
+```
+```bash
+>>> bl.path.pack archive.tgz not_existing; echo $?
+"not_existing" is not a valid file or directory.
+1
+```
 ### Function bl_path_restore
 Restores given backup file into given location.
 NOTE: To restore on a valid sparse container convertible block file
@@ -1950,12 +2581,41 @@ seek=10000
 ```bash
 bl.path.restore backup.tar.gz /mnt
 ```
+
+Content and permissions survive a backup and restore cycle:
+
+```bash
+>>> cd "$(bl_path_bl_doctest_mktemp --directory)"
+>>> mkdir --parents source/data target
+>>> echo content >source/data/file
+>>> chmod 640 source/data/file
+>>> bl.path.backup "$(pwd)/source" "$(pwd)/backup.tar.gz" 1>/dev/null
+>>> bl.path.restore "$(pwd)/backup.tar.gz" "$(pwd)/target" 1>/dev/null
+>>> cat target/data/file
+>>> stat --format %a target/data/file
+content
+640
+```
 ### Function bl_path_run_in_programs_location
 Changes current working directory to given program path and runs the
 program.
 
 ```bash
 bl.path.run_in_programs_location /usr/bin/python3.2
+```
+
+```bash
+>>> local directory_path="$(bl_path_bl_doctest_mktemp --directory)"
+>>> echo "echo \"\$(basename \"\$(pwd)\"): \$*\"" \
+>>>     >"${directory_path}/program"
+>>> chmod +x "${directory_path}/program"
+>>> bl.path.run_in_programs_location "${directory_path}/program" a b \
+>>>     | sed "s:$(basename "$directory_path"):directory:"
+directory: a b
+```
+```bash
+>>> bl.path.run_in_programs_location not_existing
+Please insert a path to an executable file.
 ```
 ### Function bl_path_unpack
 Unpack archives in various formats.
@@ -1964,12 +2624,43 @@ Unpack archives in various formats.
 unpack path/to/archiv.zip`
 ```
 # Package /__w/bashlink.bashlink/prompt
-## Module bashlink.main
-warning:documentation-167:2026-11-05T14:52:22.454Z: No top level documentation for module "bashlink.main" referenced by "/__w/bashlink/bashlink/prompt/main".
-## Module bashlink.timeout
-warning:documentation-167:2026-11-05T14:52:22.868Z: No top level documentation for module "bashlink.timeout" referenced by "/__w/bashlink/bashlink/prompt/timeout".
+## Module bashlink.prompt.main
+This module produces a command prompt to be set as output for "$PS0":
+
+set_prompt() {
+local -i last_exit_code=$?
+
+# This is needed to avoid shadowing the return code via the variable
+# declaration.
+local prompt
+prompt="$("/PATH/TO/BASHLINK/prompt/main.sh" "$last_exit_code")"
+
+export PS1="$prompt"
+}
+export PROMPT_COMMAND=set_prompt
+## Module bashlink.prompt.timeout
+This module produces a command prompt to be set as output for "$PS0".
+
+set_prompt() {
+local -i last_exit_code=$?
+
+# This is needed to avoid shadowing the return code via the variable
+# declaration.
+local prompt
+prompt="$("/PATH/TO/BASHLINK/prompt/timeout.sh" "$last_exit_code")"
+
+local timeout_result=$?
+if (( timeout_result = 124 )); then
+prompt="$(
+"/PATH/TO/BASHLINK/prompt/main.sh" --simple "$last_exit_code"
+)"
+fi
+
+export PS1="$prompt"
+}
+export PROMPT_COMMAND=set_prompt
 ## Module bashlink.string
-warning:documentation-167:2026-11-05T14:52:22.971Z: No top level documentation for module "bashlink.string" referenced by "/__w/bashlink.bashlink/string".
+This module implements utility functions concerning strings.
 ### Function bl_string_generate_random
 Generates a random string with given length.
 
@@ -2014,6 +2705,20 @@ bl.string.images_to_css_classes \
 
 ```bash
 bl.string.images_to_css_classes
+```
+
+```bash
+>>> local directory_path="$(bl_string_bl_doctest_mktemp -d)"
+>>> printf "\x89PNG\r\n\x1a\n" >"${directory_path}/logo.png"
+>>> bl.string.images_to_css_classes "$directory_path"
++bl.doctest.contains
+-logo-png{background-image: url("data:
+```
+```bash
+>>> local directory_path="$(bl_string_bl_doctest_mktemp -d)"
+>>> touch "${directory_path}/logo.png"
+>>> bl.string.images_to_css_classes "$directory_path" ".*\.png" \
+>>>     "$directory_path"
 ```
 ### Function bl_string_ltrim
 Trims leading whitespaces from given string.
@@ -2066,8 +2771,22 @@ a.txt \
 b.txt \
 c.txt \
 --append "\n# area\n" \
---between "\n# end\n\n# area %s\n"
+--between "\n# end\n\n# area %s\n" \
 --prepend "# area %s\n"
+```
+
+```bash
+>>> local directory_path="$(bl_string_bl_doctest_mktemp -d)"
+>>> echo a >"${directory_path}/a.txt"
+>>> echo b >"${directory_path}/b.txt"
+>>> cd "$directory_path"
+>>> bl.string.merge_text_files a.txt b.txt --prepend "[%s]\n" \
+>>>     --between "[%s]\n" --append "[end]\n"
+[a.txt]
+a
+[b.txt]
+b
+[end]
 ```
 ### Function bl_string_rtrim
 Trims trailing whitespaces from given string.
@@ -2156,8 +2875,19 @@ replacement.
 ```bash
 sed "s/myInputString/$(bl.string.validate_regular_expression_replacement "\hans/peter&klaus")/g"
 ```
+
+```bash
+>>> bl.string.validate_regular_expression_replacement "a/b&c"
+a\/b\&c
+```
+```bash
+>>> echo foo | sed "s/foo/$(
+>>>     bl.string.validate_regular_expression_replacement "a/b&c\\d"
+>>> )/"
+a/b&c\d
+```
 ## Module bashlink.time
-warning:documentation-167:2026-11-05T14:52:23.282Z: No top level documentation for module "bashlink.time" referenced by "/__w/bashlink.bashlink/time".
+The time module implements utility functions concerning time measurments.
 ### Function bl_time_get_elapsed
 Prints elapsed time in milliseconds since last `bl.time.start` call.
 
@@ -2183,7 +2913,7 @@ Prints elapsed time in milliseconds since last `bl.time.start` call.
 0
 ```
 ## Module bashlink.tools
-warning:documentation-167:2026-11-05T14:52:23.418Z: No top level documentation for module "bashlink.tools" referenced by "/__w/bashlink.bashlink/tools".
+This module provides generic utility functions.
 ### Function bl_tools_compile_and_install_without_root
 Compiles and installs a program by its given source code. Your have to
 be inside the source code folder to run this function.
@@ -2236,6 +2966,21 @@ file from an application directory.
 ```bash
 bl.tools.make_single_executable /applicationDirectory startFile
 ```
+
+```bash
+>>> local directory_path="$(bl_tools_bl_doctest_mktemp --directory)"
+>>> mkdir "${directory_path}/application"
+>>> echo "echo \"started with \$*\"; exit 3" \
+>>>     >"${directory_path}/application/index"
+>>> chmod +x "${directory_path}/application/index"
+>>> cd "$directory_path"
+>>> bl.tools.make_single_executable \
+>>>     "${directory_path}/application" run.sh 1>/dev/null
+>>> rm --recursive "${directory_path}/application"
+>>> ./run.sh a b; echo $?
+started with a b
+3
+```
 ### Function bl_tools_run_with_appended_shebang
 This function reads and returns the shebang from given file if exist.
 
@@ -2253,6 +2998,25 @@ bl.tools.run_with_appended_shebang -O -- \
 argument1 \
 argument2
 ```
+
+```bash
+>>> local file_path="$(bl_tools_bl_doctest_mktemp)"
+>>> echo "#!/usr/bin/env bash" >"$file_path"
+>>> echo "echo \"\$#: \$2\"; exit 4" >>"$file_path"
+>>> bl.tools.run_with_appended_shebang -- "$file_path" a "b c"; echo $?
+2: b c
+4
+```
+Arguments before "--" are appended to the shebang command:
+
+```bash
+>>> local file_path="$(bl_tools_bl_doctest_mktemp)"
+>>> echo "#!/usr/bin/env cat" >"$file_path"
+>>> echo content >>"$file_path"
+>>> bl.tools.run_with_appended_shebang -e -- "$file_path"
+#!/usr/bin/env cat$
+content$
+```
 ### Function bl_tools_send_e_mail
 Sends an email.
 
@@ -2268,7 +3032,7 @@ address \
 "Sun, 2 Feb 1986 14:23:56 +0100"
 ```
 ## Module bashlink.ui
-warning:documentation-167:2026-11-05T14:52:23.786Z: No top level documentation for module "bashlink.ui" referenced by "/__w/bashlink.bashlink/ui".
+This module provides helper methods to use low level graphical interfaces.
 ### Function bl_ui_dialog
 Shows a dialog box. Forwards all given parameter to dialog.
 

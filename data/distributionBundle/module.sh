@@ -134,14 +134,19 @@ fi
 declare -g BL_MODULE_PREVENT_NAMESPACE_CHECK=true
 declare -g BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK=true
 declare -ag BL_MODULE_FUNCTION_SCOPE_REWRITES=(
-    '^bashlink(([._]mockup)?[._][a-zA-Z_-]+)$/bl\1/'
+    '^bashlink(([._][a-zA-Z_-]+)+)$/bl\1/'
     '[^a-zA-Z0-9._]/./g'
 )
 declare -ag BL_MODULE_GLOBAL_SCOPE_REWRITES=(
-    '^BASHLINK(([._]mockup)?[._][a-zA-Z_-]+)$/BL\1/'
+    '^BASHLINK(([._][a-zA-Z_-]+)+)$/BL\1/'
     '[^a-zA-Z0-9_]/_/g'
 )
-declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-resolve-cache-${BL_MODULE_INSTANCE_ID}-${USER:-unknown-user}"
+# NOTE: The checksum invalidates cached resolutions whenever the resolving
+# logic changes (e.g. after an update). Modification times are not reliable
+# since npm normalizes them.
+declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-resolve-cache-${BL_MODULE_INSTANCE_ID}-$(
+    cksum <"${BASH_SOURCE[0]}" | cut --delimiter ' ' --fields 1
+)-${USER:-unknown-user}"
 # endregion
 # region functions
 alias bl.module.check_name=bl_module_check_name
@@ -152,8 +157,13 @@ bl_module_check_name() {
         >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
         0
 
-        >>> bl.module.check_name "BL_MODULE_CHECK_NAME" "bl_module"; echo $?
+        >>> bl.module.check_name "BL_MODULE_CHECK_NAME" "BL_MODULE"; echo $?
         0
+
+        Scope names are case sensitive:
+
+        >>> bl.module.check_name "BL_MODULE_CHECK_NAME" "bl_module"; echo $?
+        1
 
         >>> bl.module.check_name "bl_module_check_name" "bl_other_module"; echo $?
         1
@@ -163,16 +173,27 @@ bl_module_check_name() {
 
         >>> bl.module.check_name "BL_OTHER_MODULE_NOT_EXISTING" "bl_module"; echo $?
         1
+
+        A scope has to be followed by a delimiter:
+
+        >>> bl.module.check_name "bl_modules" "bl_module"; echo $?
+        1
+
+        >>> bl.module.check_name "bl_cli_enable_color" "bl.c"; echo $?
+        1
+
+        >>> bl.module.check_name "bl_c_enable_color" "bl.c"; echo $?
+        0
     '
     local -r name="$1"
     local -r resolved_scope_name="$2"
-    local -r alternate_resolved_scope_name="$(
-        echo "$resolved_scope_name" | \
-            command sed --regexp-extended 's/\./_/g'
-    )"
+    # NOTE: Avoid sub shells here since this function is called for each
+    # declared name during namespace checks.
+    local -r alternate_resolved_scope_name="${resolved_scope_name//./_}"
+    # NOTE: Quoted parts are matched literally.
     if ! [[ \
-        "$name" =~ ^${resolved_scope_name}([_a-zA-Z]+|$) || \
-        "$name" =~ ^${alternate_resolved_scope_name//\./\\./}([_a-zA-Z]+|$) \
+        "$name" =~ ^"${resolved_scope_name}"([._]|$) || \
+        "$name" =~ ^"${alternate_resolved_scope_name}"([._]|$) \
     ]]; then
         local excluded=false
         if [[ -z "$3" ]]; then
@@ -201,6 +222,12 @@ alias bl.module.determine_aliases=bl_module_determine_aliases
 bl_module_determine_aliases() {
     local -r __documentation__='
         Returns all defined aliases in the current scope.
+
+        >>> alias bl_module_test_alias=true
+        >>> bl.module.determine_aliases | grep --line-regexp bl_module_test_alias
+        >>> bl.module.determine_aliases | grep --line-regexp bl.module.import
+        bl_module_test_alias
+        bl.module.import
     '
     alias | \
         command grep '^alias' | \
@@ -219,6 +246,24 @@ bl_module_determine_declared_names() {
                 bl.module.determine_declared_names --only-functions
             )"
         ```
+
+        >>> bl_module_test_function() { :; }
+        >>> declare -g BL_MODULE_TEST_VARIABLE=1
+        >>> bl.module.determine_declared_names | \
+        >>>     grep --line-regexp bl_module_test_function
+        >>> bl.module.determine_declared_names | \
+        >>>     grep --line-regexp BL_MODULE_TEST_VARIABLE
+        bl_module_test_function
+        BL_MODULE_TEST_VARIABLE
+
+        >>> bl_module_test_function() { :; }
+        >>> declare -g BL_MODULE_TEST_VARIABLE=1
+        >>> bl.module.determine_declared_names --only-functions | \
+        >>>     grep --line-regexp bl_module_test_function
+        >>> bl.module.determine_declared_names --only-functions | \
+        >>>     grep --count --line-regexp BL_MODULE_TEST_VARIABLE
+        bl_module_test_function
+        0
     '
     local only_functions=false
     if [ "$1" = '--only-functions' ]; then
@@ -418,8 +463,9 @@ bl_module_import_with_namespace_check() {
     local -r function_scope_name_prefix="$(
         bl.module.rewrite_function_scope_name "$scope_name"
     )"
+    local -r alternate_function_scope_name_prefix="${function_scope_name_prefix//./_}"
     local -r variable_scope_name_prefix="$(
-        bl.module.rewrite_function_scope_name "$scope_name"
+        bl.module.rewrite_global_scope_name "${scope_name^^}"
     )"
 
     if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
@@ -457,11 +503,11 @@ bl_module_import_with_namespace_check() {
     if $BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK; then
         while read -r name; do
             if \
-                bl.module.check_name "$name" "$function_scope_name_prefix" true && \
+                bl.module.check_name "$name" "$function_scope_name_prefix" true || \
                 bl.module.check_name "$name" "$variable_scope_name_prefix" true
             then
                 bl.module.log warn \
-                    "Namespace \"${resolved_scope_name}\" in" \
+                    "Namespace \"${alternate_function_scope_name_prefix}\" in" \
                     "\"${scope_name}\" is not clean: Name \"${name}\" is" \
                     "already defined." \
                     1>&2
@@ -483,17 +529,17 @@ bl_module_import_with_namespace_check() {
                     command sed 's/^> //'
     )"
     for name in $new_declared_names; do
-        if ! bl.module.check_name "$name" "$resolved_scope_name"; then
-            local alternate_resolved_scope_name="$(
-                echo "$resolved_scope_name" | \
-                    command sed --regexp-extended 's/\./_/g'
-            )"
+        if \
+            ! bl.module.check_name "$name" "$function_scope_name_prefix" && \
+            ! bl.module.check_name "$name" "$variable_scope_name_prefix"
+        then
             bl.module.log \
                 warn \
-                "Module \"${scope_name}\" introduces a global unprefixed " \
+                "Module \"${scope_name}\" introduces a global unprefixed" \
                 "name: \"$name\". Maybe it should be prefixed with" \
-                "\"${resolved_scope_name}\" or" \
-                "\"${alternate_resolved_scope_name}\"." \
+                "\"${function_scope_name_prefix}\"," \
+                "\"${alternate_function_scope_name_prefix}\" or" \
+                "\"${variable_scope_name_prefix}\"." \
                 1>&2
         fi
     done
@@ -679,6 +725,17 @@ bl_module_resolve() {
         >>> bl.module.resolve bashlink.module
         +bl.doctest.contains
         /bashlink/module.sh
+
+        >>> bl.module.resolve bashlink.mockup.a true
+        +bl.doctest.contains
+        /bashlink/mockup/a.sh/bashlink.mockup.a
+
+        Relative references resolve to the same scope:
+
+        >>> bl.module.resolve a true \
+        >>>     "$(dirname "$(bl.module.resolve bashlink.mockup.a)")/b.sh"
+        +bl.doctest.contains
+        /bashlink/mockup/a.sh/bashlink.mockup.a
     '
     # NOTE: We have to declare variable first to avoid shadowing the return
     # code coming from "grep".
@@ -839,7 +896,15 @@ bl_module_resolve() {
     local result
     if [ "$2" = true ]; then
         local scope_name="$(basename "$1")"
-        if \
+        local -r library_path="$(dirname "$(
+            bl.path.convert_to_absolute "${BASH_SOURCE[0]}"
+        )")"
+        if [[ "$file_path" == "$library_path"/* ]]; then
+            # Derive scope from location to be independent of the reference
+            # (e.g. "c" referenced from "mockup/b.sh" is "bashlink.mockup.c").
+            scope_name="${file_path#"$library_path"/}"
+            scope_name="bashlink.${scope_name//\//.}"
+        elif \
             [[ "$file_path" == "$current_path"* ]] && \
             [[ "$(basename "$1")" != bashlink.* ]] && \
             [[ "$(basename "$1")" != bashlink ]]
@@ -892,6 +957,12 @@ bl_module_rewrite_function_scope_name() {
         >>> bl.module.rewrite_function_scope_name bashlink.module
         bl.module
 
+        >>> bl.module.rewrite_function_scope_name bashlink.prompt.main
+        bl.prompt.main
+
+        >>> bl.module.rewrite_function_scope_name bashlink
+        bashlink
+
         >>> bl.module.rewrite_function_scope_name a-b+a
         a.b.a
     '
@@ -912,6 +983,9 @@ bl_module_rewrite_global_scope_name() {
 
         >>> bl.module.rewrite_global_scope_name BASHLINK_MODULE
         BL_MODULE
+
+        >>> bl.module.rewrite_global_scope_name BASHLINK.PROMPT.MAIN
+        BL_PROMPT_MAIN
 
         >>> bl.module.rewrite_global_scope_name a-b+a
         a_b_a

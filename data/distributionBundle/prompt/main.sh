@@ -9,12 +9,13 @@
 # This library written by Torben Sickert stands under a creative commons naming
 # 3.0 unported license. see http://creativecommons.org/licenses/by/3.0/deed.de
 # endregion
-# shellcheck source=../module.sh
+# shellcheck disable=SC2016,SC2034
+# shellcheck source=SCRIPTDIR/../module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../module.sh"
 bl.module.import bashlink.string
 bl.module.import bashlink.tools
 
-declare -gr BL_MAIN__DOCUMENTATION__='
+declare -gr BL_PROMPT_MAIN__DOCUMENTATION__='
     This module produces a command prompt to be set as output for "$PS0":
 
     set_prompt() {
