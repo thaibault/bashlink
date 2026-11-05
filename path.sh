@@ -28,6 +28,18 @@ bl_path_backup() {
         ```bash
             bl.path.backup /mnt backup.tar.gz
         ```
+
+        Volatile locations like "tmp" are excluded:
+
+        >>> cd "$(bl_path_bl_doctest_mktemp --directory)"
+        >>> mkdir --parents source/data source/tmp
+        >>> echo content >source/data/file
+        >>> echo ignored >source/tmp/file
+        >>> bl.path.backup "$(pwd)/source" "$(pwd)/backup.tar.gz" 1>/dev/null
+        >>> tar --list --file backup.tar.gz | sort
+        ./
+        ./data/
+        ./data/file
     '
     local source_path=/mnt
     if [[ "$1" != '' ]]; then
@@ -101,6 +113,19 @@ bl_path_restore() {
         ```bash
             bl.path.restore backup.tar.gz /mnt
         ```
+
+        Content and permissions survive a backup and restore cycle:
+
+        >>> cd "$(bl_path_bl_doctest_mktemp --directory)"
+        >>> mkdir --parents source/data target
+        >>> echo content >source/data/file
+        >>> chmod 640 source/data/file
+        >>> bl.path.backup "$(pwd)/source" "$(pwd)/backup.tar.gz" 1>/dev/null
+        >>> bl.path.restore "$(pwd)/backup.tar.gz" "$(pwd)/target" 1>/dev/null
+        >>> cat target/data/file
+        >>> stat --format %a target/data/file
+        content
+        640
     '
     local source_file_path="$(bl.path.convert_to_absolute backup.tar.gz)"
     if [[ "$1" != '' ]]; then
