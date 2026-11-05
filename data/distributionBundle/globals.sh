@@ -16,6 +16,9 @@ declare -gr BL_GLOBALS__DOCUMENTATION__='
 declare -g BL_GLOBALS_CONFIGURATION_PATH=~/configuration/
 declare -g BL_GLOBALS_DATA_PATH=~/
 declare -g BL_GLOBALS_USER_E_MAIL_ADDRESS=example@domain.tld
+# NOTE: Keep an exported value since "prompt/timeout.sh" runs as separate
+# process and can only be configured via environment.
+declare -gi BL_GLOBALS_COMMAND_PROMPT_TIMEOUT_IN_SECONDS="${BL_GLOBALS_COMMAND_PROMPT_TIMEOUT_IN_SECONDS:-1}"
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:

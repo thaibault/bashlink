@@ -82,12 +82,11 @@ declare -ag BL_MODULE_ALLOWED_NAMES=(
     HISTSIZE
     LINES
 )
-declare -ag BL_MODULE_ALLOWED_SCOPE_NAMES=()
+# NOTE: Globals of "bashlink.globals" are meant to be configured by consumers.
+declare -ag BL_MODULE_ALLOWED_SCOPE_NAME_PREFIXES=(BL_GLOBALS)
 declare -g BL_MODULE_BASH_VERSION_TEST=''
 declare -g BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE=''
-declare -g BL_MODULE_DECLARED_FUNCTION_NAMES_BEFORE_SOURCE_FILE_PATH=''
 declare -g BL_MODULE_DECLARED_NAMES_AFTER_SOURCE=''
-declare -g BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH=''
 declare -ag BL_MODULE_DIRECTORY_NAMES_TO_IGNORE=(
     apiDocumentation
     data
@@ -104,6 +103,13 @@ declare -ag BL_MODULE_FILE_NAMES_TO_IGNORE=(
     yarn.lock
 )
 declare -ig BL_MODULE_IMPORT_LEVEL=0
+# Names introduced by nested imports of the current top level import as lines
+# of "<import level> <name>". They belong to the nested modules and not to the
+# importing ones on lower levels.
+declare -g BL_MODULE_NESTED_DECLARED_NAMES=''
+# NOTE: Only needed (and therefore only enabled) during top level imports with
+# namespace check to avoid overhead for regular imports.
+declare -g BL_MODULE_TRACK_NESTED_DECLARED_NAMES=false
 declare -ag BL_MODULE_IMPORTED=(
     "$(bl.path.convert_to_absolute "${BASH_SOURCE[0]}")"
     "$(bl.path.convert_to_absolute "${BASH_SOURCE[1]}")"
@@ -184,6 +190,17 @@ bl_module_check_name() {
 
         >>> bl.module.check_name "bl_c_enable_color" "bl.c"; echo $?
         0
+
+        Names starting with an allowed scope name prefix or its uppercase
+        variant are accepted as well:
+
+        >>> local BL_MODULE_ALLOWED_SCOPE_NAME_PREFIXES=(abc)
+        >>> bl.module.check_name "abc_foo" "bl_module"; echo $?
+        >>> bl.module.check_name "ABC_FOO" "bl_module"; echo $?
+        >>> bl.module.check_name "xyz_foo" "bl_module"; echo $?
+        0
+        0
+        1
     '
     local -r name="$1"
     local -r resolved_scope_name="$2"
@@ -198,8 +215,12 @@ bl_module_check_name() {
         local excluded=false
         if [[ -z "$3" ]]; then
             local excluded_pattern
-            for excluded_pattern in "${BL_MODULE_ALLOWED_SCOPE_NAMES[@]}"; do
-                if [[ $name =~ ^${excluded_pattern}[._a-zA-Z]* ]]; then
+            for excluded_pattern in "${BL_MODULE_ALLOWED_SCOPE_NAME_PREFIXES[@]}"; do
+                # NOTE: Uppercase variants (e.g. for globals) are allowed too.
+                if [[
+                    $name =~ ^${excluded_pattern}[._a-zA-Z]* ||
+                    $name =~ ^${excluded_pattern^^}[._a-zA-Z]*
+                ]]; then
                     excluded=true
                     break
                 fi
@@ -431,10 +452,21 @@ bl_module_import_raw() {
         error: Failed to source module "bashlink.not_existing".
         1
     '
+    # NOTE: Declare all locals before taking snapshots of declared names.
+    local -i return_code=0
+    local declared_names_before_source=''
+    local track_nested_declared_names=false
+    if \
+        $BL_MODULE_TRACK_NESTED_DECLARED_NAMES && \
+        (( BL_MODULE_IMPORT_LEVEL > 0 ))
+    then
+        track_nested_declared_names=true
+        declared_names_before_source="$(bl.module.determine_declared_names)"
+    fi
     BL_MODULE_IMPORT_LEVEL=$((BL_MODULE_IMPORT_LEVEL + 1))
     # shellcheck disable=SC1090
     source "$1"
-    local -i return_code=$?
+    return_code=$?
     if \
         $BL_MODULE_TIDY_UP && \
         [[ "$1" == "$BL_MODULE_REMOTE_MODULE_CACHE_PATH"* ]]
@@ -446,6 +478,30 @@ bl_module_import_raw() {
             return $?
     fi
     BL_MODULE_IMPORT_LEVEL=$((BL_MODULE_IMPORT_LEVEL - 1))
+    if $track_nested_declared_names; then
+        BL_MODULE_NESTED_DECLARED_NAMES+="$(
+            ! diff \
+                <(echo "$declared_names_before_source") \
+                <(bl.module.determine_declared_names) | \
+                    command grep '^>' | \
+                        command sed "s/^> /${BL_MODULE_IMPORT_LEVEL} /"
+        )"$'\n'
+    fi
+}
+alias bl.module.get_nested_declared_names=bl_module_get_nested_declared_names
+bl_module_get_nested_declared_names() {
+    local -r __documentation__='
+        Prints names introduced by imports nested deeper than current import
+        level (see "BL_MODULE_NESTED_DECLARED_NAMES").
+
+        >>> local BL_MODULE_IMPORT_LEVEL=1
+        >>> local BL_MODULE_NESTED_DECLARED_NAMES=$'"'"'1 a\n2 b\n3 c\n'"'"'
+        >>> bl.module.get_nested_declared_names
+        b
+        c
+    '
+    echo "$BL_MODULE_NESTED_DECLARED_NAMES" | \
+        command awk -v level="$BL_MODULE_IMPORT_LEVEL" '$1 > level {print $2}'
 }
 # NOTE: Depends on "bl.module.log"
 alias bl.module.import_with_namespace_check=bl_module_import_with_namespace_check
@@ -467,38 +523,36 @@ bl_module_import_with_namespace_check() {
     local -r variable_scope_name_prefix="$(
         bl.module.rewrite_global_scope_name "${scope_name^^}"
     )"
-
-    if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
-        BL_MODULE_DECLARED_FUNCTION_NAMES_BEFORE_SOURCE_FILE_PATH="$(
-            mktemp \
-                --suffix="-bashlink-module-declared-function-names-before-source-${scope_name}"
-        )"
-    fi
-    BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE=''
-
+    # NOTE: Each call needs its own snapshots since imports can be nested.
+    local -r declared_function_names_before_source_file_path="$(
+        mktemp \
+            --suffix="-bashlink-module-declared-function-names-before-source-${scope_name}"
+    )"
+    local -r declared_names_before_source_file_path="$(
+        mktemp \
+            --suffix="-bashlink-module-declared-names-before-source-${scope_name}"
+    )"
     local -r declared_names_after_source_file_path="$(
         mktemp \
             --suffix="-bashlink-module-declared-names-after-source-${scope_name}"
     )"
+    if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
+        BL_MODULE_NESTED_DECLARED_NAMES=''
+        BL_MODULE_TRACK_NESTED_DECLARED_NAMES=true
+    fi
+    BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE=''
     # NOTE: All unprefixed variables which are declared after
     # "bl.module.determine_declared_names" will be interpreted as newly
     # introduced variables from given module.
     local name
+    local new_declared_names
     # region "do not declare any variable" area
     bl.module.determine_declared_names \
         --only-functions \
-        >"$BL_MODULE_DECLARED_FUNCTION_NAMES_BEFORE_SOURCE_FILE_PATH"
-
-    if [ "$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH" = '' ]; then
-        BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH="$(
-            mktemp \
-                --suffix="-bashlink-module-declared-names-before-source-${scope_name}"
-        )"
-    fi
-
+        >"$declared_function_names_before_source_file_path"
     ## region check if scope is clean before sourcing
     bl.module.determine_declared_names \
-        >"$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH"
+        >"$declared_names_before_source_file_path"
 
     if $BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK; then
         while read -r name; do
@@ -512,21 +566,29 @@ bl_module_import_with_namespace_check() {
                     "already defined." \
                     1>&2
             fi
-        done < "$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH"
+        done < "$declared_names_before_source_file_path"
     fi
     ## endregion
     bl.module.import_raw "$file_path"
+    if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
+        BL_MODULE_TRACK_NESTED_DECLARED_NAMES=false
+    fi
     # Check if sourcing has introduced unprefixed names.
     bl.module.determine_declared_names \
         >"$declared_names_after_source_file_path"
     # endregion
-    local new_declared_names
+    # NOTE: Names of nested imports have been checked by their own import.
     new_declared_names="$(
         ! diff \
-            "$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH" \
+            "$declared_names_before_source_file_path" \
             "$declared_names_after_source_file_path" | \
                 command grep -e "^>" | \
-                    command sed 's/^> //'
+                    command sed 's/^> //' | \
+                        command grep \
+                            --fixed-strings \
+                            --invert-match \
+                            --line-regexp \
+                            --file <(bl.module.get_nested_declared_names)
     )"
     for name in $new_declared_names; do
         if \
@@ -543,34 +605,25 @@ bl_module_import_with_namespace_check() {
                 1>&2
         fi
     done
-    # Mark names which we already warned about as checked.
-    bl.module.determine_declared_names \
-        >"$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH"
-    rm "$declared_names_after_source_file_path"
     # NOTE: This part is only needed for module introspection features.
     if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
-        rm "$BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH"
-        BL_MODULE_DECLARED_NAMES_BEFORE_SOURCE_FILE_PATH=''
-        BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE_FILE_PATH="$(
-            mktemp \
-                --suffix=-bashlink-module-declared-names-after-source-"$scope_name"
+        BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE="$(
+            ! diff \
+                "$declared_function_names_before_source_file_path" \
+                <(bl.module.determine_declared_names --only-functions) | \
+                    command grep '^>' | \
+                        command sed 's/^> //' | \
+                            command grep \
+                                --fixed-strings \
+                                --invert-match \
+                                --line-regexp \
+                                --file <(bl.module.get_nested_declared_names)
         )"
-        bl.module.determine_declared_names \
-            --only-functions \
-            >"$BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE_FILE_PATH"
-        BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE="$(! diff \
-            "$BL_MODULE_DECLARED_FUNCTION_NAMES_BEFORE_SOURCE_FILE_PATH" \
-            "$BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE_FILE_PATH" | \
-                command grep '^>' | \
-                    command sed 's/^> //'
-        )"
-        rm "$BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE_FILE_PATH"
-        rm "$BL_MODULE_DECLARED_FUNCTION_NAMES_BEFORE_SOURCE_FILE_PATH"
-    elif (( BL_MODULE_IMPORT_LEVEL == 1 )); then
-        bl.module.determine_declared_names \
-            --only-functions \
-            >"$BL_MODULE_DECLARED_FUNCTION_NAMES_BEFORE_SOURCE_FILE_PATH"
     fi
+    rm \
+        "$declared_function_names_before_source_file_path" \
+        "$declared_names_before_source_file_path" \
+        "$declared_names_after_source_file_path"
 }
 # NOTE: Depends on "bl.module.import_raw" and "bl.module.import_with_namespace_check"
 alias bl.module.import=bl_module_import
@@ -617,6 +670,15 @@ bl_module_import() {
         imported module c
         introduces a global unprefixed name: "foo123". Maybe it should be
         foo123
+
+        Functions of nested imports are not attributed to the importing
+        module, even if they are imported without namespace check.
+
+        >>> (
+        >>>     bl.module.import bashlink.mockup.d
+        >>>     echo $BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE
+        >>> )
+        bl_mockup_d_after bl_mockup_d_before
     '
     local caller_file_path="${BASH_SOURCE[1]}"
     if (( $# == 2 )); then
