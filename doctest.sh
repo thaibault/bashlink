@@ -377,6 +377,25 @@ bl_doctest_compare_result() {
         fi
     done 3<<< "$buffer" 4<<< "$got"
 }
+alias bl.doctest.contains_tests=bl_doctest_contains_tests
+bl_doctest_contains_tests() {
+    local -r __documentation__='
+        Checks if given docstring contains at least one test.
+
+        >>> bl.doctest.contains_tests "
+        >>>     Some text.
+        >>>
+        >>>     >>> echo test
+        >>>     test
+        >>> "; echo $?
+        0
+
+        >>> bl.doctest.contains_tests "Only text mentioning >>> inline."; \
+        >>>     echo $?
+        1
+    '
+    [[ $'\n'"$1" =~ $'\n'[[:space:]]*'>>>' ]]
+}
 alias bl.doctest.eval=bl_doctest_eval
 bl_doctest_eval() {
     local -r __documentation__='
@@ -871,12 +890,13 @@ bl_doctest_test() {
     )"
     local -i success=0
     local -i total=0
+    local -i untested=0
     # NOTE: "jobs -p" omits already finished jobs, so we have to remember the
     # process ids to not miss any (failing) result.
     local -a subprocess_ids=()
     if [ -d "$file_path" ]; then
         shopt -s nullglob
-        local file_paths=(*)
+        local file_paths=("${file_path}"/*)
         if (( ${#file_paths[@]} > 1 )); then
             BL_DOCTEST_IS_SYNCHRONIZED=false
         fi
@@ -990,6 +1010,8 @@ bl_doctest_test() {
             local docstring="${!module_documentation_variable_name}"
             if [ "$docstring" = '' ]; then
                 bl.logging.warn "Module \"${module_name}\" is not documented."
+            elif ! bl.doctest.contains_tests "$docstring"; then
+                (( untested++ ))
             else
                 (( total++ ))
                 bl.doctest.run_test "$docstring" "$module_name" && \
@@ -1001,7 +1023,12 @@ bl_doctest_test() {
         for name in $function_names_to_test; do
             # shellcheck disable=SC2089
             local docstring="$(bl.doctest.get_function_docstring "$name")"
-            if [[ "$docstring" != '' ]]; then
+            if \
+                [[ "$docstring" != '' ]] && \
+                ! bl.doctest.contains_tests "$docstring"
+            then
+                (( untested++ ))
+            elif [[ "$docstring" != '' ]]; then
                 (( total++ ))
                 bl.doctest.run_test "$docstring" "$module_name" "$name" && \
                     (( success++ ))
@@ -1012,8 +1039,12 @@ bl_doctest_test() {
                 bl.logging.warn "Function \"${name}\" is not documented."
             fi
         done
-        bl.logging.info "$module_name - passed $success/$total tests in" \
-            "$(bl.time.get_elapsed) ms from \"${module_name}\"."
+        local untested_description=''
+        (( untested > 0 )) && \
+            untested_description=" (${untested} documented without tests)"
+        bl.logging.info \
+            "$module_name - passed $success/$total tests${untested_description}" \
+            "in $(bl.time.get_elapsed) ms from \"${module_name}\"."
         (( success != total )) && \
             exit 1
         exit 0
