@@ -721,6 +721,8 @@ bl_logging_set_command_output_off() {
 
         >>> bl.logging.set_command_output_off
         >>> echo test
+        >>> bl.logging.plain logging output is still shown
+        logging output is still shown
     '
     bl.logging.set_file_descriptors \
         "$BL_LOGGING_FILE_PATH" \

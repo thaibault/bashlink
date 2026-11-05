@@ -56,6 +56,11 @@ bl_arguments_apply_new() {
         Call this function after you are finished with argument parsing. The
         arguments array ($@) will then contain all unparsed arguments that are
         left.
+
+        >>> bl.arguments.set a "b c"
+        >>> bl.arguments.apply_new
+        >>> echo "$#: $2"
+        2: b c
     '
     # NOTE: Implemented as alias.
     true
@@ -236,6 +241,10 @@ bl_arguments_set() {
         ```
             bl.arguments.set argument1 argument2 ...
         ```
+
+        >>> bl.arguments.set a "b c"
+        >>> echo "${#BL_ARGUMENTS_NEW[@]}: ${BL_ARGUMENTS_NEW[1]}"
+        2: b c
     '
     BL_ARGUMENTS_NEW=("$@")
 }
@@ -262,6 +271,14 @@ bl_arguments_wrapper_with_minimum_number_of_arguments() {
         >>>         $(bl.arguments.wrapper_with_minimum_number_of_arguments 3 2 \
         >>>         all --log-level warning $@)
         >>> }
+        >>> _
+        >>> _ a
+        >>> _ a b
+        >>> _ a b c
+        sub_program all --log-level warning
+        sub_program all --log-level warning
+        sub_program a b
+        sub_program a b c
     '
     if [ $# -le $(( $1 + $2 + 1 )) ]; then
         # Output default arguments.
@@ -289,6 +306,12 @@ bl_arguments_default_wrapper() {
         >>>     echo sub_program $(bl.arguments.default_wrapper 3 all \
         >>>         --log-level warning $@)
         >>> }
+        >>> _
+        >>> _ a
+        >>> _ a b
+        sub_program all --log-level warning
+        sub_program a
+        sub_program a b
     '
     # shellcheck disable=SC2068,SC2086
     bl.arguments.wrapper_with_minimum_number_of_arguments $1 1 ${@:2}
