@@ -217,6 +217,12 @@ alias bl.module.determine_aliases=bl_module_determine_aliases
 bl_module_determine_aliases() {
     local -r __documentation__='
         Returns all defined aliases in the current scope.
+
+        >>> alias bl_module_test_alias=true
+        >>> bl.module.determine_aliases | grep --line-regexp bl_module_test_alias
+        >>> bl.module.determine_aliases | grep --line-regexp bl.module.import
+        bl_module_test_alias
+        bl.module.import
     '
     alias | \
         command grep '^alias' | \
@@ -235,6 +241,24 @@ bl_module_determine_declared_names() {
                 bl.module.determine_declared_names --only-functions
             )"
         ```
+
+        >>> bl_module_test_function() { :; }
+        >>> declare -g BL_MODULE_TEST_VARIABLE=1
+        >>> bl.module.determine_declared_names | \
+        >>>     grep --line-regexp bl_module_test_function
+        >>> bl.module.determine_declared_names | \
+        >>>     grep --line-regexp BL_MODULE_TEST_VARIABLE
+        bl_module_test_function
+        BL_MODULE_TEST_VARIABLE
+
+        >>> bl_module_test_function() { :; }
+        >>> declare -g BL_MODULE_TEST_VARIABLE=1
+        >>> bl.module.determine_declared_names --only-functions | \
+        >>>     grep --line-regexp bl_module_test_function
+        >>> bl.module.determine_declared_names --only-functions | \
+        >>>     grep --count --line-regexp BL_MODULE_TEST_VARIABLE
+        bl_module_test_function
+        0
     '
     local only_functions=false
     if [ "$1" = '--only-functions' ]; then

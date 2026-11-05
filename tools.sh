@@ -191,6 +191,22 @@ bl_tools_run_with_appended_shebang() {
                 argument1 \
                 argument2
         ```
+
+        >>> local file_path="$(bl_tools_bl_doctest_mktemp)"
+        >>> echo "#!/usr/bin/env bash" >"$file_path"
+        >>> echo "echo \"\$#: \$2\"; exit 4" >>"$file_path"
+        >>> bl.tools.run_with_appended_shebang -- "$file_path" a "b c"; echo $?
+        2: b c
+        4
+
+        Arguments before "--" are appended to the shebang command:
+
+        >>> local file_path="$(bl_tools_bl_doctest_mktemp)"
+        >>> echo "#!/usr/bin/env cat" >"$file_path"
+        >>> echo content >>"$file_path"
+        >>> bl.tools.run_with_appended_shebang -e -- "$file_path"
+        #!/usr/bin/env cat$
+        content$
     '
     local shebang_arguments=''
     local arguments=''

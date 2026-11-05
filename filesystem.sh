@@ -673,11 +673,27 @@ bl_filesystem_show_symbolic_links() {
         ```bash
             bl.filesystem.show_symbolic_links /home
         ```
+
+        >>> local directory_path="$(bl_filesystem_bl_doctest_mktemp --directory)"
+        >>> touch "${directory_path}/target"
+        >>> ln --symbolic target "${directory_path}/link"
+        >>> mkdir "${directory_path}/sub"
+        >>> ln --symbolic ../target "${directory_path}/sub/link"
+        >>> bl.filesystem.show_symbolic_links "$directory_path" | \
+        >>>     sed "s:${directory_path}/::" | \
+        >>>         sort
+        link -> target
+        sub/link -> ../target
+
+        >>> cd "$(bl_filesystem_bl_doctest_mktemp --directory)"
+        >>> ln --symbolic target link
+        >>> bl.filesystem.show_symbolic_links
+        ./link -> target
     '
     local element
-    command find "$1" -type l -print0 | while IFS= read -r -d '' element; do
-        bl.logging.plain "${element} -> "
-        readlink "$element"
+    command find "${1:-.}" -type l -print0 | while IFS= read -r -d '' element
+    do
+        echo "${element} -> $(readlink "$element")"
     done
 }
 ## endregion
