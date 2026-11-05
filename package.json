@@ -81,8 +81,7 @@
       "deDE",
       "enUS"
     ],
-    "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->",
-    "trackingCode": "UA-40192634-14"
+    "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->"
   },
   "resolutions": {
     "decompress": "npm:@xhmikosr/decompress@^11.1.4"
