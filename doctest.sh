@@ -871,6 +871,9 @@ bl_doctest_test() {
     )"
     local -i success=0
     local -i total=0
+    # NOTE: "jobs -p" omits already finished jobs, so we have to remember the
+    # process ids to not miss any (failing) result.
+    local -a subprocess_ids=()
     if [ -d "$file_path" ]; then
         shopt -s nullglob
         local file_paths=(*)
@@ -918,12 +921,13 @@ bl_doctest_test() {
                                     --regexp-extended \
                                     "s:${function_scope_name_prefix}/([^/]+):${function_scope_name_prefix}.\1:"
                         )")" &
+                    subprocess_ids+=("$!")
                 fi
             fi
         done
         if ! $BL_DOCTEST_SYNCHRONIZED; then
             local -i subprocess_id
-            for subprocess_id in $(jobs -p); do
+            for subprocess_id in "${subprocess_ids[@]}"; do
                 (( total++ ))
                 wait "$subprocess_id" && \
                     (( success++ ))
@@ -1063,6 +1067,9 @@ bl_doctest_main() {
     local item_names=''
     local -i success=0
     local -i total=0
+    # NOTE: "jobs -p" omits already finished jobs, so we have to remember the
+    # process ids to not miss any (failing) result.
+    local -a subprocess_ids=()
     if [ "$#" = 0 ]; then
         item_names=bashlink
         if $BL_DOCTEST_SYNCHRONIZED; then
@@ -1071,6 +1078,7 @@ bl_doctest_main() {
                 (( success++ ))
         else
             bl.doctest.test bashlink &
+            subprocess_ids+=("$!")
         fi
     else
         # Reset global environment.
@@ -1098,6 +1106,7 @@ bl_doctest_main() {
                     (( success++ ))
             else
                 bl.doctest.test "$module_name" "$function_name" &
+                subprocess_ids+=("$!")
             fi
             item_names+="$name"
         done
@@ -1105,7 +1114,7 @@ bl_doctest_main() {
 
     if ! $BL_DOCTEST_SYNCHRONIZED; then
         local -i subprocess_id
-        for subprocess_id in $(jobs -p); do
+        for subprocess_id in "${subprocess_ids[@]}"; do
             (( total++ ))
             wait "$subprocess_id" && \
                 (( success++ ))
