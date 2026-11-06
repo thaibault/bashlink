@@ -367,8 +367,10 @@ bl_module_is_defined() {
     (
         set +o nounset
         if \
-            ((BASH_VERSINFO[0] >= 4)) && \
-            ((BASH_VERSINFO[1] >= 3)) && \
+            ((
+                BASH_VERSINFO[0] > 4 ||
+                (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 3)
+            )) && \
             [ "$BL_MODULE_BASH_VERSION_TEST" = '' ]
         then
             [[ -v "${1:-}" ]] || \
