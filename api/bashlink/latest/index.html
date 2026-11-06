@@ -496,6 +496,11 @@ variable=$(bl.dictionary.get dictionary_name key)
 ```
 ```bash
 >>> bl.dictionary.set map foo 2
+>>> bl.dictionary.get map ""; echo $?
+1
+```
+```bash
+>>> bl.dictionary.set map foo 2
 >>> bl.dictionary.set map bar 1
 >>> bl.dictionary.get map foo
 >>> bl.dictionary.get map bar
@@ -2018,7 +2023,9 @@ test
 Central module import mechanism. To scope modules and ensure running each
 module only once.
 ### Function bl_module_check_name
-Checks if given name belongs to given scope.
+Checks if given name belongs to given scope. The optional third
+argument selects which allowed scope name prefixes are accepted
+additionally: "function", "global", "none" or both if not set.
 
 ```bash
 >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
@@ -2060,16 +2067,25 @@ A scope has to be followed by a delimiter:
 >>> bl.module.check_name "bl_c_enable_color" "bl.c"; echo $?
 0
 ```
-Names starting with an allowed scope name prefix or its uppercase
-variant are accepted as well:
+Names starting with an allowed function or global scope name prefix
+are accepted as well (case sensitive):
 
 ```bash
->>> local BL_MODULE_ALLOWED_SCOPE_NAME_PREFIXES=(abc)
+>>> local BL_MODULE_ALLOWED_FUNCTION_SCOPE_NAME_PREFIXES=(abc)
+>>> local BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES=(ABC)
+>>> bl.module.check_name "abc_foo" "bl_module" function; echo $?
+>>> bl.module.check_name "ABC_FOO" "bl_module" function; echo $?
+>>> bl.module.check_name "ABC_FOO" "bl_module" global; echo $?
+>>> bl.module.check_name "abc_foo" "bl_module" global; echo $?
 >>> bl.module.check_name "abc_foo" "bl_module"; echo $?
->>> bl.module.check_name "ABC_FOO" "bl_module"; echo $?
+>>> bl.module.check_name "abc_foo" "bl_module" none; echo $?
 >>> bl.module.check_name "xyz_foo" "bl_module"; echo $?
 0
+1
 0
+1
+0
+1
 1
 ```
 ### Function bl_module_determine_aliases
@@ -2149,6 +2165,16 @@ imported module c
 introduces a global unprefixed name: "foo123". Maybe it should be
 imported module b
 ```
+Variables configured via environment do not dirty the scope of a
+module.
+
+```bash
+>>> (
+>>>     export BL_MOCKUP_A_CONFIGURATION=value
+>>>     bl.module.import bashlink.mockup.a
+>>> )
+imported module a
+```
 Modules should be imported only once.
 
 ```bash
@@ -2188,6 +2214,16 @@ module, even if they are imported without namespace check.
 >>>     echo $BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE
 >>> )
 bl_mockup_d_after bl_mockup_d_before
+```
+Modules can shorten their own scope name via scope rewrites.
+
+```bash
+>>> (
+>>>     bl.module.import bashlink.logging
+>>>     bl_logging_set_level warn
+>>>     bl.module.import bashlink.mockup.e
+>>> ) 2>&1 | grep --invert-match "^imported module"
+warning: Module "bashlink.mockup.e" introduces a global unprefixed name: "unprefixed_function". Maybe it should be prefixed with "e", "e" or "E".
 ```
 ### Function bl_module_import_raw
 Imports given module into current scope.

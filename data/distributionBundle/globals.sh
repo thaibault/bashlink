@@ -13,6 +13,7 @@
 declare -gr BL_GLOBALS__DOCUMENTATION__='
     The globals module provides generic re-usable variables.
 '
+# NOTE: Globals of "bashlink.globals" are meant to be configured by consumers.
 declare -g BL_GLOBALS_CONFIGURATION_PATH=~/configuration/
 declare -g BL_GLOBALS_DATA_PATH=~/
 declare -g BL_GLOBALS_USER_E_MAIL_ADDRESS=example@domain.tld

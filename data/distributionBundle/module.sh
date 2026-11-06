@@ -82,8 +82,6 @@ declare -ag BL_MODULE_ALLOWED_NAMES=(
     HISTSIZE
     LINES
 )
-# NOTE: Globals of "bashlink.globals" are meant to be configured by consumers.
-declare -ag BL_MODULE_ALLOWED_SCOPE_NAME_PREFIXES=(BL_GLOBALS)
 declare -g BL_MODULE_BASH_VERSION_TEST=''
 declare -g BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE=''
 declare -g BL_MODULE_DECLARED_NAMES_AFTER_SOURCE=''
@@ -137,8 +135,15 @@ then
     )"
     BL_MODULE_TIDY_UP=true
 fi
+## region module scope check configurations
 declare -g BL_MODULE_PREVENT_NAMESPACE_CHECK=true
 declare -g BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK=true
+# NOTE: Modules can append their own rules right after sourcing this file to
+# shorten their scope name (applied after the defaults, so "-" is already
+# replaced), e.g. for module "module-name":
+#     BL_MODULE_FUNCTION_SCOPE_REWRITES+=('^modulename$/mn/')
+#     BL_MODULE_GLOBAL_SCOPE_REWRITES+=('^MODULENAME$/MN/')
+# They are evaluated after sourcing the module.
 declare -ag BL_MODULE_FUNCTION_SCOPE_REWRITES=(
     '^bashlink(([._][a-zA-Z_-]+)+)$/bl\1/'
     '[^a-zA-Z0-9._]/./g'
@@ -147,6 +152,10 @@ declare -ag BL_MODULE_GLOBAL_SCOPE_REWRITES=(
     '^BASHLINK(([._][a-zA-Z_-]+)+)$/BL\1/'
     '[^a-zA-Z0-9_]/_/g'
 )
+# NOTE: Additional scope name prefixes accepted in any module (case sensitive):
+declare -ag BL_MODULE_ALLOWED_FUNCTION_SCOPE_NAME_PREFIXES=()
+declare -ag BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES=(BL_GLOBALS)
+## endregion
 # NOTE: The checksum invalidates cached resolutions whenever the resolving
 # logic changes (e.g. after an update). Modification times are not reliable
 # since npm normalizes them.
@@ -158,7 +167,9 @@ declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-r
 alias bl.module.check_name=bl_module_check_name
 bl_module_check_name() {
     local -r __documentation__='
-        Checks if given name belongs to given scope.
+        Checks if given name belongs to given scope. The optional third
+        argument selects which allowed scope name prefixes are accepted
+        additionally: "function", "global", "none" or both if not set.
 
         >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
         0
@@ -191,15 +202,24 @@ bl_module_check_name() {
         >>> bl.module.check_name "bl_c_enable_color" "bl.c"; echo $?
         0
 
-        Names starting with an allowed scope name prefix or its uppercase
-        variant are accepted as well:
+        Names starting with an allowed function or global scope name prefix
+        are accepted as well (case sensitive):
 
-        >>> local BL_MODULE_ALLOWED_SCOPE_NAME_PREFIXES=(abc)
+        >>> local BL_MODULE_ALLOWED_FUNCTION_SCOPE_NAME_PREFIXES=(abc)
+        >>> local BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES=(ABC)
+        >>> bl.module.check_name "abc_foo" "bl_module" function; echo $?
+        >>> bl.module.check_name "ABC_FOO" "bl_module" function; echo $?
+        >>> bl.module.check_name "ABC_FOO" "bl_module" global; echo $?
+        >>> bl.module.check_name "abc_foo" "bl_module" global; echo $?
         >>> bl.module.check_name "abc_foo" "bl_module"; echo $?
-        >>> bl.module.check_name "ABC_FOO" "bl_module"; echo $?
+        >>> bl.module.check_name "abc_foo" "bl_module" none; echo $?
         >>> bl.module.check_name "xyz_foo" "bl_module"; echo $?
         0
+        1
         0
+        1
+        0
+        1
         1
     '
     local -r name="$1"
@@ -213,14 +233,21 @@ bl_module_check_name() {
         "$name" =~ ^"${alternate_resolved_scope_name}"([._]|$) \
     ]]; then
         local excluded=false
-        if [[ -z "$3" ]]; then
+        if [[ "$3" != none ]]; then
+            local -a excluded_patterns=()
+            if [[ "$3" != global ]]; then
+                excluded_patterns+=(
+                    "${BL_MODULE_ALLOWED_FUNCTION_SCOPE_NAME_PREFIXES[@]}"
+                )
+            fi
+            if [[ "$3" != function ]]; then
+                excluded_patterns+=(
+                    "${BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES[@]}"
+                )
+            fi
             local excluded_pattern
-            for excluded_pattern in "${BL_MODULE_ALLOWED_SCOPE_NAME_PREFIXES[@]}"; do
-                # NOTE: Uppercase variants (e.g. for globals) are allowed too.
-                if [[
-                    $name =~ ^${excluded_pattern}[._a-zA-Z]* ||
-                    $name =~ ^${excluded_pattern^^}[._a-zA-Z]*
-                ]]; then
+            for excluded_pattern in "${excluded_patterns[@]}"; do
+                if [[ $name =~ ^${excluded_pattern}[._a-zA-Z]* ]]; then
                     excluded=true
                     break
                 fi
@@ -340,8 +367,10 @@ bl_module_is_defined() {
     (
         set +o nounset
         if \
-            ((BASH_VERSINFO[0] >= 4)) && \
-            ((BASH_VERSINFO[1] >= 3)) && \
+            ((
+                BASH_VERSINFO[0] > 4 ||
+                (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 3)
+            )) && \
             [ "$BL_MODULE_BASH_VERSION_TEST" = '' ]
         then
             [[ -v "${1:-}" ]] || \
@@ -516,11 +545,13 @@ bl_module_import_with_namespace_check() {
     '
     local -r file_path="$1"
     local -r scope_name="$2"
-    local -r function_scope_name_prefix="$(
+    # NOTE: Prefixes are determined again after sourcing since the module can
+    # add its own scope rewrites.
+    local function_scope_name_prefix="$(
         bl.module.rewrite_function_scope_name "$scope_name"
     )"
-    local -r alternate_function_scope_name_prefix="${function_scope_name_prefix//./_}"
-    local -r variable_scope_name_prefix="$(
+    local alternate_function_scope_name_prefix="${function_scope_name_prefix//./_}"
+    local variable_scope_name_prefix="$(
         bl.module.rewrite_global_scope_name "${scope_name^^}"
     )"
     # NOTE: Each call needs its own snapshots since imports can be nested.
@@ -556,9 +587,15 @@ bl_module_import_with_namespace_check() {
 
     if $BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK; then
         while read -r name; do
+            # NOTE: Exported variables are configurations given via
+            # environment (e.g. "BL_GLOBALS_*") and therefore expected.
             if \
-                bl.module.check_name "$name" "$function_scope_name_prefix" true || \
-                bl.module.check_name "$name" "$variable_scope_name_prefix" true
+                [[ "${!name@a}" != *x* ]] && {
+                    bl.module.check_name \
+                        "$name" "$function_scope_name_prefix" none || \
+                    bl.module.check_name \
+                        "$name" "$variable_scope_name_prefix" none
+                }
             then
                 bl.module.log warn \
                     "Namespace \"${alternate_function_scope_name_prefix}\" in" \
@@ -570,6 +607,13 @@ bl_module_import_with_namespace_check() {
     fi
     ## endregion
     bl.module.import_raw "$file_path"
+    function_scope_name_prefix="$(
+        bl.module.rewrite_function_scope_name "$scope_name"
+    )"
+    alternate_function_scope_name_prefix="${function_scope_name_prefix//./_}"
+    variable_scope_name_prefix="$(
+        bl.module.rewrite_global_scope_name "${scope_name^^}"
+    )"
     if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
         BL_MODULE_TRACK_NESTED_DECLARED_NAMES=false
     fi
@@ -592,8 +636,9 @@ bl_module_import_with_namespace_check() {
     )"
     for name in $new_declared_names; do
         if \
-            ! bl.module.check_name "$name" "$function_scope_name_prefix" && \
-            ! bl.module.check_name "$name" "$variable_scope_name_prefix"
+            ! bl.module.check_name \
+                "$name" "$function_scope_name_prefix" function && \
+            ! bl.module.check_name "$name" "$variable_scope_name_prefix" global
         then
             bl.module.log \
                 warn \
@@ -646,6 +691,15 @@ bl_module_import() {
         introduces a global unprefixed name: "foo123". Maybe it should be
         imported module b
 
+        Variables configured via environment do not dirty the scope of a
+        module.
+
+        >>> (
+        >>>     export BL_MOCKUP_A_CONFIGURATION=value
+        >>>     bl.module.import bashlink.mockup.a
+        >>> )
+        imported module a
+
         Modules should be imported only once.
 
         >>> (
@@ -679,6 +733,15 @@ bl_module_import() {
         >>>     echo $BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE
         >>> )
         bl_mockup_d_after bl_mockup_d_before
+
+        Modules can shorten their own scope name via scope rewrites.
+
+        >>> (
+        >>>     bl.module.import bashlink.logging
+        >>>     bl_logging_set_level warn
+        >>>     bl.module.import bashlink.mockup.e
+        >>> ) 2>&1 | grep --invert-match "^imported module"
+        warning: Module "bashlink.mockup.e" introduces a global unprefixed name: "unprefixed_function". Maybe it should be prefixed with "e", "e" or "E".
     '
     local caller_file_path="${BASH_SOURCE[1]}"
     if (( $# == 2 )); then
@@ -800,19 +863,27 @@ bl_module_resolve() {
         /bashlink/mockup/a.sh/bashlink.mockup.a
     '
     # NOTE: We have to declare variable first to avoid shadowing the return
-    # code coming from "grep".
+    # code coming from "awk". Only exact matches of all given arguments with an
+    # absolute result count (e.g. "logging" should not hit
+    # "bashlink.logging").
     local cached_result
     if \
         cached_result="$(
-            command grep \
-                --max-count 1 \
-                "$1##$2##$3##" \
+            command awk \
+                -F '##' \
+                -v reference="$1" \
+                -v second="$2" \
+                -v third="$3" \
+                '
+                    $1 == reference && $2 == second && $3 == third &&
+                    $4 ~ /^\// {
+                        print $4
+                        found = 1
+                        exit
+                    }
+                    END {exit !found}
+                ' \
                 "$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH" \
-                    2>/dev/null
-        )" && \
-        cached_result="$(
-            echo "$cached_result" | \
-                command sed --regexp-extended 's/^.+##.*##.*##(.+)$/\1/' \
                     2>/dev/null
         )"
     then
@@ -979,12 +1050,11 @@ bl_module_resolve() {
         result="$(bl.path.convert_to_absolute "$file_path")"
     fi
 
+    # NOTE: Only append (a single short write) since concurrent imports (e.g.
+    # parallel doctests) share this file and rewriting it in place could hand
+    # out partial content.
     echo "$1##$2##$3##$result" >>"$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH"
     chmod o+rw "$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH" &>/dev/null
-    sort \
-        --output \
-        "$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH" \
-        "$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH"
 
     if $BL_MODULE_SYNC_BEFORE_RESOLVE; then
         sync

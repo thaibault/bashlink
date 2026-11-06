@@ -533,8 +533,10 @@ EOF
         bl.string.get_unique_lines <<< "$BL_DOCTEST_NEW_DECLARED_NAMES" | \
             while read -r name; do
                 if \
-                    ! bl.module.check_name "$name" "$function_scope_name_prefix" && \
-                    ! bl.module.check_name "$name" "$global_scope_name_prefix"
+                    ! bl.module.check_name \
+                        "$name" "$function_scope_name_prefix" function && \
+                    ! bl.module.check_name \
+                        "$name" "$global_scope_name_prefix" global
                 then
                     bl.logging.warn \
                         "Test for \"$test_name\" in module \"$module_name\"" \

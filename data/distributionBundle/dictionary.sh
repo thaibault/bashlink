@@ -14,6 +14,8 @@
 # shellcheck source=./module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/module.sh"
 bl.module.import bashlink.tools
+# NOTE: Stores are created in the scope of the module using a dictionary.
+BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES+=(BL_DICTIONARY_STORE)
 # endregion
 # region variables
 declare -gr BL_DICTIONARY__DOCUMENTATION__='
@@ -34,6 +36,10 @@ bl_dictionary_get() {
         1
         >>> BL_DICTIONARY_BASH_VERSION_TEST=true
         >>> bl.dictionary.get unset_map unset_value; echo $?
+        1
+
+        >>> bl.dictionary.set map foo 2
+        >>> bl.dictionary.get map ""; echo $?
         1
 
         >>> bl.dictionary.set map foo 2
