@@ -12,10 +12,10 @@
 # region import
 # shellcheck source=../module.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../module.sh"
-# NOTE: Accepts "e_*" and "E_*" names in this module only.
-# shellcheck disable=SC2034
-BL_MODULE_SCOPE_NAME_PREFIX=e
-# NOTE: Nested imports should neither see nor reset this module's prefix.
+# NOTE: Shortens this module's scope to "e_*" and "E_*" names.
+BL_MODULE_FUNCTION_SCOPE_REWRITES+=('^bl\.mockup\.e$/e/')
+BL_MODULE_GLOBAL_SCOPE_REWRITES+=('^BL_MOCKUP_E$/E/')
+# NOTE: Rewrites of this module should not affect nested imports.
 bl.module.import bashlink.mockup.a
 # endregion
 # shellcheck disable=SC2034
