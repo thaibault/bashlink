@@ -82,8 +82,11 @@ declare -ag BL_MODULE_ALLOWED_NAMES=(
     HISTSIZE
     LINES
 )
+# NOTE: Additional scope name prefixes accepted in any module (case sensitive):
+# lowercase ones for functions and uppercase ones for global variables.
+declare -ag BL_MODULE_ALLOWED_FUNCTION_SCOPE_NAME_PREFIXES=()
 # NOTE: Globals of "bashlink.globals" are meant to be configured by consumers.
-declare -ag BL_MODULE_ALLOWED_SCOPE_NAME_PREFIXES=(BL_GLOBALS)
+declare -ag BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES=(BL_GLOBALS)
 declare -g BL_MODULE_BASH_VERSION_TEST=''
 declare -g BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE=''
 declare -g BL_MODULE_DECLARED_NAMES_AFTER_SOURCE=''
@@ -164,7 +167,9 @@ declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-r
 alias bl.module.check_name=bl_module_check_name
 bl_module_check_name() {
     local -r __documentation__='
-        Checks if given name belongs to given scope.
+        Checks if given name belongs to given scope. The optional third
+        argument selects which allowed scope name prefixes are accepted
+        additionally: "function", "global", "none" or both if not set.
 
         >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
         0
@@ -197,15 +202,24 @@ bl_module_check_name() {
         >>> bl.module.check_name "bl_c_enable_color" "bl.c"; echo $?
         0
 
-        Names starting with an allowed scope name prefix or its uppercase
-        variant are accepted as well:
+        Names starting with an allowed function or global scope name prefix
+        are accepted as well (case sensitive):
 
-        >>> local BL_MODULE_ALLOWED_SCOPE_NAME_PREFIXES=(abc)
+        >>> local BL_MODULE_ALLOWED_FUNCTION_SCOPE_NAME_PREFIXES=(abc)
+        >>> local BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES=(ABC)
+        >>> bl.module.check_name "abc_foo" "bl_module" function; echo $?
+        >>> bl.module.check_name "ABC_FOO" "bl_module" function; echo $?
+        >>> bl.module.check_name "ABC_FOO" "bl_module" global; echo $?
+        >>> bl.module.check_name "abc_foo" "bl_module" global; echo $?
         >>> bl.module.check_name "abc_foo" "bl_module"; echo $?
-        >>> bl.module.check_name "ABC_FOO" "bl_module"; echo $?
+        >>> bl.module.check_name "abc_foo" "bl_module" none; echo $?
         >>> bl.module.check_name "xyz_foo" "bl_module"; echo $?
         0
+        1
         0
+        1
+        0
+        1
         1
     '
     local -r name="$1"
@@ -219,14 +233,21 @@ bl_module_check_name() {
         "$name" =~ ^"${alternate_resolved_scope_name}"([._]|$) \
     ]]; then
         local excluded=false
-        if [[ -z "$3" ]]; then
+        if [[ "$3" != none ]]; then
+            local -a excluded_patterns=()
+            if [[ "$3" != global ]]; then
+                excluded_patterns+=(
+                    "${BL_MODULE_ALLOWED_FUNCTION_SCOPE_NAME_PREFIXES[@]}"
+                )
+            fi
+            if [[ "$3" != function ]]; then
+                excluded_patterns+=(
+                    "${BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES[@]}"
+                )
+            fi
             local excluded_pattern
-            for excluded_pattern in "${BL_MODULE_ALLOWED_SCOPE_NAME_PREFIXES[@]}"; do
-                # NOTE: Uppercase variants (e.g. for globals) are allowed too.
-                if [[
-                    $name =~ ^${excluded_pattern}[._a-zA-Z]* ||
-                    $name =~ ^${excluded_pattern^^}[._a-zA-Z]*
-                ]]; then
+            for excluded_pattern in "${excluded_patterns[@]}"; do
+                if [[ $name =~ ^${excluded_pattern}[._a-zA-Z]* ]]; then
                     excluded=true
                     break
                 fi
@@ -564,9 +585,15 @@ bl_module_import_with_namespace_check() {
 
     if $BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK; then
         while read -r name; do
+            # NOTE: Exported variables are configurations given via
+            # environment (e.g. "BL_GLOBALS_*") and therefore expected.
             if \
-                bl.module.check_name "$name" "$function_scope_name_prefix" true || \
-                bl.module.check_name "$name" "$variable_scope_name_prefix" true
+                [[ "${!name@a}" != *x* ]] && {
+                    bl.module.check_name \
+                        "$name" "$function_scope_name_prefix" none || \
+                    bl.module.check_name \
+                        "$name" "$variable_scope_name_prefix" none
+                }
             then
                 bl.module.log warn \
                     "Namespace \"${alternate_function_scope_name_prefix}\" in" \
@@ -607,8 +634,9 @@ bl_module_import_with_namespace_check() {
     )"
     for name in $new_declared_names; do
         if \
-            ! bl.module.check_name "$name" "$function_scope_name_prefix" && \
-            ! bl.module.check_name "$name" "$variable_scope_name_prefix"
+            ! bl.module.check_name \
+                "$name" "$function_scope_name_prefix" function && \
+            ! bl.module.check_name "$name" "$variable_scope_name_prefix" global
         then
             bl.module.log \
                 warn \
@@ -660,6 +688,15 @@ bl_module_import() {
         imported module c
         introduces a global unprefixed name: "foo123". Maybe it should be
         imported module b
+
+        Variables configured via environment do not dirty the scope of a
+        module.
+
+        >>> (
+        >>>     export BL_MOCKUP_A_CONFIGURATION=value
+        >>>     bl.module.import bashlink.mockup.a
+        >>> )
+        imported module a
 
         Modules should be imported only once.
 
