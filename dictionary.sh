@@ -39,6 +39,10 @@ bl_dictionary_get() {
         1
 
         >>> bl.dictionary.set map foo 2
+        >>> bl.dictionary.get map ""; echo $?
+        1
+
+        >>> bl.dictionary.set map foo 2
         >>> bl.dictionary.set map bar 1
         >>> bl.dictionary.get map foo
         >>> bl.dictionary.get map bar
