@@ -138,6 +138,11 @@ then
     BL_MODULE_TIDY_UP=true
 fi
 declare -g BL_MODULE_PREVENT_NAMESPACE_CHECK=true
+# NOTE: Modules can set an additional (abbreviated) scope name prefix right
+# after sourcing this file (e.g. "BL_MODULE_SCOPE_NAME_PREFIX=ai" to accept
+# "ai_main" or "AI_VERBOSE" in module "archinstall"). It only applies to the
+# module currently imported with namespace check.
+declare -g BL_MODULE_SCOPE_NAME_PREFIX=''
 declare -g BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK=true
 declare -ag BL_MODULE_FUNCTION_SCOPE_REWRITES=(
     '^bashlink(([._][a-zA-Z_-]+)+)$/bl\1/'
@@ -523,6 +528,9 @@ bl_module_import_with_namespace_check() {
     local -r variable_scope_name_prefix="$(
         bl.module.rewrite_global_scope_name "${scope_name^^}"
     )"
+    # NOTE: Nested imports have their own prefix configuration.
+    local -r outer_scope_name_prefix="$BL_MODULE_SCOPE_NAME_PREFIX"
+    BL_MODULE_SCOPE_NAME_PREFIX=''
     # NOTE: Each call needs its own snapshots since imports can be nested.
     local -r declared_function_names_before_source_file_path="$(
         mktemp \
@@ -546,6 +554,7 @@ bl_module_import_with_namespace_check() {
     # introduced variables from given module.
     local name
     local new_declared_names
+    local module_scope_name_prefix
     # region "do not declare any variable" area
     bl.module.determine_declared_names \
         --only-functions \
@@ -570,6 +579,8 @@ bl_module_import_with_namespace_check() {
     fi
     ## endregion
     bl.module.import_raw "$file_path"
+    module_scope_name_prefix="$BL_MODULE_SCOPE_NAME_PREFIX"
+    BL_MODULE_SCOPE_NAME_PREFIX="$outer_scope_name_prefix"
     if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
         BL_MODULE_TRACK_NESTED_DECLARED_NAMES=false
     fi
@@ -593,7 +604,14 @@ bl_module_import_with_namespace_check() {
     for name in $new_declared_names; do
         if \
             ! bl.module.check_name "$name" "$function_scope_name_prefix" && \
-            ! bl.module.check_name "$name" "$variable_scope_name_prefix"
+            ! bl.module.check_name "$name" "$variable_scope_name_prefix" && \
+            ! {
+                [ "$module_scope_name_prefix" != '' ] && {
+                    bl.module.check_name "$name" "$module_scope_name_prefix" ||
+                    bl.module.check_name \
+                        "$name" "${module_scope_name_prefix^^}"
+                }
+            }
         then
             bl.module.log \
                 warn \
@@ -679,6 +697,18 @@ bl_module_import() {
         >>>     echo $BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE
         >>> )
         bl_mockup_d_after bl_mockup_d_before
+
+        Modules can declare an additional scope name prefix which only applies
+        to their own names.
+
+        >>> (
+        >>>     bl.module.import bashlink.logging
+        >>>     bl_logging_set_level warn
+        >>>     bl.module.import bashlink.mockup.e
+        >>>     echo "prefix: \"$BL_MODULE_SCOPE_NAME_PREFIX\""
+        >>> ) 2>&1 | grep --invert-match "^imported module"
+        warning: Module "bashlink.mockup.e" introduces a global unprefixed name: "unprefixed_function". Maybe it should be prefixed with "bl.mockup.e", "bl_mockup_e" or "BL_MOCKUP_E".
+        prefix: ""
     '
     local caller_file_path="${BASH_SOURCE[1]}"
     if (( $# == 2 )); then
