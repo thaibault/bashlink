@@ -104,12 +104,8 @@ bl_documentation_generate() {
     local -r module_name="$(
         echo "$result" | \
             command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
-    local -r function_scope_name="$(
+    local function_scope_name="$(
         bl.module.rewrite_function_scope_name "$module_name" | \
-            command sed --regexp-extended 's:\.:_:g'
-    )"
-    local -r globals_scope_name="$(
-        bl.module.rewrite_global_scope_name "${module_name^^}" | \
             command sed --regexp-extended 's:\.:_:g'
     )"
     if [ -d "$file_path" ]; then
@@ -149,6 +145,16 @@ bl_documentation_generate() {
     fi
     (
         bl.module.import "$module_reference" 1>&2
+        # NOTE: Determined after import since the module can add its own scope
+        # rewrites.
+        function_scope_name="$(
+            bl.module.rewrite_function_scope_name "$module_name" | \
+                command sed --regexp-extended 's:\.:_:g'
+        )"
+        local -r globals_scope_name="$(
+            bl.module.rewrite_global_scope_name "${module_name^^}" | \
+                command sed --regexp-extended 's:\.:_:g'
+        )"
         # NOTE: Get all external module prefix and unprefixed function names.
         # shellcheck disable=SC2154
         local declared_function_names="$BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE $(
