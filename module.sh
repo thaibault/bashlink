@@ -82,11 +82,6 @@ declare -ag BL_MODULE_ALLOWED_NAMES=(
     HISTSIZE
     LINES
 )
-# NOTE: Additional scope name prefixes accepted in any module (case sensitive):
-# lowercase ones for functions and uppercase ones for global variables.
-declare -ag BL_MODULE_ALLOWED_FUNCTION_SCOPE_NAME_PREFIXES=()
-# NOTE: Globals of "bashlink.globals" are meant to be configured by consumers.
-declare -ag BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES=(BL_GLOBALS)
 declare -g BL_MODULE_BASH_VERSION_TEST=''
 declare -g BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE=''
 declare -g BL_MODULE_DECLARED_NAMES_AFTER_SOURCE=''
@@ -140,13 +135,14 @@ then
     )"
     BL_MODULE_TIDY_UP=true
 fi
+## region module scope check configurations
 declare -g BL_MODULE_PREVENT_NAMESPACE_CHECK=true
 declare -g BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK=true
 # NOTE: Modules can append their own rules right after sourcing this file to
 # shorten their scope name (applied after the defaults, so "-" is already
-# replaced), e.g. for module "archinstall":
-#     BL_MODULE_FUNCTION_SCOPE_REWRITES+=('^archinstall$/ai/')
-#     BL_MODULE_GLOBAL_SCOPE_REWRITES+=('^ARCHINSTALL$/AI/')
+# replaced), e.g. for module "module-name":
+#     BL_MODULE_FUNCTION_SCOPE_REWRITES+=('^modulename$/mn/')
+#     BL_MODULE_GLOBAL_SCOPE_REWRITES+=('^MODULENAME$/MN/')
 # They are evaluated after sourcing the module.
 declare -ag BL_MODULE_FUNCTION_SCOPE_REWRITES=(
     '^bashlink(([._][a-zA-Z_-]+)+)$/bl\1/'
@@ -156,6 +152,10 @@ declare -ag BL_MODULE_GLOBAL_SCOPE_REWRITES=(
     '^BASHLINK(([._][a-zA-Z_-]+)+)$/BL\1/'
     '[^a-zA-Z0-9_]/_/g'
 )
+# NOTE: Additional scope name prefixes accepted in any module (case sensitive):
+declare -ag BL_MODULE_ALLOWED_FUNCTION_SCOPE_NAME_PREFIXES=()
+declare -ag BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES=(BL_GLOBALS)
+## endregion
 # NOTE: The checksum invalidates cached resolutions whenever the resolving
 # logic changes (e.g. after an update). Modification times are not reliable
 # since npm normalizes them.
