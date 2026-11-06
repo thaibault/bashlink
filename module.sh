@@ -861,19 +861,27 @@ bl_module_resolve() {
         /bashlink/mockup/a.sh/bashlink.mockup.a
     '
     # NOTE: We have to declare variable first to avoid shadowing the return
-    # code coming from "grep".
+    # code coming from "awk". Only exact matches of all given arguments with an
+    # absolute result count (e.g. "logging" should not hit
+    # "bashlink.logging").
     local cached_result
     if \
         cached_result="$(
-            command grep \
-                --max-count 1 \
-                "$1##$2##$3##" \
+            command awk \
+                -F '##' \
+                -v reference="$1" \
+                -v second="$2" \
+                -v third="$3" \
+                '
+                    $1 == reference && $2 == second && $3 == third &&
+                    $4 ~ /^\// {
+                        print $4
+                        found = 1
+                        exit
+                    }
+                    END {exit !found}
+                ' \
                 "$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH" \
-                    2>/dev/null
-        )" && \
-        cached_result="$(
-            echo "$cached_result" | \
-                command sed --regexp-extended 's/^.+##.*##.*##(.+)$/\1/' \
                     2>/dev/null
         )"
     then
@@ -1040,12 +1048,11 @@ bl_module_resolve() {
         result="$(bl.path.convert_to_absolute "$file_path")"
     fi
 
+    # NOTE: Only append (a single short write) since concurrent imports (e.g.
+    # parallel doctests) share this file and rewriting it in place could hand
+    # out partial content.
     echo "$1##$2##$3##$result" >>"$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH"
     chmod o+rw "$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH" &>/dev/null
-    sort \
-        --output \
-        "$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH" \
-        "$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH"
 
     if $BL_MODULE_SYNC_BEFORE_RESOLVE; then
         sync
