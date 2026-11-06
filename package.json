@@ -1,6 +1,6 @@
 {
   "name": "bashlink",
-  "version": "1.0.291",
+  "version": "1.0.292",
   "description": "Testable, predictable and scoped code in bash.",
   "keywords": [
     "bash",
