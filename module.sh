@@ -401,7 +401,7 @@ bl_module_is_imported() {
     '
     local caller_file_path="${BASH_SOURCE[1]}"
     # NOTE: The second parameter is only used for internal performance
-    # optimisation (avoid to resolve one name twice).
+    # optimization (avoid to resolve one name twice).
     local file_path
     if (( $# == 3 )); then
         file_path="$2"

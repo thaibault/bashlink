@@ -531,7 +531,7 @@ bl_filesystem_btrfs_subvolume_delete() {
 alias bl.filesystem.close_crypt_blockdevice=bl_filesystem_close_crypt_blockdevice
 bl_filesystem_close_crypt_blockdevice() {
     local -r __documentation__='
-        Mounts encrypted blockdevices as analyseable blockdevice.
+        Mounts encrypted blockdevices as analyzable blockdevice.
 
         ```bash
             bl.filesystem.close_crypt_blockdevice test
@@ -752,7 +752,7 @@ bl_filesystem_make_uefi_boot_entry() {
 alias bl.filesystem.open_crypt_blockdevice=bl_filesystem_open_crypt_blockdevice
 bl_filesystem_open_crypt_blockdevice() {
     local -r __documentation__='
-        Mounts encrypted blockdevices as analyseable blockdevice.
+        Mounts encrypted blockdevices as analyzable blockdevice.
 
         ```bash
             bl.filesystem.open_crypt_blockdevice /dev/sdb test

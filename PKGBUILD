@@ -19,7 +19,7 @@ license=(CC-BY-3.0)
 devdepends=(shellcheck)
 depends=()
 optdepends=(
-    'pv: for advanced filesystem operations and process visualisation'
+    'pv: for advanced filesystem operations and process visualization'
 )
 provides=(bashlink-doctest bashlink-document)
 source=(
