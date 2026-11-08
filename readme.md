@@ -132,7 +132,7 @@ fi
 # Your portable code comes here.
 ```
 
-Best practise (entry) module pattern:
+Best practice (entry) module pattern:
 
 ```bash
 if [ -f "$(dirname "${BASH_SOURCE[0]}")/node_modules/bashlink/module.sh" ]; then
