@@ -78,8 +78,9 @@
   },
   "webDocumentation": {
     "languages": [
+      "enUS",
       "deDE",
-      "enUS"
+      "frFR"
     ],
     "tagline": "a high reliable bash library<!--deDE:eine bash bibliothek für hochzuverlässigkeits Ansprüche-->"
   },
