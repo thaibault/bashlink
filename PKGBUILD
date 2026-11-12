@@ -7,7 +7,8 @@
 # -------
 
 # This library written by Torben Sickert stands under a creative commons naming
-# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
+# 4.0 international license.
+# See https://creativecommons.org/licenses/by/4.0/deed.de
 # endregion
 pkgname=bash-link
 pkgver=1.0.40
@@ -15,7 +16,7 @@ pkgrel=38
 pkgdesc='A high reliable bash library.'
 arch=(any)
 url=https://tsickert.com/bashlink
-license=(CC-BY-3.0)
+license=(CC-BY-4.0)
 devdepends=(shellcheck)
 depends=()
 optdepends=(
