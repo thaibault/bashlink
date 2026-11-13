@@ -47,13 +47,15 @@
     "filesystem.sh",
     "globals.sh",
     "logging.sh",
+    "module.sh",
     "number.sh",
     "pacman.sh",
     "path.sh",
     "prompt",
     "string.sh",
     "time.sh",
-    "tools.sh"
+    "tools.sh",
+    "ui.sh"
   ],
   "scripts": {
     "clear": "[ ! -e apiDocumentation ] || rm --recursive apiDocumentation",

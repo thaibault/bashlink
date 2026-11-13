@@ -1105,6 +1105,14 @@ bl_doctest_main() {
         bl.documentation.get_formatted_docstring "$BL_DOCTEST__DOCUMENTATION__"
         return 0
     fi
+    # NOTE: Without "diff" no declared functions and therefore no tests are
+    # determined, so every test run would silently pass.
+    if ! bl.dependency.check diff 1>/dev/null; then
+        bl.logging.error \
+            'Missing dependency "diff" (e.g. package "diffutils") to run tests.'
+
+        return 1
+    fi
     local no_side_by_side
     bl.arguments.get_flag --prevent-side-by-side no_side_by_side
     if $no_side_by_side; then
