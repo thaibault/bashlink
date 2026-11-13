@@ -11,8 +11,8 @@
 # See https://creativecommons.org/licenses/by/4.0/deed.de
 # endregion
 pkgname=bash-link
-pkgver=1.0.40
-pkgrel=38
+pkgver=1.0.295
+pkgrel=1
 pkgdesc='A high reliable bash library.'
 arch=(any)
 url=https://tsickert.com/bashlink
@@ -23,66 +23,22 @@ optdepends=(
     'pv: for advanced filesystem operations and process visualization'
 )
 provides=(bashlink bashlink-doctest bashlink-document)
-source=(
-    arguments.sh
-    array.sh
-    changeroot.sh
-    cli.sh
-    dependency.sh
-    dictionary.sh
-    display.sh
-    doctest.sh
-    documentation.sh
-    exception.sh
-    filesystem.sh
-    globals.sh
-    logging.sh
-    module.sh
-    number.sh
-    pacman.sh
-    path.sh
-    string.sh
-    time.sh
-    tools.sh
-    ui.sh
-)
-md5sums=(
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-    SKIP
-)
+# NOTE: The published package keeps the folder structure (e.g. "prompt/").
+source=("https://registry.npmjs.org/bashlink/-/bashlink-${pkgver}.tgz")
+sha256sums=(783a0464975affc1105db52056d87a59b4fb488a9a094052f04b03b641a2627d)
 copy_to_aur=true
 
 package() {
-    local file_name
-    for file_name in "${source[@]}"; do
+    cd "${srcdir}/package"
+    local file_path
+    # NOTE: Keep the published modes since some modules are executables.
+    for file_path in *.sh prompt/*.sh; do
         install \
             -D \
-            --mode 644 \
-            "${srcdir}/${file_name}" \
-            "${pkgdir}/usr/lib/bashlink/${file_name}"
+            --mode "$(stat --format %a "$file_path")" \
+            "$file_path" \
+            "${pkgdir}/usr/lib/bashlink/${file_path}"
     done
-    chmod 755 \
-        "${pkgdir}/usr/lib/bashlink/doctest.sh" \
-        "${pkgdir}/usr/lib/bashlink/documentation.sh"
     install -d "${pkgdir}/usr/bin"
     ln \
         --symbolic \
