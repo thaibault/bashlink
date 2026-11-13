@@ -18,11 +18,11 @@ arch=(any)
 url=https://tsickert.com/bashlink
 license=(CC-BY-4.0)
 devdepends=(shellcheck)
-depends=()
+depends=(bash coreutils diffutils grep sed)
 optdepends=(
     'pv: for advanced filesystem operations and process visualization'
 )
-provides=(bashlink-doctest bashlink-document)
+provides=(bashlink bashlink-doctest bashlink-document)
 source=(
     arguments.sh
     array.sh
@@ -38,15 +38,17 @@ source=(
     globals.sh
     logging.sh
     module.sh
-    network.sh
     number.sh
     pacman.sh
     path.sh
     string.sh
     time.sh
     tools.sh
+    ui.sh
 )
 md5sums=(
+    SKIP
+    SKIP
     SKIP
     SKIP
     SKIP
@@ -70,9 +72,24 @@ md5sums=(
 copy_to_aur=true
 
 package() {
-    install -D --mode 644 "${srcdir}/"* "${pkgdir}/usr/lib/bashlink/"
-    install -D --mode 755 "${srcdir}/doctest.sh" "${pkgdir}/usr/lib/bashlink/"
-    install -D --mode 755 "${srcdir}/documentation.sh" "${pkgdir}/usr/lib/bashlink/"
-    ln --symbolic /usr/lib/bashlink/doctest.sh /usr/bin/bashlink-doctest
-    ln --symbolic /usr/lib/bashlink/documentation.sh /usr/bin/bashlink-document
+    local file_name
+    for file_name in "${source[@]}"; do
+        install \
+            -D \
+            --mode 644 \
+            "${srcdir}/${file_name}" \
+            "${pkgdir}/usr/lib/bashlink/${file_name}"
+    done
+    chmod 755 \
+        "${pkgdir}/usr/lib/bashlink/doctest.sh" \
+        "${pkgdir}/usr/lib/bashlink/documentation.sh"
+    install -d "${pkgdir}/usr/bin"
+    ln \
+        --symbolic \
+        /usr/lib/bashlink/doctest.sh \
+        "${pkgdir}/usr/bin/bashlink-doctest"
+    ln \
+        --symbolic \
+        /usr/lib/bashlink/documentation.sh \
+        "${pkgdir}/usr/bin/bashlink-document"
 }
