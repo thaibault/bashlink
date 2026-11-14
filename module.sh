@@ -43,8 +43,11 @@ if \
     ! [ -f "$(dirname "${BASH_SOURCE[0]}")/path.sh" ]
 then
     for BL_MODULE_URL in "${BL_MODULE_KNOWN_REMOTE_URLS[@]}"; do
-        if bl.module.download "${BL_MODULE_URL}/path.sh" \
-            >"$(dirname "${BASH_SOURCE[0]}")/path.sh"
+        if bl.module.download \
+            --show-error \
+            --silent \
+            "${BL_MODULE_URL}/path.sh" \
+                >"$(dirname "${BASH_SOURCE[0]}")/path.sh"
         then
             [ "${BL_MODULE_REMOTE_MODULE_CACHE_PATH:-}" = '' ] && \
                 BL_MODULE_TIDY_UP_PATH=true
@@ -982,6 +985,8 @@ bl_module_resolve() {
                     fi
                     if \
                         bl.module.download \
+                            --show-error \
+                            --silent \
                             "${url}/${name#bashlink.}${extension}" \
                                 >"$path_candidate"
                     then
