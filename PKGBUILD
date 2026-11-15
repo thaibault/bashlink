@@ -25,7 +25,7 @@ optdepends=(
 provides=(bashlink bashlink-doctest bashlink-document)
 # NOTE: The published package keeps the folder structure (e.g. "prompt/").
 source=("https://registry.npmjs.org/bashlink/-/bashlink-${pkgver}.tgz")
-sha256sums=(783a0464975affc1105db52056d87a59b4fb488a9a094052f04b03b641a2627d)
+sha256sums=('dcc0d4699c418588e4fe9f034fedea06a76cbde8ac39d3d3af4dd3cb25863741')
 copy_to_aur=true
 
 package() {
