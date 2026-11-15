@@ -7,7 +7,8 @@
 # -------
 
 # This library written by Torben Sickert stands under a creative commons naming
-# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
+# 4.0 international license.
+# See https://creativecommons.org/licenses/by/4.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region executable header
@@ -1103,6 +1104,14 @@ bl_doctest_main() {
     if $help; then
         bl.documentation.get_formatted_docstring "$BL_DOCTEST__DOCUMENTATION__"
         return 0
+    fi
+    # NOTE: Without "diff" no declared functions and therefore no tests are
+    # determined, so every test run would silently pass.
+    if ! bl.dependency.check diff 1>/dev/null; then
+        bl.logging.error \
+            'Missing dependency "diff" (e.g. package "diffutils") to run tests.'
+
+        return 1
     fi
     local no_side_by_side
     bl.arguments.get_flag --prevent-side-by-side no_side_by_side

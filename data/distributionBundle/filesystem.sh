@@ -7,7 +7,8 @@
 # -------
 
 # This library written by Torben Sickert stands under a creative commons naming
-# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
+# 4.0 international license.
+# See https://creativecommons.org/licenses/by/4.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region import
@@ -531,7 +532,7 @@ bl_filesystem_btrfs_subvolume_delete() {
 alias bl.filesystem.close_crypt_blockdevice=bl_filesystem_close_crypt_blockdevice
 bl_filesystem_close_crypt_blockdevice() {
     local -r __documentation__='
-        Mounts encrypted blockdevices as analyseable blockdevice.
+        Mounts encrypted blockdevices as analyzable blockdevice.
 
         ```bash
             bl.filesystem.close_crypt_blockdevice test
@@ -752,7 +753,7 @@ bl_filesystem_make_uefi_boot_entry() {
 alias bl.filesystem.open_crypt_blockdevice=bl_filesystem_open_crypt_blockdevice
 bl_filesystem_open_crypt_blockdevice() {
     local -r __documentation__='
-        Mounts encrypted blockdevices as analyseable blockdevice.
+        Mounts encrypted blockdevices as analyzable blockdevice.
 
         ```bash
             bl.filesystem.open_crypt_blockdevice /dev/sdb test

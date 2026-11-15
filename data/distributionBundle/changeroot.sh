@@ -7,7 +7,8 @@
 # -------
 
 # This library written by Torben Sickert stands under a creative commons naming
-# 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
+# 4.0 international license.
+# See https://creativecommons.org/licenses/by/4.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
 # region imports
@@ -95,6 +96,10 @@ bl_changeroot_with_kernel_api() {
     local mountpoint_path
     for mountpoint_path in "${BL_CHANGEROOT_KERNEL_API_LOCATIONS[@]}"; do
         mountpoint_path="${mountpoint_path#/}"
+        # NOTE: Optional locations like efi variables exist on some hosts only.
+        if [ ! -e "/${mountpoint_path}" ]; then
+            continue
+        fi
         if [ ! -e "${new_root_location}${mountpoint_path}" ]; then
             mkdir --parents "${new_root_location}${mountpoint_path}"
             created_locations+=("${new_root_location}${mountpoint_path}")
@@ -108,6 +113,9 @@ bl_changeroot_with_kernel_api() {
                 mount "/${mountpoint_path}" \
                     "${new_root_location}${mountpoint_path}" --types sysfs \
                     --options nosuid,noexec,nodev
+            elif [ "$mountpoint_path" = sys/firmware/efi/efivars ]; then
+                mount efivarfs "${new_root_location}${mountpoint_path}" \
+                    --types efivarfs --options nosuid,noexec,nodev
             elif [ "$mountpoint_path" = dev ]; then
                 mount udev "${new_root_location}${mountpoint_path}" --types \
                     devtmpfs --options mode=0755,nosuid
