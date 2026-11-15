@@ -10,7 +10,7 @@
 # 4.0 international license.
 # See https://creativecommons.org/licenses/by/4.0/deed.de
 # endregion
-pkgname=bash-link
+pkgname=bashlink
 pkgver=1.0.295
 pkgrel=1
 pkgdesc='A high reliable bash library.'
