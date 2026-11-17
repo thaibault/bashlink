@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "shellcheck": "^4.1.0",
-    "web-documentation": "^1.0.75"
+    "web-documentation": "^1.0.77"
   },
   "engines": {
     "node": ">=26",
