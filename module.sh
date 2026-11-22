@@ -13,11 +13,14 @@
 # See https://creativecommons.org/licenses/by/4.0/deed.de
 # endregion
 # shellcheck disable=SC2016,SC2034,SC2155
+# Expand aliases in non interactive shells.
+# NOTE: Has to be applied before the "load once" guard since the shell option
+# may have been reset (or never been set) in the current shell although the
+# module has been loaded already.
+shopt -s expand_aliases
 # Ensure to load module "module" once.
 (( ${#BL_MODULE_IMPORTED[@]} > 0 )) && \
     return 0
-# Expand aliases in non interactive shells.
-shopt -s expand_aliases
 if [ "${BL_MODULE_RETRIEVE_REMOTE_MODULES:-}" = '' ]; then
     declare -g BL_MODULE_RETRIEVE_REMOTE_MODULES=false
 fi
