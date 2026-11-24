@@ -11,7 +11,7 @@
 # See https://creativecommons.org/licenses/by/4.0/deed.de
 # endregion
 pkgname=bashlink
-pkgver=1.0.297
+pkgver=1.0.298
 pkgrel=1
 pkgdesc='A high reliable bash library.'
 arch=(any)
