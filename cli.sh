@@ -119,6 +119,13 @@ bl_cli_glyph_available_in_font() {
 
         >>> bl.cli.glyph_available_in_font
     '
+    # NOTE: Check needed tools first (without forking) since this function
+    # runs on every module import and would otherwise fork several processes
+    # before failing anyway (e.g. on systems without font inspection tools).
+    hash fc-match &>/dev/null || \
+        return 1
+    hash otfinfo &>/dev/null || hash ttfdump &>/dev/null || \
+        return 1
     local current_font
     if ! current_font="$(
         xrdb -q 2>/dev/null | \
@@ -127,8 +134,6 @@ bl_cli_glyph_available_in_font() {
     )"; then
         return 1
     fi
-    hash fc-match &>/dev/null || \
-        return 1
     local -r font_file_name="$(fc-match "$current_font" | cut -d: -f1)"
     local -r font_file_extension="${font_file_name##*.}"
     if [ "$font_file_extension" = otf ]; then
