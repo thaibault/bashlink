@@ -179,35 +179,67 @@ bl_string_make_command_prompt_prefix() {
     local system_load_average=''
     local git_branch=''
     if ! "$simple"; then
-        system_load_average=" ($(
-            uptime | \
-                command grep --extended-regexp --only-matching \
-                    '[0-9]{1,2}[.,][0-9]{1,2}' | \
-                        head --lines 1
-        ))"
+        # NOTE: This function runs for every prompt so it avoids forking
+        # processes where builtins can do the job.
+        local load_average=''
+        if [ -r /proc/loadavg ]; then
+            read -r load_average _ </proc/loadavg
+        elif load_average="$(sysctl -n vm.loadavg 2>/dev/null)"; then
+            # Format is "{ 1.23 4.56 7.89 }".
+            load_average="${load_average#\{ }"
+            load_average="${load_average%% *}"
+        fi
+        if [[ "$load_average" == '' ]]; then
+            load_average="$(
+                uptime | \
+                    command grep --extended-regexp --only-matching \
+                        '[0-9]{1,2}[.,][0-9]{1,2}' | \
+                            head --lines 1
+            )"
+        fi
+        system_load_average=" (${load_average})"
 
-        # shellcheck disable=SC1117
-        git_branch="$(
-            git branch 2>/dev/null | \
-            command sed --regexp-extended "s/^\* (.*)$/ $(
-                bl.string.validate_regular_expression_replacement \
-                    "$BL_CLI_COLOR_MASKED_RED"
-            )\1$(
-                bl.string.validate_regular_expression_replacement \
-                    "$BL_CLI_COLOR_MASKED_CYAN"
-            )/g" | \
-                tr --delete "\n" | \
-                    command sed 's/  / /g' | \
-                        command sed 's/^ *//g' | \
-                            command sed 's/ *$//g'
-        )"
+        # Only ask git inside a repository (detected without forking) and
+        # with a timeout since slow file systems could block the prompt.
+        local directory_path="$PWD"
+        local in_repository=false
+        while true; do
+            if [ -e "${directory_path}/.git" ]; then
+                in_repository=true
+                break
+            fi
+            if [[ "$directory_path" == '' ]]; then
+                break
+            fi
+            directory_path="${directory_path%/*}"
+        done
+        if $in_repository || [[ "${GIT_DIR:-}" != '' ]]; then
+            local -a timeout_command=()
+            if hash timeout &>/dev/null; then
+                timeout_command=(
+                    timeout "${BL_GLOBALS_COMMAND_PROMPT_TIMEOUT_IN_SECONDS:-1}"
+                )
+            fi
+            # Lists all local branches and highlights the current one.
+            local line
+            while IFS= read -r line; do
+                if [[ "$line" == '* '* ]]; then
+                    line="${BL_CLI_COLOR_MASKED_RED}${line#\* }${BL_CLI_COLOR_MASKED_CYAN}"
+                else
+                    line="${line#"${line%%[! ]*}"}"
+                fi
+                if [[ "$line" != '' ]]; then
+                    git_branch+="${git_branch:+ }${line}"
+                fi
+            done < <("${timeout_command[@]}" git branch 2>/dev/null)
+        fi
         if [ "$git_branch" ]; then
             git_branch="(${BL_CLI_COLOR_MASKED_LIGHT_GRAY}git${BL_CLI_COLOR_MASKED_DEFAULT})-(${BL_CLI_COLOR_MASKED_CYAN}${git_branch}${BL_CLI_COLOR_MASKED_DEFAULT})"
         fi
     fi
 
     local user_name="$BL_CLI_COLOR_MASKED_BLUE"
-    if (( "$(id --user)" == 0 )); then
+    if (( EUID == 0 )); then
         user_name="$BL_CLI_COLOR_MASKED_RED"
     fi
     # shellcheck disable=SC1117
@@ -216,7 +248,7 @@ bl_string_make_command_prompt_prefix() {
     local title_bar=''
     if [[ "$TERM" != linux ]]; then
         # shellcheck disable=SC1117
-        title_bar="\[\e]0;\u@\h:$(pwd)\a\]"
+        title_bar="\[\e]0;\u@\h:${PWD}\a\]"
     fi
 
     local -r username="${BL_CLI_COLOR_MASKED_CYAN}${user_name}${BL_CLI_COLOR_MASKED_LIGHT_GRAY}"
