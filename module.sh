@@ -169,6 +169,14 @@ declare -ag BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES=(BL_GLOBALS)
 declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-resolve-cache-${BL_MODULE_INSTANCE_ID}-$(
     cksum <"${BASH_SOURCE[0]}" | cut --delimiter ' ' --fields 1
 )-${USER:-unknown-user}"
+# NOTE: In-memory copy of the resolving cache file (keyed like the file:
+# "reference##second##third") so that resolving an already known reference
+# does not need to fork a subshell and "awk" on every import. It is loaded
+# once per shell when this module is sourced. Entries other shells append to
+# the file later are still found via the file lookup in "bl.module.resolve".
+declare -gA BL_MODULE_NAME_RESOLVING_CACHE=()
+# NOTE: Result of "bl.module.resolve_cached" (avoids a subshell per call).
+declare -g BL_MODULE_RESOLVED=''
 # endregion
 # region functions
 alias bl.module.check_name=bl_module_check_name
@@ -416,7 +424,8 @@ bl_module_is_imported() {
         if (( $# == 2 )); then
             caller_file_path="$2"
         fi
-        file_path="$(bl.module.resolve "$1" "$caller_file_path")"
+        bl_module_resolve_cached "$1" "$caller_file_path"
+        file_path="$BL_MODULE_RESOLVED"
     fi
     # Check if module already loaded.
     local loaded_module
@@ -759,15 +768,12 @@ bl_module_import() {
     fi
     # NOTE: We have to use "local" before to avoid shadowing the "$?" value.
     local result
-    if result="$(bl.module.resolve "$1" true "$caller_file_path")"; then
-        local -r file_path="$(
-            echo "$result" | \
-                command sed --regexp-extended 's:^(.+)/[^/]+$:\1:'
-        )"
-        local scope_name="$(
-            echo "$result" | \
-                command sed --regexp-extended 's:^.*/([^/]+)$:\1:'
-        )"
+    if bl_module_resolve_cached "$1" true "$caller_file_path"; then
+        result="$BL_MODULE_RESOLVED"
+        # NOTE: Parameter expansions instead of forking "sed" twice per
+        # import. Result is "FILE_PATH/SCOPE_NAME".
+        local -r file_path="${result%/*}"
+        local scope_name="${result##*/}"
         if [ -d "$file_path" ]; then
             local sub_file_path
             for sub_file_path in "${file_path}"/*; do
@@ -820,7 +826,7 @@ bl_module_import() {
             fi
         fi
     else
-        echo "$result" 1>&2
+        echo "$BL_MODULE_RESOLVED" 1>&2
         return 1
     fi
 }
@@ -837,8 +843,8 @@ bl_module_import_without_namespace_check() {
     if (( $# == 2 )); then
         caller_file_path="$2"
     fi
-    local file_path
-    if file_path="$(bl.module.resolve "$1" "$caller_file_path")"; then
+    if bl_module_resolve_cached "$1" "$caller_file_path"; then
+        local -r file_path="$BL_MODULE_RESOLVED"
         if bl.module.is_imported "$1" "$file_path" "$caller_file_path"; then
             return 0
         fi
@@ -869,6 +875,13 @@ bl_module_resolve() {
         +bl.doctest.contains
         /bashlink/mockup/a.sh/bashlink.mockup.a
     '
+    # NOTE: Check the in-memory copy first, the cache file (which may contain
+    # entries written by other shells afterwards) second.
+    local -r cache_key="${1}##${2:-}##${3:-}"
+    if [[ -n "${BL_MODULE_NAME_RESOLVING_CACHE[$cache_key]+x}" ]]; then
+        echo -n "${BL_MODULE_NAME_RESOLVING_CACHE[$cache_key]}"
+        return 0
+    fi
     # NOTE: We have to declare variable first to avoid shadowing the return
     # code coming from "awk". Only exact matches of all given arguments with an
     # absolute result count (e.g. "logging" should not hit
@@ -1071,6 +1084,75 @@ bl_module_resolve() {
 
     echo -n "$result"
 }
+alias bl.module.resolve_cached=bl_module_resolve_cached
+bl_module_resolve_cached() {
+    local -r __documentation__='
+        Like "bl.module.resolve" but stores the result in
+        "BL_MODULE_RESOLVED" instead of printing it. Already known references
+        are answered from memory without forking a subshell. Callers should
+        pass the caller file path explicitly (as last argument) since the
+        caller can not be derived via "BASH_SOURCE" through this wrapper.
+
+        >>> bl.module.resolve_cached bashlink.module; echo $?
+        >>> echo "$BL_MODULE_RESOLVED"
+        +bl.doctest.multiline_contains
+        0
+        /bashlink/module.sh
+
+        >>> bl.module.resolve_cached bashlink.module
+        >>> [ "$BL_MODULE_RESOLVED" = "$(bl.module.resolve bashlink.module)" ]
+        >>> echo $?
+        0
+
+        >>> bl.module.resolve_cached bashlink.not_existing; echo $?
+        +bl.doctest.contains
+        error: Module file path for "bashlink.not_existing" could not be
+        1
+    '
+    local -r cache_key="${1}##${2:-}##${3:-}"
+    if [[ -n "${BL_MODULE_NAME_RESOLVING_CACHE[$cache_key]+x}" ]]; then
+        BL_MODULE_RESOLVED="${BL_MODULE_NAME_RESOLVING_CACHE[$cache_key]}"
+        return 0
+    fi
+    local result
+    if result="$(bl_module_resolve "$@")"; then
+        # NOTE: The subshell above could not update the in-memory cache of
+        # the current shell, so do it here.
+        if [[ "$result" == /* ]]; then
+            BL_MODULE_NAME_RESOLVING_CACHE[$cache_key]="$result"
+        fi
+        BL_MODULE_RESOLVED="$result"
+        return 0
+    fi
+    BL_MODULE_RESOLVED="$result"
+    return 1
+}
+alias bl.module.load_name_resolving_cache=bl_module_load_name_resolving_cache
+bl_module_load_name_resolving_cache() {
+    local -r __documentation__='
+        Loads all entries of the resolving cache file into memory (first entry
+        per key wins as in "bl.module.resolve"). Uses builtins only.
+
+        >>> bl.module.load_name_resolving_cache; echo $?
+        0
+    '
+    [ -f "$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH" ] || \
+        return 0
+    local line
+    local key
+    local value
+    while IFS= read -r line || [[ "$line" != '' ]]; do
+        key="${line%##*}"
+        value="${line##*##}"
+        if \
+            [[ "$value" == /* ]] && \
+            [[ -z "${BL_MODULE_NAME_RESOLVING_CACHE[$key]+x}" ]]
+        then
+            BL_MODULE_NAME_RESOLVING_CACHE[$key]="$value"
+        fi
+    done <"$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH"
+    return 0
+}
 alias bl.module.remove_known_file_extension=bl_module_remove_known_file_extension
 bl_module_remove_known_file_extension() {
     local -r __documentation__='
@@ -1142,6 +1224,7 @@ bl_module_rewrite_global_scope_name() {
     echo "$resolved_scope_name"
 }
 # endregion
+bl_module_load_name_resolving_cache
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:
 # vim: foldmethod=marker foldmarker=region,endregion:
