@@ -167,21 +167,21 @@ declare -gr BL_EXCEPTION__DOCUMENTATION__='
 
     >>> bl.exception.try
     >>>     false
-    >>> bl.exception.catch_single {
+    >>> bl.exception.catch-single {
     >>>     echo caught
     >>> }
     caught
 
     >>> bl.exception.try
     >>>     false
-    >>> bl.exception.catch_single
+    >>> bl.exception.catch-single
     >>>     echo caught
     caught
 
     >>> bl.exception.try {
     >>>     false
     >>> }
-    >>> bl.exception.catch_single {
+    >>> bl.exception.catch-single {
     >>>     echo caught
     >>> }
     caught
@@ -189,7 +189,7 @@ declare -gr BL_EXCEPTION__DOCUMENTATION__='
     >>> bl.exception.try {
     >>>     false
     >>> }
-    >>> bl.exception.catch_single
+    >>> bl.exception.catch-single
     >>> {
     >>>     echo caught
     >>> }
@@ -203,7 +203,7 @@ declare -g BL_EXCEPTION_SUPPORTED=true
 declare -ig BL_EXCEPTION_TRY_CATCH_LEVEL=0
 # endregion
 # region functions
-alias bl.exception.check_context=bl_exception_check_context
+alias bl.exception.check-context=bl_exception_check_context
 bl_exception_check_context() {
     local -r __documentation__='
         Tests if context allows error traps.
@@ -240,7 +240,7 @@ bl_exception_check_context() {
         exit 1
     )
 }
-# Depends on "bl.exception.check_context"
+# Depends on "bl.exception.check-context"
 alias bl.exception.activate=bl_exception_activate
 bl_exception_activate() {
     local -r __documentation__='
@@ -256,7 +256,7 @@ bl_exception_activate() {
         echo foo
     '
     if [[ "$1" != true ]]; then
-        bl.exception.check_context
+        bl.exception.check-context
         if [ $? = 1 ]; then
             # NOTE: We should call exception trap logic by hand in this case.
             bl_exception_error_handler true
@@ -269,12 +269,12 @@ bl_exception_activate() {
                 rm "$BL_EXCEPTION_LAST_TRACEBACK_FILE_PATH"
                 bl.logging.warn "$message"
                 # NOTE: This would show where failing try catch error is.
-                # bl.logging.error_exception \
+                # bl.logging.error-exception \
                 #     "$message" \
                 #     $'\n' \
                 #     "$BL_EXCEPTION_LAST_TRACEBACK"
             else
-                bl.logging.error_exception "$message"
+                bl.logging.error-exception "$message"
             fi
         fi
     fi
@@ -366,12 +366,12 @@ bl_exception_deactivate() {
     trap "$BL_EXCEPTION_ERROR_TRAPS" ERR
     BL_EXCEPTION_ACTIVE=false
 }
-alias bl.exception.enter_try=bl_exception_enter_try
+alias bl.exception.enter-try=bl_exception_enter_try
 bl_exception_enter_try() {
     local -r __documentation__='
         Catches exceptions for following code blocks.
 
-        >>> bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; {
+        >>> bl.exception.enter-try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; {
         >>>     false
         >>> } bl.exception.catch {
         >>>     echo caught
@@ -392,14 +392,14 @@ bl_exception_enter_try() {
     bl.exception.deactivate
     (( BL_EXCEPTION_TRY_CATCH_LEVEL++ ))
 }
-alias bl.exception.error_handler=bl_exception_error_handler
+alias bl.exception.error-handler=bl_exception_error_handler
 bl_exception_error_handler() {
     # shellcheck disable=SC2319
     local -ir error_code=$?
     local -r __documentation__='
         Error handler for captured exceptions.
 
-        >>> bl.exception.error_handler
+        >>> bl.exception.error-handler
         +bl.doctest.contains
         +bl.doctest.multiline_ellipsis
         Traceback (most recent call first):
@@ -425,14 +425,14 @@ bl_exception_error_handler() {
     fi
     return $error_code
 }
-alias bl.exception.exit_try=bl_exception_exit_try
+alias bl.exception.exit-try=bl_exception_exit_try
 bl_exception_exit_try() {
     local -r __documentation__='
         Introduces an exception handling code block.
 
         >>> bl.exception.try {
         >>>     false
-        >>> }; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || {
+        >>> }; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit-try $? || {
         >>>     echo caught
         >>> }
         caught
@@ -461,11 +461,11 @@ bl_exception_exit_try() {
     # shellcheck disable=SC2086
     return $BL_EXCEPTION_RETURN_CODE
 }
-alias bl.exception.try='bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; '
+alias bl.exception.try='bl.exception.enter-try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; '
 # shellcheck disable=SC2142
-alias bl.exception.catch='; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || '
+alias bl.exception.catch='; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit-try $? || '
 # shellcheck disable=SC2142
-alias bl.exception.catch_single='return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || '
+alias bl.exception.catch-single='return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit-try $? || '
 # endregion
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:

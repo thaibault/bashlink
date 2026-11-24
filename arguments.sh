@@ -27,18 +27,18 @@ declare -gr BL_ARGUMENTS__DOCUMENTATION__='
     >>> _() {
     >>>     local value
     >>>     bl.arguments.set "$@"
-    >>>     bl.arguments.get_parameter param1 value
+    >>>     bl.arguments.get-parameter param1 value
     >>>     echo "param1: $value"
-    >>>     bl.arguments.get_keyword keyword2 value
+    >>>     bl.arguments.get-keyword keyword2 value
     >>>     echo "keyword2: $value"
-    >>>     bl.arguments.get_flag --flag4 value
+    >>>     bl.arguments.get-flag --flag4 value
     >>>     echo "--flag4: $value"
     >>>     # NOTE: Get the positionals last
-    >>>     bl.arguments.get_positional 1 value
+    >>>     bl.arguments.get-positional 1 value
     >>>     echo 1: "$value"
     >>>     # Alternative way to get positionals: Set the arguments array to
     >>>     # to all unparsed arguments.
-    >>>     bl.arguments.apply_new
+    >>>     bl.arguments.apply-new
     >>>     echo 1: "$1"
     >>> }
     >>> _ param1 value1 keyword2=value2 positional3 --flag4
@@ -51,7 +51,7 @@ declare -gr BL_ARGUMENTS__DOCUMENTATION__='
 declare -ag BL_ARGUMENTS_NEW=()
 # endregion
 # region functions
-alias bl.arguments.apply_new='set -- "${BL_ARGUMENTS_NEW[@]}"'
+alias bl.arguments.apply-new='set -- "${BL_ARGUMENTS_NEW[@]}"'
 bl_arguments_apply_new() {
     local -r __documentation__='
         Call this function after you are finished with argument parsing. The
@@ -59,28 +59,28 @@ bl_arguments_apply_new() {
         left.
 
         >>> bl.arguments.set a "b c"
-        >>> bl.arguments.apply_new
+        >>> bl.arguments.apply-new
         >>> echo "$#: $2"
         2: b c
     '
     # NOTE: Implemented as alias.
     true
 }
-alias bl.arguments.get_flag=bl_arguments_get_flag
+alias bl.arguments.get-flag=bl_arguments_get_flag
 bl_arguments_get_flag() {
     local -r __documentation__='
         Sets `variable_name` to `true` if flag (or on of its aliases) is
         contained in the argument array (see `bl.arguments.set`).
 
         ```bash
-            bl.arguments.get_flag flag [flag_aliases...] variable_name
+            bl.arguments.get-flag flag [flag_aliases...] variable_name
         ```
 
         >>> bl.arguments.set other_param1 --foo other_param2
         >>> local foo bar
-        >>> bl.arguments.get_flag --foo -f foo
+        >>> bl.arguments.get-flag --foo -f foo
         >>> echo $foo
-        >>> bl.arguments.get_flag --bar bar
+        >>> bl.arguments.get-flag --bar bar
         >>> echo $bar
         >>> echo "${BL_ARGUMENTS_NEW[@]}"
         true
@@ -88,7 +88,7 @@ bl_arguments_get_flag() {
         other_param1 other_param2
         >>> bl.arguments.set -f
         >>> local foo
-        >>> bl.arguments.get_flag --foo -f foo
+        >>> bl.arguments.get-flag --foo -f foo
         >>> echo $foo
         true
     '
@@ -112,28 +112,28 @@ bl_arguments_get_flag() {
     done
     BL_ARGUMENTS_NEW=("${new_arguments[@]:+${new_arguments[@]}}")
 }
-alias bl.arguments.get_keyword=bl_arguments_get_keyword
+alias bl.arguments.get-keyword=bl_arguments_get_keyword
 bl_arguments_get_keyword() {
     local -r __documentation__='
         Sets `variable_name` to the value of `keyword` the argument array (see
         `bl.arguments.set`) contains `keyword=value`.
 
         ```bash
-            bl.arguments.get_keyword keyword variable_name
+            bl.arguments.get-keyword keyword variable_name
         ```
 
         >>> local foo
         >>> bl.arguments.set other_param1 foo=bar baz=baz other_param2
-        >>> bl.arguments.get_keyword foo foo
+        >>> bl.arguments.get-keyword foo foo
         >>> echo $foo
         >>> echo "${BL_ARGUMENTS_NEW[@]}"
         bar
         other_param1 baz=baz other_param2
         >>> local foo
         >>> bl.arguments.set other_param1 foo=bar baz=baz other_param2
-        >>> bl.arguments.get_keyword foo
+        >>> bl.arguments.get-keyword foo
         >>> echo $foo
-        >>> bl.arguments.get_keyword baz foo
+        >>> bl.arguments.get-keyword baz foo
         >>> echo $foo
         bar
         baz
@@ -158,23 +158,23 @@ bl_arguments_get_keyword() {
     done
     BL_ARGUMENTS_NEW=("${new_arguments[@]:+${new_arguments[@]}}")
 }
-alias bl.arguments.get_parameter=bl_arguments_get_parameter
+alias bl.arguments.get-parameter=bl_arguments_get_parameter
 bl_arguments_get_parameter() {
     local -r __documentation__='
         Sets `variable_name` to the field following `parameter` (or one of the
         `parameter_aliases`) from the argument array (see `bl.arguments.set`).
 
         ```bash
-            bl.arguments.get_parameter parameter [parameter_aliases...] variable_name
+            bl.arguments.get-parameter parameter [parameter_aliases...] variable_name
         ```
 
         ```bash
-            bl.arguments.get_parameter --log-level -l loglevel
+            bl.arguments.get-parameter --log-level -l loglevel
         ```
 
         >>> local foo
         >>> bl.arguments.set other_param1 --foo bar other_param2
-        >>> bl.arguments.get_parameter --foo -f foo
+        >>> bl.arguments.get-parameter --foo -f foo
         >>> echo $foo
         >>> echo "${BL_ARGUMENTS_NEW[@]}"
         bar
@@ -207,23 +207,23 @@ bl_arguments_get_parameter() {
     done
     BL_ARGUMENTS_NEW=("${new_arguments[@]:+${new_arguments[@]}}")
 }
-alias bl.arguments.get_positional=bl_arguments_get_positional
+alias bl.arguments.get-positional=bl_arguments_get_positional
 bl_arguments_get_positional() {
     local -r __documentation__='
         Get the positional parameter at `index`. Use after extracting
         parameters, keywords and flags.
 
         ```bash
-            bl.arguments.get_positional index variable_name
+            bl.arguments.get-positional index variable_name
         ```
 
         >>> bl.arguments.set parameter foo --flag pos1 pos2 --keyword=foo
-        >>> bl.arguments.get_flag --flag _
-        >>> bl.arguments.get_parameter parameter _
-        >>> bl.arguments.get_keyword --keyword _
+        >>> bl.arguments.get-flag --flag _
+        >>> bl.arguments.get-parameter parameter _
+        >>> bl.arguments.get-keyword --keyword _
         >>> local positional1 positional2
-        >>> bl.arguments.get_positional 1 positional1
-        >>> bl.arguments.get_positional 2 positional2
+        >>> bl.arguments.get-positional 1 positional1
+        >>> bl.arguments.get-positional 2 positional2
         >>> echo "$positional1 $positional2"
         pos1 pos2
     '
@@ -249,7 +249,7 @@ bl_arguments_set() {
     '
     BL_ARGUMENTS_NEW=("$@")
 }
-alias bl.arguments.wrapper_with_minimum_number_of_arguments=bl_arguments_wrapper_with_minimum_number_of_arguments
+alias bl.arguments.wrapper-with-minimum-number-of-arguments=bl_arguments_wrapper_with_minimum_number_of_arguments
 bl_arguments_wrapper_with_minimum_number_of_arguments() {
     # shellcheck disable=SC1004
     local -r __documentation__='
@@ -259,7 +259,7 @@ bl_arguments_wrapper_with_minimum_number_of_arguments() {
         `program_name`:
 
         ```bash
-            program_name $(bl.arguments.wrapper_with_minimum_number_of_arguments \
+            program_name $(bl.arguments.wrapper-with-minimum-number-of-arguments \
                 NUMBER_OF_DEFAULT_ARGUMENTS \
                 MINIMUM_NUMBER_OF_ARGUMENTS_TO_OVERWRITE_DEFAULT_ARGUMENTS \
                 DEFAULT_ARGUMENTS* \
@@ -269,7 +269,7 @@ bl_arguments_wrapper_with_minimum_number_of_arguments() {
 
         >>> _() {
         >>>     echo sub_program \
-        >>>         $(bl.arguments.wrapper_with_minimum_number_of_arguments 3 2 \
+        >>>         $(bl.arguments.wrapper-with-minimum-number-of-arguments 3 2 \
         >>>         all --log-level warning $@)
         >>> }
         >>> _
@@ -284,27 +284,27 @@ bl_arguments_wrapper_with_minimum_number_of_arguments() {
     if [ $# -le $(( $1 + $2 + 1 )) ]; then
         # Output default arguments.
         # shellcheck disable=SC2068
-        bl.module.log_plain ${@:3:$1}
+        bl.module.log-plain ${@:3:$1}
         return $?
     fi
     # Output given arguments.
     # shellcheck disable=SC2068
-    bl.module.log_plain ${@:3+$1}
+    bl.module.log-plain ${@:3+$1}
 }
-# NOTE: Depends on "bl.arguments.wrapper_with_minimum_number_of_arguments"
-alias bl.arguments.default_wrapper=bl_arguments_default_wrapper
+# NOTE: Depends on "bl.arguments.wrapper-with-minimum-number-of-arguments"
+alias bl.arguments.default-wrapper=bl_arguments_default_wrapper
 bl_arguments_default_wrapper() {
     # shellcheck disable=SC1004
     local -r __documentation__='
         Wrapper function for
-        `bl.arguments.wrapper_with_minimum_number_of_arguments` with second
+        `bl.arguments.wrapper-with-minimum-number-of-arguments` with second
         parameter is setted to `1`.
 
         Runs `sub_program` with arguments `all`, `--log-level` and `warning` if
         not at least one arguments are given to `program`.
 
         >>> _() {
-        >>>     echo sub_program $(bl.arguments.default_wrapper 3 all \
+        >>>     echo sub_program $(bl.arguments.default-wrapper 3 all \
         >>>         --log-level warning $@)
         >>> }
         >>> _
@@ -315,7 +315,7 @@ bl_arguments_default_wrapper() {
         sub_program a b
     '
     # shellcheck disable=SC2068,SC2086
-    bl.arguments.wrapper_with_minimum_number_of_arguments $1 1 ${@:2}
+    bl.arguments.wrapper-with-minimum-number-of-arguments $1 1 ${@:2}
 }
 # endregion
 # region vim modline

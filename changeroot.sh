@@ -57,7 +57,7 @@ bl_changeroot() {
     fi
     bl_changeroot_with_kernel_api "$@"
 }
-alias bl.changeroot.with_fake_fallback=bl_changeroot_with_fake_fallback
+alias bl.changeroot.with-fake-fallback=bl_changeroot_with_fake_fallback
 bl_changeroot_with_fake_fallback() {
     # shellcheck disable=SC1004
     local -r __documentation__='
@@ -74,7 +74,7 @@ bl_changeroot_with_fake_fallback() {
     fi
     fakeroot fakechroot chroot "$@"
 }
-alias bl.changeroot.with_kernel_api=bl_changeroot_with_kernel_api
+alias bl.changeroot.with-kernel-api=bl_changeroot_with_kernel_api
 bl_changeroot_with_kernel_api() {
     # shellcheck disable=SC1004
     local -r __documentation__='
@@ -144,7 +144,7 @@ bl_changeroot_with_kernel_api() {
         fi
     done
     local -i return_code=0
-    bl.changeroot.with_fake_fallback "$@" || \
+    bl.changeroot.with-fake-fallback "$@" || \
         return_code=$?
     local -i current_return_code=0
     for mountpoint_path in $(bl.array.reverse "${mounted_locations[*]}"); do

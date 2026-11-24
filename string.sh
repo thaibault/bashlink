@@ -24,29 +24,29 @@ declare -gr BL_STRING__DOCUMENTATION__='
 '
 # endregion
 # region functions
-alias bl.string.generate_random=bl_string_generate_random
+alias bl.string.generate-random=bl_string_generate_random
 bl_string_generate_random() {
     local -r __documentation__='
         Generates a random string with given length.
 
-        >>> local output="$(bl.string.generate_random 5)"
+        >>> local output="$(bl.string.generate-random 5)"
         >>> echo ${#output}
         5
 
-        >>> bl.string.generate_random 0
+        >>> bl.string.generate-random 0
 
-        >>> local output="$(bl.string.generate_random 1)"
+        >>> local output="$(bl.string.generate-random 1)"
         >>> echo ${#output}
         1
     '
     tr -dc 'a-zA-Z0-9' </dev/urandom | \
         head -c "$1"
 }
-alias bl.string.get_unique_lines=bl_string_get_unique_lines
+alias bl.string.get-unique-lines=bl_string_get_unique_lines
 bl_string_get_unique_lines() {
     local -r __documentation__='
         >>> local foo="a\nb\na\nb\nc\nb\nc"
-        >>> echo -e "$foo" | bl.string.get_unique_lines
+        >>> echo -e "$foo" | bl.string.get-unique-lines
         a
         b
         c
@@ -57,7 +57,7 @@ bl_string_get_unique_lines() {
                 sort --numeric-sort | \
                     command sed 's/\s*[0-9]\+\s\+//'
 }
-alias bl.string.images_to_css_classes=bl_string_images_to_css_classes
+alias bl.string.images-to-css-classes=bl_string_images_to_css_classes
 bl_string_images_to_css_classes() {
     # shellcheck disable=SC1004
     local -r __documentation__='
@@ -71,7 +71,7 @@ bl_string_images_to_css_classes() {
         ```
 
         ```bash
-            bl.string.images_to_css_classes \
+            bl.string.images-to-css-classes \
                 /path/to/image/directory/ \
                 .*\.\(png\|jpg\|jpeg\) \
                 /first/exclude/location \
@@ -79,18 +79,18 @@ bl_string_images_to_css_classes() {
         ```
 
         ```bash
-            bl.string.images_to_css_classes
+            bl.string.images-to-css-classes
         ```
 
         >>> local directory_path="$(bl_string_bl_doctest_mktemp -d)"
         >>> printf "\x89PNG\r\n\x1a\n" >"${directory_path}/logo.png"
-        >>> bl.string.images_to_css_classes "$directory_path"
+        >>> bl.string.images-to-css-classes "$directory_path"
         +bl.doctest.contains
         -logo-png{background-image: url("data:
 
         >>> local directory_path="$(bl_string_bl_doctest_mktemp -d)"
         >>> touch "${directory_path}/logo.png"
-        >>> bl.string.images_to_css_classes "$directory_path" ".*\.png" \
+        >>> bl.string.images-to-css-classes "$directory_path" ".*\.png" \
         >>>     "$directory_path"
     '
     local source='.'
@@ -134,7 +134,7 @@ bl_string_images_to_css_classes() {
         fi
     done
 }
-alias bl.string.make_command_prompt_prefix=bl_string_make_command_prompt_prefix
+alias bl.string.make-command-prompt-prefix=bl_string_make_command_prompt_prefix
 bl_string_make_command_prompt_prefix() {
     # NOTE: This have to be the first statement to retrieve last return code.
     # NOTE: Cannot be an integer (local -i) because we need to overwrite with a
@@ -145,19 +145,19 @@ bl_string_make_command_prompt_prefix() {
         Generates a new user prompt with useful runtime parameters.
 
         ```bash
-            bl.string.make_command_prompt_prefix
+            bl.string.make-command-prompt-prefix
             > ...@$... (...) ...
 
-            bl.string.make_command_prompt_prefix 0
+            bl.string.make-command-prompt-prefix 0
             > ...@$... (...) ...
 
-            bl.string.make_command_prompt_prefix -s 0
+            bl.string.make-command-prompt-prefix -s 0
             (1) ... ...@$... ...
 
-            bl.string.make_command_prompt_prefix --simple 1
+            bl.string.make-command-prompt-prefix --simple 1
             (1) ... ...@$... ...
 
-            bl.string.make_command_prompt_prefix --simple 123
+            bl.string.make-command-prompt-prefix --simple 123
             (123) ... ...@$... ...
         ```
     '
@@ -260,18 +260,18 @@ bl_string_make_command_prompt_prefix() {
     # shellcheck disable=SC1117
     command echo -n "${title_bar}${error_prompt} ${username}@${usergroupname}${systemload} ${working_path}\n${git_branch}${suffix}"
 }
-alias bl.string.merge_text_files=bl_string_merge_text_files
+alias bl.string.merge-text-files=bl_string_merge_text_files
 bl_string_merge_text_files() {
     # shellcheck disable=SC1004
     local -r __documentation__='
         Concatenate files and print on the standard output.
 
         ```bash
-            bl.string.merge_text_files a.txt b.txt
+            bl.string.merge-text-files a.txt b.txt
         ```
 
         ```bash
-            bl.string.merge_text_files \
+            bl.string.merge-text-files \
                 a.txt \
                 b.txt \
                 c.txt \
@@ -284,7 +284,7 @@ bl_string_merge_text_files() {
         >>> echo a >"${directory_path}/a.txt"
         >>> echo b >"${directory_path}/b.txt"
         >>> cd "$directory_path"
-        >>> bl.string.merge_text_files a.txt b.txt --prepend "[%s]\n" \
+        >>> bl.string.merge-text-files a.txt b.txt --prepend "[%s]\n" \
         >>>     --between "[%s]\n" --append "[end]\n"
         [a.txt]
         a
@@ -515,18 +515,18 @@ bl_string_trim() {
     bl.string.rtrim "$(bl.string.ltrim "$1")"
 }
 
-alias bl.string.validate_argument=bl_string_validate_argument
+alias bl.string.validate-argument=bl_string_validate_argument
 bl_string_validate_argument() {
     local -r __documentation__='
         Validates a given bash argument.
 
-        >>> bl.string.validate_argument hans
+        >>> bl.string.validate-argument hans
         +bl.doctest.contains
         hans
-        >>> bl.string.validate_argument "\"ha\"ns"
+        >>> bl.string.validate-argument "\"ha\"ns"
         +bl.doctest.contains
         "ha"ns
-        >>> bl.string.validate_argument h\"a\"ns
+        >>> bl.string.validate-argument h\"a\"ns
         +bl.doctest.contains
         h"a"ns
     '
@@ -538,21 +538,21 @@ bl_string_validate_argument() {
         echo "'$(command sed "s/'/\\'/g" <<< "$1")'"
     fi
 }
-alias bl.string.validate_regular_expression_replacement=bl_string_validate_regular_expression_replacement
+alias bl.string.validate-regular-expression-replacement=bl_string_validate_regular_expression_replacement
 bl_string_validate_regular_expression_replacement() {
     local -r __documentation__='
         This functions escapes every special meaning character for a sed
         replacement.
 
         ```bash
-            sed "s/myInputString/$(bl.string.validate_regular_expression_replacement "\hans/peter&klaus")/g"
+            sed "s/myInputString/$(bl.string.validate-regular-expression-replacement "\hans/peter&klaus")/g"
         ```
 
-        >>> bl.string.validate_regular_expression_replacement "a/b&c"
+        >>> bl.string.validate-regular-expression-replacement "a/b&c"
         a\/b\&c
 
         >>> echo foo | sed "s/foo/$(
-        >>>     bl.string.validate_regular_expression_replacement "a/b&c\\d"
+        >>>     bl.string.validate-regular-expression-replacement "a/b&c\\d"
         >>> )/"
         a/b&c\d
     '

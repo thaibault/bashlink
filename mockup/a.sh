@@ -19,7 +19,7 @@ bl.module.import bashlink.tools
 bl_mockup_a_foo() {
     bl.logging.plain a
 }
-if bl.tools.is_main; then
+if bl.tools.is-main; then
     bl.logging.plain running a
     exit 0
 fi

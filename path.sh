@@ -128,7 +128,7 @@ bl_path_restore() {
         content
         640
     '
-    local source_file_path="$(bl.path.convert_to_absolute backup.tar.gz)"
+    local source_file_path="$(bl.path.convert-to-absolute backup.tar.gz)"
     if [[ "$1" != '' ]]; then
         source_file_path="$1"
     fi
@@ -147,12 +147,12 @@ bl_path_restore() {
     popd &>/dev/null || \
     return 1
 }
-alias bl.path.convert_to_absolute=bl_path_convert_to_absolute
+alias bl.path.convert-to-absolute=bl_path_convert_to_absolute
 bl_path_convert_to_absolute() {
     local -r __documentation__='
         Converts given path into an absolute one.
 
-        >>> bl.path.convert_to_absolute ./
+        >>> bl.path.convert-to-absolute ./
         +bl.doctest.contains
         /
     '
@@ -175,34 +175,34 @@ bl_path_convert_to_absolute() {
         readlink --canonicalize-missing --no-newline "$path"
     fi
 }
-alias bl.path.convert_to_relative=bl_path_convert_to_relative
+alias bl.path.convert-to-relative=bl_path_convert_to_relative
 bl_path_convert_to_relative() {
     local -r __documentation__='
         Computes relative path from first given argument to second one.
 
-        >>> bl.path.convert_to_relative /A/B/C /A
+        >>> bl.path.convert-to-relative /A/B/C /A
         ../..
-        >>> bl.path.convert_to_relative /A/B/C /A/B
+        >>> bl.path.convert-to-relative /A/B/C /A/B
         ..
-        >>> bl.path.convert_to_relative /A/B/C /A/B/C/D
+        >>> bl.path.convert-to-relative /A/B/C /A/B/C/D
         D
-        >>> bl.path.convert_to_relative /A/B/C /A/B/C/D/E
+        >>> bl.path.convert-to-relative /A/B/C /A/B/C/D/E
         D/E
-        >>> bl.path.convert_to_relative /A/B/C /A/B/D
+        >>> bl.path.convert-to-relative /A/B/C /A/B/D
         ../D
-        >>> bl.path.convert_to_relative /A/B/C /A/B/D/E
+        >>> bl.path.convert-to-relative /A/B/C /A/B/D/E
         ../D/E
-        >>> bl.path.convert_to_relative /A/B/C /A/D
+        >>> bl.path.convert-to-relative /A/B/C /A/D
         ../../D
-        >>> bl.path.convert_to_relative /A/B/C /A/D/E
+        >>> bl.path.convert-to-relative /A/B/C /A/D/E
         ../../D/E
-        >>> bl.path.convert_to_relative /A/B/C /D/E/F
+        >>> bl.path.convert-to-relative /A/B/C /D/E/F
         ../../../D/E/F
-        >>> bl.path.convert_to_relative / /
+        >>> bl.path.convert-to-relative / /
         .
-        >>> bl.path.convert_to_relative /A/B/C /A/B/C
+        >>> bl.path.convert-to-relative /A/B/C /A/B/C
         .
-        >>> bl.path.convert_to_relative /A/B/C /
+        >>> bl.path.convert-to-relative /A/B/C /
         ../../../
     '
     # both $1 and $2 are absolute paths beginning with /
@@ -377,25 +377,25 @@ bl_path_pack() {
         return 1
     fi
 }
-alias bl.path.run_in_programs_location=bl_path_run_in_programs_location
+alias bl.path.run-in-programs-location=bl_path_run_in_programs_location
 bl_path_run_in_programs_location() {
     local -r __documentation__='
         Changes current working directory to given program path and runs the
         program.
 
         ```bash
-            bl.path.run_in_programs_location /usr/bin/python3.2
+            bl.path.run-in-programs-location /usr/bin/python3.2
         ```
 
         >>> local directory_path="$(bl_path_bl_doctest_mktemp --directory)"
         >>> echo "echo \"\$(basename \"\$(pwd)\"): \$*\"" \
         >>>     >"${directory_path}/program"
         >>> chmod +x "${directory_path}/program"
-        >>> bl.path.run_in_programs_location "${directory_path}/program" a b \
+        >>> bl.path.run-in-programs-location "${directory_path}/program" a b \
         >>>     | sed "s:$(basename "$directory_path"):directory:"
         directory: a b
 
-        >>> bl.path.run_in_programs_location not_existing
+        >>> bl.path.run-in-programs-location not_existing
         Please insert a path to an executable file.
     '
     if [ "$1" ] && [ -f "$1" ]; then

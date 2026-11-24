@@ -61,18 +61,18 @@ bl_dependency_check() {
 
     return $return_code
 }
-alias bl.dependency.check_pkgconfig=bl_dependency_check_pkgconfig
+alias bl.dependency.check-pkgconfig=bl_dependency_check_pkgconfig
 bl_dependency_check_pkgconfig() {
     local __documentation__='
         This function check if all given libraries can be found.
     '
     if bl.dependency.check pkg-config &>/dev/null; then
         __documentation__+='
-            >>> bl.dependency.check_shared_library libc.so; echo $?
+            >>> bl.dependency.check-shared-library libc.so; echo $?
             0
-            >>> bl.dependency.check_shared_library libc.so __not_existing__ 1>/dev/null; echo $?
+            >>> bl.dependency.check-shared-library libc.so __not_existing__ 1>/dev/null; echo $?
             2
-            >>> bl.dependency.check_shared_library __not_existing__ 1>/dev/null; echo $?
+            >>> bl.dependency.check-shared-library __not_existing__ 1>/dev/null; echo $?
             2
         '
     else
@@ -93,18 +93,18 @@ bl_dependency_check_pkgconfig() {
 
     return $return_code
 }
-alias bl.dependency.check_shared_library=bl_dependency_check_shared_library
+alias bl.dependency.check-shared-library=bl_dependency_check_shared_library
 bl_dependency_check_shared_library() {
     local __documentation__='
         This function check if all given shared libraries can be found.
     '
     if bl.dependency.check ldconfig &>/dev/null; then
         __documentation__+='
-            >>> bl.dependency.check_shared_library libc.so; echo $?
+            >>> bl.dependency.check-shared-library libc.so; echo $?
             0
-            >>> bl.dependency.check_shared_library libc.so __not_existing__ 1>/dev/null; echo $?
+            >>> bl.dependency.check-shared-library libc.so __not_existing__ 1>/dev/null; echo $?
             2
-            >>> bl.dependency.check_shared_library __not_existing__ 1>/dev/null; echo $?
+            >>> bl.dependency.check-shared-library __not_existing__ 1>/dev/null; echo $?
             2
         '
     else

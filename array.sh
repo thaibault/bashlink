@@ -65,7 +65,7 @@ bl_array_filter() {
     done | \
         command grep --extended-regexp "$pattern"
 }
-alias bl.array.get_index=bl_array_get_index
+alias bl.array.get-index=bl_array_get_index
 bl_array_get_index() {
     local -r __documentation__='
         Get index of value in an array

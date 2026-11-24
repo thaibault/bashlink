@@ -116,9 +116,9 @@ declare -g BL_MODULE_NESTED_DECLARED_NAMES=''
 # namespace check to avoid overhead for regular imports.
 declare -g BL_MODULE_TRACK_NESTED_DECLARED_NAMES=false
 declare -ag BL_MODULE_IMPORTED=(
-    "$(bl.path.convert_to_absolute "${BASH_SOURCE[0]}")"
-    "$(bl.path.convert_to_absolute "${BASH_SOURCE[1]}")"
-    "$(bl.path.convert_to_absolute "$(dirname "${BASH_SOURCE[0]}")/path.sh")"
+    "$(bl.path.convert-to-absolute "${BASH_SOURCE[0]}")"
+    "$(bl.path.convert-to-absolute "${BASH_SOURCE[1]}")"
+    "$(bl.path.convert-to-absolute "$(dirname "${BASH_SOURCE[0]}")/path.sh")"
 )
 declare -ag BL_MODULE_KNOWN_EXTENSIONS=(
     .sh
@@ -175,46 +175,46 @@ declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="/tmp/bashlink-module-name-r
 # once per shell when this module is sourced. Entries other shells append to
 # the file later are still found via the file lookup in "bl.module.resolve".
 declare -gA BL_MODULE_NAME_RESOLVING_CACHE=()
-# NOTE: Result of "bl.module.resolve_cached" (avoids a subshell per call).
+# NOTE: Result of "bl.module.resolve-cached" (avoids a subshell per call).
 declare -g BL_MODULE_RESOLVED=''
 # endregion
 # region functions
-alias bl.module.check_name=bl_module_check_name
+alias bl.module.check-name=bl_module_check_name
 bl_module_check_name() {
     local -r __documentation__='
         Checks if given name belongs to given scope. The optional third
         argument selects which allowed scope name prefixes are accepted
         additionally: "function", "global", "none" or both if not set.
 
-        >>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
+        >>> bl.module.check-name "bl_module_check_name" "bl_module"; echo $?
         0
 
-        >>> bl.module.check_name "BL_MODULE_CHECK_NAME" "BL_MODULE"; echo $?
+        >>> bl.module.check-name "BL_MODULE_CHECK_NAME" "BL_MODULE"; echo $?
         0
 
         Scope names are case sensitive:
 
-        >>> bl.module.check_name "BL_MODULE_CHECK_NAME" "bl_module"; echo $?
+        >>> bl.module.check-name "BL_MODULE_CHECK_NAME" "bl_module"; echo $?
         1
 
-        >>> bl.module.check_name "bl_module_check_name" "bl_other_module"; echo $?
+        >>> bl.module.check-name "bl_module_check_name" "bl_other_module"; echo $?
         1
 
-        >>> bl.module.check_name "bl_other_module_not_existing" "bl_module"; echo $?
+        >>> bl.module.check-name "bl_other_module_not_existing" "bl_module"; echo $?
         1
 
-        >>> bl.module.check_name "BL_OTHER_MODULE_NOT_EXISTING" "bl_module"; echo $?
+        >>> bl.module.check-name "BL_OTHER_MODULE_NOT_EXISTING" "bl_module"; echo $?
         1
 
         A scope has to be followed by a delimiter:
 
-        >>> bl.module.check_name "bl_modules" "bl_module"; echo $?
+        >>> bl.module.check-name "bl_modules" "bl_module"; echo $?
         1
 
-        >>> bl.module.check_name "bl_cli_enable_color" "bl.c"; echo $?
+        >>> bl.module.check-name "bl_cli_enable_color" "bl.c"; echo $?
         1
 
-        >>> bl.module.check_name "bl_c_enable_color" "bl.c"; echo $?
+        >>> bl.module.check-name "bl_c_enable_color" "bl.c"; echo $?
         0
 
         Names starting with an allowed function or global scope name prefix
@@ -222,13 +222,13 @@ bl_module_check_name() {
 
         >>> local BL_MODULE_ALLOWED_FUNCTION_SCOPE_NAME_PREFIXES=(abc)
         >>> local BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES=(ABC)
-        >>> bl.module.check_name "abc_foo" "bl_module" function; echo $?
-        >>> bl.module.check_name "ABC_FOO" "bl_module" function; echo $?
-        >>> bl.module.check_name "ABC_FOO" "bl_module" global; echo $?
-        >>> bl.module.check_name "abc_foo" "bl_module" global; echo $?
-        >>> bl.module.check_name "abc_foo" "bl_module"; echo $?
-        >>> bl.module.check_name "abc_foo" "bl_module" none; echo $?
-        >>> bl.module.check_name "xyz_foo" "bl_module"; echo $?
+        >>> bl.module.check-name "abc_foo" "bl_module" function; echo $?
+        >>> bl.module.check-name "ABC_FOO" "bl_module" function; echo $?
+        >>> bl.module.check-name "ABC_FOO" "bl_module" global; echo $?
+        >>> bl.module.check-name "abc_foo" "bl_module" global; echo $?
+        >>> bl.module.check-name "abc_foo" "bl_module"; echo $?
+        >>> bl.module.check-name "abc_foo" "bl_module" none; echo $?
+        >>> bl.module.check-name "xyz_foo" "bl_module"; echo $?
         0
         1
         0
@@ -281,14 +281,14 @@ bl_module_check_name() {
         fi
     fi
 }
-alias bl.module.determine_aliases=bl_module_determine_aliases
+alias bl.module.determine-aliases=bl_module_determine_aliases
 bl_module_determine_aliases() {
     local -r __documentation__='
         Returns all defined aliases in the current scope.
 
         >>> alias bl_module_test_alias=true
-        >>> bl.module.determine_aliases | grep --line-regexp bl_module_test_alias
-        >>> bl.module.determine_aliases | grep --line-regexp bl.module.import
+        >>> bl.module.determine-aliases | grep --line-regexp bl_module_test_alias
+        >>> bl.module.determine-aliases | grep --line-regexp bl.module.import
         bl_module_test_alias
         bl.module.import
     '
@@ -297,33 +297,33 @@ bl_module_determine_aliases() {
             cut --delimiter ' ' --fields 2 - | \
                 cut --delimiter '=' --fields 1
 }
-alias bl.module.determine_declared_names=bl_module_determine_declared_names
+alias bl.module.determine-declared-names=bl_module_determine_declared_names
 bl_module_determine_declared_names() {
     local -r __documentation__='
         Return all declared variables and function in the current scope.
 
         ```bash
-            declarations="$(bl.module.determine_declared_names)"
+            declarations="$(bl.module.determine-declared-names)"
 
             declarations="$(
-                bl.module.determine_declared_names --only-functions
+                bl.module.determine-declared-names --only-functions
             )"
         ```
 
         >>> bl_module_test_function() { :; }
         >>> declare -g BL_MODULE_TEST_VARIABLE=1
-        >>> bl.module.determine_declared_names | \
+        >>> bl.module.determine-declared-names | \
         >>>     grep --line-regexp bl_module_test_function
-        >>> bl.module.determine_declared_names | \
+        >>> bl.module.determine-declared-names | \
         >>>     grep --line-regexp BL_MODULE_TEST_VARIABLE
         bl_module_test_function
         BL_MODULE_TEST_VARIABLE
 
         >>> bl_module_test_function() { :; }
         >>> declare -g BL_MODULE_TEST_VARIABLE=1
-        >>> bl.module.determine_declared_names --only-functions | \
+        >>> bl.module.determine-declared-names --only-functions | \
         >>>     grep --line-regexp bl_module_test_function
-        >>> bl.module.determine_declared_names --only-functions | \
+        >>> bl.module.determine-declared-names --only-functions | \
         >>>     grep --count --line-regexp BL_MODULE_TEST_VARIABLE
         bl_module_test_function
         0
@@ -343,40 +343,40 @@ bl_module_determine_declared_names() {
                         cut --delimiter '=' --fields 1
     } | sort --unique
 }
-alias bl.module.is_defined=bl_module_is_defined
+alias bl.module.is-defined=bl_module_is_defined
 bl_module_is_defined() {
     local -r __documentation__='
         Tests if variable is defined (can also be empty)
 
         >>> local foo=bar
-        >>> bl.module.is_defined foo; echo $?
+        >>> bl.module.is-defined foo; echo $?
         >>> [[ -v foo ]]; echo $?
         0
         0
         >>> local defined_but_empty=""
-        >>> bl.module.is_defined defined_but_empty; echo $?
+        >>> bl.module.is-defined defined_but_empty; echo $?
         0
-        >>> bl.module.is_defined undefined_variable; echo $?
+        >>> bl.module.is-defined undefined_variable; echo $?
         1
         >>> set -o nounset
-        >>> bl.module.is_defined undefined_variable; echo $?
+        >>> bl.module.is-defined undefined_variable; echo $?
         1
 
         # Same Tests for bash < 4.3
         >>> BL_MODULE_BASH_VERSION_TEST=true
         >>> local foo="bar"
-        >>> bl.module.is_defined foo; echo $?
+        >>> bl.module.is-defined foo; echo $?
         0
         >>> BL_MODULE_BASH_VERSION_TEST=true
         >>> local defined_but_empty=""
-        >>> bl.module.is_defined defined_but_empty; echo $?
+        >>> bl.module.is-defined defined_but_empty; echo $?
         0
         >>> BL_MODULE_BASH_VERSION_TEST=true
-        >>> bl.module.is_defined undefined_variable; echo $?
+        >>> bl.module.is-defined undefined_variable; echo $?
         1
         >>> BL_MODULE_BASH_VERSION_TEST=true
         >>> set -o nounset
-        >>> bl.module.is_defined undefined_variable; echo $?
+        >>> bl.module.is-defined undefined_variable; echo $?
         1
     '
     (
@@ -401,15 +401,15 @@ bl_module_is_defined() {
         fi
     )
 }
-alias bl.module.is_imported=bl_module_is_imported
+alias bl.module.is-imported=bl_module_is_imported
 bl_module_is_imported() {
     local -r __documentation__='
         Checks if giveb module is already imported.
 
-        >>> bl.module.is_imported bashlink.module; echo $?
+        >>> bl.module.is-imported bashlink.module; echo $?
         0
 
-        >>> bl.module.is_imported bashlink.not_existing; echo $?
+        >>> bl.module.is-imported bashlink.not_existing; echo $?
         +bl.doctest.contains
         error: Module file path for "bashlink.not_existing" could not be
         1
@@ -437,12 +437,12 @@ bl_module_is_imported() {
 
     return 1
 }
-alias bl.module.log_plain=bl_module_log_plain
+alias bl.module.log-plain=bl_module_log_plain
 bl_module_log_plain() {
     local -r __documentation__='
         Prints arbitrary strings, no matter which output descriptor is defined.
 
-        >>> bl.module.log_plain test
+        >>> bl.module.log-plain test
         test
     '
     if hash bl.logging.plain &>/dev/null; then
@@ -451,7 +451,7 @@ bl_module_log_plain() {
         echo "$@"
     fi
 }
-# NOTE: Depends on "bl.module.log_plain"
+# NOTE: Depends on "bl.module.log-plain"
 alias bl.module.log=bl_module_log
 bl_module_log() {
     local -r __documentation__='
@@ -474,24 +474,24 @@ bl_module_log() {
             level=error
         fi
         if [ "$level" = error ]; then
-            bl.module.log_plain "${level}:" "$@" \
+            bl.module.log-plain "${level}:" "$@" \
                 1>&2
         else
-            bl.module.log_plain "${level}: $*"
+            bl.module.log-plain "${level}: $*"
         fi
         $exception && \
             return 1
     else
-        bl.module.log_plain "info: $*"
+        bl.module.log-plain "info: $*"
     fi
 }
 # NOTE: Depends on "bl.module.log"
-alias bl.module.import_raw=bl_module_import_raw
+alias bl.module.import-raw=bl_module_import_raw
 bl_module_import_raw() {
     local -r __documentation__='
         Imports given module into current scope.
 
-        >>> bl.module.import_raw bashlink.not_existing; echo $?
+        >>> bl.module.import-raw bashlink.not_existing; echo $?
         +bl.doctest.ellipsis
         ...
         error: Failed to source module "bashlink.not_existing".
@@ -506,7 +506,7 @@ bl_module_import_raw() {
         (( BL_MODULE_IMPORT_LEVEL > 0 ))
     then
         track_nested_declared_names=true
-        declared_names_before_source="$(bl.module.determine_declared_names)"
+        declared_names_before_source="$(bl.module.determine-declared-names)"
     fi
     BL_MODULE_IMPORT_LEVEL=$((BL_MODULE_IMPORT_LEVEL + 1))
     # shellcheck disable=SC1090
@@ -527,13 +527,13 @@ bl_module_import_raw() {
         BL_MODULE_NESTED_DECLARED_NAMES+="$(
             ! diff \
                 <(echo "$declared_names_before_source") \
-                <(bl.module.determine_declared_names) | \
+                <(bl.module.determine-declared-names) | \
                     command grep '^>' | \
                         command sed "s/^> /${BL_MODULE_IMPORT_LEVEL} /"
         )"$'\n'
     fi
 }
-alias bl.module.get_nested_declared_names=bl_module_get_nested_declared_names
+alias bl.module.get-nested-declared-names=bl_module_get_nested_declared_names
 bl_module_get_nested_declared_names() {
     local -r __documentation__='
         Prints names introduced by imports nested deeper than current import
@@ -541,7 +541,7 @@ bl_module_get_nested_declared_names() {
 
         >>> local BL_MODULE_IMPORT_LEVEL=1
         >>> local BL_MODULE_NESTED_DECLARED_NAMES=$'"'"'1 a\n2 b\n3 c\n'"'"'
-        >>> bl.module.get_nested_declared_names
+        >>> bl.module.get-nested-declared-names
         b
         c
     '
@@ -549,13 +549,13 @@ bl_module_get_nested_declared_names() {
         command awk -v level="$BL_MODULE_IMPORT_LEVEL" '$1 > level {print $2}'
 }
 # NOTE: Depends on "bl.module.log"
-alias bl.module.import_with_namespace_check=bl_module_import_with_namespace_check
+alias bl.module.import-with-namespace-check=bl_module_import_with_namespace_check
 bl_module_import_with_namespace_check() {
     local -r __documentation__='
         Sources a script and checks variable definitions before and after
         sourcing.
 
-        >>> bl.module.import_with_namespace_check test bashlink.module; echo $?
+        >>> bl.module.import-with-namespace-check test bashlink.module; echo $?
         +bl.doctest.multiline_contains
         warning: Namespace "bl_module" in "bashlink.module" is not clean: Name "
     '
@@ -564,11 +564,11 @@ bl_module_import_with_namespace_check() {
     # NOTE: Prefixes are determined again after sourcing since the module can
     # add its own scope rewrites.
     local function_scope_name_prefix="$(
-        bl.module.rewrite_function_scope_name "$scope_name"
+        bl.module.rewrite-function-scope-name "$scope_name"
     )"
     local alternate_function_scope_name_prefix="${function_scope_name_prefix//./_}"
     local variable_scope_name_prefix="$(
-        bl.module.rewrite_global_scope_name "${scope_name^^}"
+        bl.module.rewrite-global-scope-name "${scope_name^^}"
     )"
     # NOTE: Each call needs its own snapshots since imports can be nested.
     local -r declared_function_names_before_source_file_path="$(
@@ -589,16 +589,16 @@ bl_module_import_with_namespace_check() {
     fi
     BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE=''
     # NOTE: All unprefixed variables which are declared after
-    # "bl.module.determine_declared_names" will be interpreted as newly
+    # "bl.module.determine-declared-names" will be interpreted as newly
     # introduced variables from given module.
     local name
     local new_declared_names
     # region "do not declare any variable" area
-    bl.module.determine_declared_names \
+    bl.module.determine-declared-names \
         --only-functions \
         >"$declared_function_names_before_source_file_path"
     ## region check if scope is clean before sourcing
-    bl.module.determine_declared_names \
+    bl.module.determine-declared-names \
         >"$declared_names_before_source_file_path"
 
     if $BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK; then
@@ -607,9 +607,9 @@ bl_module_import_with_namespace_check() {
             # environment (e.g. "BL_GLOBALS_*") and therefore expected.
             if \
                 [[ "${!name@a}" != *x* ]] && {
-                    bl.module.check_name \
+                    bl.module.check-name \
                         "$name" "$function_scope_name_prefix" none || \
-                    bl.module.check_name \
+                    bl.module.check-name \
                         "$name" "$variable_scope_name_prefix" none
                 }
             then
@@ -622,19 +622,19 @@ bl_module_import_with_namespace_check() {
         done < "$declared_names_before_source_file_path"
     fi
     ## endregion
-    bl.module.import_raw "$file_path"
+    bl.module.import-raw "$file_path"
     function_scope_name_prefix="$(
-        bl.module.rewrite_function_scope_name "$scope_name"
+        bl.module.rewrite-function-scope-name "$scope_name"
     )"
     alternate_function_scope_name_prefix="${function_scope_name_prefix//./_}"
     variable_scope_name_prefix="$(
-        bl.module.rewrite_global_scope_name "${scope_name^^}"
+        bl.module.rewrite-global-scope-name "${scope_name^^}"
     )"
     if (( BL_MODULE_IMPORT_LEVEL == 0 )); then
         BL_MODULE_TRACK_NESTED_DECLARED_NAMES=false
     fi
     # Check if sourcing has introduced unprefixed names.
-    bl.module.determine_declared_names \
+    bl.module.determine-declared-names \
         >"$declared_names_after_source_file_path"
     # endregion
     # NOTE: Names of nested imports have been checked by their own import.
@@ -648,13 +648,13 @@ bl_module_import_with_namespace_check() {
                             --fixed-strings \
                             --invert-match \
                             --line-regexp \
-                            --file <(bl.module.get_nested_declared_names)
+                            --file <(bl.module.get-nested-declared-names)
     )"
     for name in $new_declared_names; do
         if \
-            ! bl.module.check_name \
+            ! bl.module.check-name \
                 "$name" "$function_scope_name_prefix" function && \
-            ! bl.module.check_name "$name" "$variable_scope_name_prefix" global
+            ! bl.module.check-name "$name" "$variable_scope_name_prefix" global
         then
             bl.module.log \
                 warn \
@@ -671,14 +671,14 @@ bl_module_import_with_namespace_check() {
         BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE="$(
             ! diff \
                 "$declared_function_names_before_source_file_path" \
-                <(bl.module.determine_declared_names --only-functions) | \
+                <(bl.module.determine-declared-names --only-functions) | \
                     command grep '^>' | \
                         command sed 's/^> //' | \
                             command grep \
                                 --fixed-strings \
                                 --invert-match \
                                 --line-regexp \
-                                --file <(bl.module.get_nested_declared_names)
+                                --file <(bl.module.get-nested-declared-names)
         )"
     fi
     rm \
@@ -686,7 +686,7 @@ bl_module_import_with_namespace_check() {
         "$declared_names_before_source_file_path" \
         "$declared_names_after_source_file_path"
 }
-# NOTE: Depends on "bl.module.import_raw" and "bl.module.import_with_namespace_check"
+# NOTE: Depends on "bl.module.import-raw" and "bl.module.import-with-namespace-check"
 alias bl.module.import=bl_module_import
 bl_module_import() {
     # shellcheck disable=SC1004
@@ -763,7 +763,7 @@ bl_module_import() {
     if (( $# == 2 )); then
         caller_file_path="$2"
     fi
-    if bl.module.is_imported "$1" "$caller_file_path"; then
+    if bl.module.is-imported "$1" "$caller_file_path"; then
         return 0
     fi
     # NOTE: We have to use "local" before to avoid shadowing the "$?" value.
@@ -815,12 +815,12 @@ bl_module_import() {
         else
             BL_MODULE_IMPORTED+=("$file_path")
             if $BL_MODULE_PREVENT_NAMESPACE_CHECK; then
-                bl.module.import_raw "$file_path"
+                bl.module.import-raw "$file_path"
             else
                 scope_name="$(
-                    bl.module.remove_known_file_extension "$scope_name"
+                    bl.module.remove-known-file-extension "$scope_name"
                 )"
-                bl.module.import_with_namespace_check \
+                bl.module.import-with-namespace-check \
                     "$file_path" \
                     "$scope_name"
             fi
@@ -830,13 +830,13 @@ bl_module_import() {
         return 1
     fi
 }
-alias bl.module.import_without_namespace_check=bl_module_import_without_namespace_check
+alias bl.module.import-without-namespace-check=bl_module_import_without_namespace_check
 bl_module_import_without_namespace_check() {
     local -r __documentation__='
         Imports given module without any namespace checks. Needed for internal
         usage.
 
-        >>> bl.module.import_without_namespace_check bashlink.module; echo $?
+        >>> bl.module.import-without-namespace-check bashlink.module; echo $?
         0
     '
     local caller_file_path="${BASH_SOURCE[1]}"
@@ -845,11 +845,11 @@ bl_module_import_without_namespace_check() {
     fi
     if bl_module_resolve_cached "$1" "$caller_file_path"; then
         local -r file_path="$BL_MODULE_RESOLVED"
-        if bl.module.is_imported "$1" "$file_path" "$caller_file_path"; then
+        if bl.module.is-imported "$1" "$file_path" "$caller_file_path"; then
             return 0
         fi
         BL_MODULE_IMPORTED+=("$file_path")
-        bl.module.import_raw "$file_path"
+        bl.module.import-raw "$file_path"
     fi
 }
 alias bl.module.resolve=bl_module_resolve
@@ -915,17 +915,17 @@ bl_module_resolve() {
     local caller_path
     BL_MODULE_DECLARED_FUNCTION_NAMES_AFTER_SOURCE=''
     local -r current_path="$(dirname "$(dirname "$(
-        bl.path.convert_to_absolute "${BASH_SOURCE[0]}"
+        bl.path.convert-to-absolute "${BASH_SOURCE[0]}"
     )")")"
     if (( $# == 1 )) || [ "${!#}" = true ] || [ "${!#}" = false ]; then
         caller_path="$(dirname "$(
-            bl.path.convert_to_absolute "${BASH_SOURCE[1]}"
+            bl.path.convert-to-absolute "${BASH_SOURCE[1]}"
         )")"
     else
-        caller_path="$(dirname "$(bl.path.convert_to_absolute "${!#}")")"
+        caller_path="$(dirname "$(bl.path.convert-to-absolute "${!#}")")"
     fi
     local -r initial_caller_path="$(dirname "$(
-        bl.path.convert_to_absolute "${BASH_SOURCE[-1]}"
+        bl.path.convert-to-absolute "${BASH_SOURCE[-1]}"
     )")"
 
     local -r execution_path="$(pwd)"
@@ -1046,13 +1046,13 @@ bl_module_resolve() {
             "extension: ${extension_description}." || \
                 return $?
     fi
-    file_path="$(bl.path.convert_to_absolute "$file_path")"
+    file_path="$(bl.path.convert-to-absolute "$file_path")"
 
     local result
     if [ "$2" = true ]; then
         local scope_name="$(basename "$1")"
         local -r library_path="$(dirname "$(
-            bl.path.convert_to_absolute "${BASH_SOURCE[0]}"
+            bl.path.convert-to-absolute "${BASH_SOURCE[0]}"
         )")"
         if [[ "$file_path" == "$library_path"/* ]]; then
             # Derive scope from location to be independent of the reference
@@ -1066,10 +1066,10 @@ bl_module_resolve() {
         then
             scope_name="bashlink.$scope_name"
         fi
-        result="$(bl.path.convert_to_absolute "$file_path")/$(
+        result="$(bl.path.convert-to-absolute "$file_path")/$(
             bl_module_remove_known_file_extension "$scope_name")"
     else
-        result="$(bl.path.convert_to_absolute "$file_path")"
+        result="$(bl.path.convert-to-absolute "$file_path")"
     fi
 
     # NOTE: Only append (a single short write) since concurrent imports (e.g.
@@ -1084,7 +1084,7 @@ bl_module_resolve() {
 
     echo -n "$result"
 }
-alias bl.module.resolve_cached=bl_module_resolve_cached
+alias bl.module.resolve-cached=bl_module_resolve_cached
 bl_module_resolve_cached() {
     local -r __documentation__='
         Like "bl.module.resolve" but stores the result in
@@ -1093,18 +1093,18 @@ bl_module_resolve_cached() {
         pass the caller file path explicitly (as last argument) since the
         caller can not be derived via "BASH_SOURCE" through this wrapper.
 
-        >>> bl.module.resolve_cached bashlink.module; echo $?
+        >>> bl.module.resolve-cached bashlink.module; echo $?
         >>> echo "$BL_MODULE_RESOLVED"
         +bl.doctest.multiline_contains
         0
         /bashlink/module.sh
 
-        >>> bl.module.resolve_cached bashlink.module
+        >>> bl.module.resolve-cached bashlink.module
         >>> [ "$BL_MODULE_RESOLVED" = "$(bl.module.resolve bashlink.module)" ]
         >>> echo $?
         0
 
-        >>> bl.module.resolve_cached bashlink.not_existing; echo $?
+        >>> bl.module.resolve-cached bashlink.not_existing; echo $?
         +bl.doctest.contains
         error: Module file path for "bashlink.not_existing" could not be
         1
@@ -1127,13 +1127,13 @@ bl_module_resolve_cached() {
     BL_MODULE_RESOLVED="$result"
     return 1
 }
-alias bl.module.load_name_resolving_cache=bl_module_load_name_resolving_cache
+alias bl.module.load-name-resolving-cache=bl_module_load_name_resolving_cache
 bl_module_load_name_resolving_cache() {
     local -r __documentation__='
         Loads all entries of the resolving cache file into memory (first entry
         per key wins as in "bl.module.resolve"). Uses builtins only.
 
-        >>> bl.module.load_name_resolving_cache; echo $?
+        >>> bl.module.load-name-resolving-cache; echo $?
         0
     '
     [ -f "$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH" ] || \
@@ -1153,12 +1153,12 @@ bl_module_load_name_resolving_cache() {
     done <"$BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH"
     return 0
 }
-alias bl.module.remove_known_file_extension=bl_module_remove_known_file_extension
+alias bl.module.remove-known-file-extension=bl_module_remove_known_file_extension
 bl_module_remove_known_file_extension() {
     local -r __documentation__='
         Removes known file extension from given module references.
 
-        >>> bl.module.remove_known_file_extension module.sh
+        >>> bl.module.remove-known-file-extension module.sh
         module
     '
     local -r name="$1"
@@ -1172,21 +1172,21 @@ bl_module_remove_known_file_extension() {
     done
     echo "$1"
 }
-alias bl.module.rewrite_function_scope_name=bl_module_rewrite_function_scope_name
+alias bl.module.rewrite-function-scope-name=bl_module_rewrite_function_scope_name
 bl_module_rewrite_function_scope_name() {
     local -r __documentation__='
         Rewrite scope name. Usually needed to shorten a scope name.
 
-        >>> bl.module.rewrite_function_scope_name bashlink.module
+        >>> bl.module.rewrite-function-scope-name bashlink.module
         bl.module
 
-        >>> bl.module.rewrite_function_scope_name bashlink.prompt.main
+        >>> bl.module.rewrite-function-scope-name bashlink.prompt.main
         bl.prompt.main
 
-        >>> bl.module.rewrite_function_scope_name bashlink
+        >>> bl.module.rewrite-function-scope-name bashlink
         bashlink
 
-        >>> bl.module.rewrite_function_scope_name a-b+a
+        >>> bl.module.rewrite-function-scope-name a-b+a
         a.b.a
     '
     local resolved_scope_name="$1"
@@ -1199,18 +1199,18 @@ bl_module_rewrite_function_scope_name() {
     done
     echo "$resolved_scope_name"
 }
-alias bl.module.rewrite_global_scope_name=bl_module_rewrite_global_scope_name
+alias bl.module.rewrite-global-scope-name=bl_module_rewrite_global_scope_name
 bl_module_rewrite_global_scope_name() {
     local -r __documentation__='
         Rewrite scope name. Usually needed to shorten a scope name.
 
-        >>> bl.module.rewrite_global_scope_name BASHLINK_MODULE
+        >>> bl.module.rewrite-global-scope-name BASHLINK_MODULE
         BL_MODULE
 
-        >>> bl.module.rewrite_global_scope_name BASHLINK.PROMPT.MAIN
+        >>> bl.module.rewrite-global-scope-name BASHLINK.PROMPT.MAIN
         BL_PROMPT_MAIN
 
-        >>> bl.module.rewrite_global_scope_name a-b+a
+        >>> bl.module.rewrite-global-scope-name a-b+a
         a_b_a
     '
     local resolved_scope_name="$1"

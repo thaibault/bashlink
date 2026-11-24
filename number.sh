@@ -24,7 +24,7 @@ declare -gr BL_NUMBER__DOCUMENTATION__='
 '
 # endregion
 # region functions
-alias bl.number.calculate_percent=bl_number_calculate_percent
+alias bl.number.calculate-percent=bl_number_calculate_percent
 bl_number_calculate_percent() {
     local -r __documentation__='
         Calculates percent of second argument from the first argument.
@@ -38,36 +38,36 @@ bl_number_calculate_percent() {
             's/^(.)$/0\1/g' \
                 <<<$(((($2 * 10000) / $1) % 100)))"
 }
-alias bl.number.normalize_version=bl_number_normalize_version
+alias bl.number.normalize-version=bl_number_normalize_version
 bl_number_normalize_version() {
     local -r __documentation__='
         Normalizes given version number to a raw number.
 
-        >>> bl.number.normalize_version "database/openssl-1.1.0.g-1"
+        >>> bl.number.normalize-version "database/openssl-1.1.0.g-1"
         1101000000000
 
-        >>> bl.number.normalize_version "database/openssl-1.1.0.g-1" 4
+        >>> bl.number.normalize-version "database/openssl-1.1.0.g-1" 4
         1101
 
-        >>> bl.number.normalize_version 1.1.0.1 4
+        >>> bl.number.normalize-version 1.1.0.1 4
         1101
 
-        >>> bl.number.normalize_version 1101 4
+        >>> bl.number.normalize-version 1101 4
         1101000
 
-        >>> bl.number.normalize_version 0 4
+        >>> bl.number.normalize-version 0 4
         0
 
-        >>> bl.number.normalize_version 0 10
+        >>> bl.number.normalize-version 0 10
         0
 
-        >>> bl.number.normalize_version abc-0.1.1.0.1 6
+        >>> bl.number.normalize-version abc-0.1.1.0.1 6
         11010
 
-        >>> bl.number.normalize_version 19.1-1-x86_64 10
+        >>> bl.number.normalize-version 19.1-1-x86_64 10
         27774000000
 
-        >>> bl.number.normalize_version abc-0.1.1.0.1 2; echo $?
+        >>> bl.number.normalize-version abc-0.1.1.0.1 2; echo $?
         1
         0
     '

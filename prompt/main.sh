@@ -32,8 +32,8 @@ declare -gr BL_PROMPT_MAIN__DOCUMENTATION__='
     export PROMPT_COMMAND=set_prompt
 '
 
-if bl.tools.is_main; then
-    bl.string.make_command_prompt_prefix "$@"
+if bl.tools.is-main; then
+    bl.string.make-command-prompt-prefix "$@"
 fi
 # region vim modline
 # vim: set tabstop=4 shiftwidth=4 expandtab:

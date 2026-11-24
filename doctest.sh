@@ -59,10 +59,10 @@ declare -gr BL_DOCTEST__DOCUMENTATION__='
 
     ```bash
         [info:doctest:xxx] bl.arguments:[PASS]
-        [info:doctest:xxx] bl.arguments.get_flag:[PASS]
-        [info:doctest:xxx] bl.arguments.get_keyword:[PASS]
-        [info.doctedt:xxx] bl.arguments.get_parameter:[PASS]
-        [info:doctest:xxx] bl.arguments.get_positional:[PASS]
+        [info:doctest:xxx] bl.arguments.get-flag:[PASS]
+        [info:doctest:xxx] bl.arguments.get-keyword:[PASS]
+        [info.doctedt:xxx] bl.arguments.get-parameter:[PASS]
+        [info:doctest:xxx] bl.arguments.get-positional:[PASS]
         [info:doctest:xxx] bl.arguments.set:[PASS]
         [info:doctest:xxx] bl.arguments - passed 6/6 tests in 918 ms
         [info:doctest:xxx] Total: passed 1/1 items in 941 ms
@@ -183,7 +183,7 @@ declare -g BL_DOCTEST_REGULAR_EXPRESSION_ONE_LINE="${BL_DOCTEST_NAME_INDICATOR}=
 declare -g BL_DOCTEST_USE_SIDE_BY_SIDE_OUTPUT=true
 # endregion
 # region functions
-alias bl.doctest.compare_result=bl_doctest_compare_result
+alias bl.doctest.compare-result=bl_doctest_compare_result
 bl_doctest_compare_result() {
     local -r __documentation__='
         Compares specified result with given one.
@@ -192,14 +192,14 @@ bl_doctest_compare_result() {
         >>> line 2"
         >>> local got="line 1
         >>> line 2"
-        >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+        >>> bl.doctest.compare-result "$buffer" "$got"; echo $?
         0
 
         >>> local buffer="line 1
         >>> foo"
         >>> local got="line 1
         >>> line 2"
-        >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+        >>> bl.doctest.compare-result "$buffer" "$got"; echo $?
         +bl.doctest.contains
         "line 2" is not "foo".
         4
@@ -209,7 +209,7 @@ bl_doctest_compare_result() {
         >>> line"
         >>> local got="line 1
         >>> line 2"
-        >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+        >>> bl.doctest.compare-result "$buffer" "$got"; echo $?
         0
 
         >>> local buffer="+bl.doctest.contains
@@ -217,7 +217,7 @@ bl_doctest_compare_result() {
         >>> foo"
         >>> local got="line 1
         >>> line 2"
-        >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+        >>> bl.doctest.compare-result "$buffer" "$got"; echo $?
         +bl.doctest.contains
         "line 2" is not "foo".
         4
@@ -229,7 +229,7 @@ bl_doctest_compare_result() {
         >>> local got="line
         >>> line 2
         >>> "
-        >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+        >>> bl.doctest.compare-result "$buffer" "$got"; echo $?
         0
 
         >>> local buffer="+bl.doctest.multiline_ellipsis
@@ -242,7 +242,7 @@ bl_doctest_compare_result() {
         >>> ignore
         >>> line 2
         >>> "
-        >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+        >>> bl.doctest.compare-result "$buffer" "$got"; echo $?
         0
 
         >>> local buffer="+bl.doctest.ellipsis
@@ -256,7 +256,7 @@ bl_doctest_compare_result() {
         >>> line 2
         >>> line 3
         >>> "
-        >>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+        >>> bl.doctest.compare-result "$buffer" "$got"; echo $?
         +bl.doctest.contains
         "ignore" is not "line 2".
         4
@@ -388,12 +388,12 @@ bl_doctest_compare_result() {
         fi
     done 3<<< "$buffer" 4<<< "$got"
 }
-alias bl.doctest.contains_tests=bl_doctest_contains_tests
+alias bl.doctest.contains-tests=bl_doctest_contains_tests
 bl_doctest_contains_tests() {
     local -r __documentation__='
         Checks if given docstring contains at least one test.
 
-        >>> bl.doctest.contains_tests "
+        >>> bl.doctest.contains-tests "
         >>>     Some text.
         >>>
         >>>     >>> echo test
@@ -401,7 +401,7 @@ bl_doctest_contains_tests() {
         >>> "; echo $?
         0
 
-        >>> bl.doctest.contains_tests "Only text mentioning >>> inline."; \
+        >>> bl.doctest.contains-tests "Only text mentioning >>> inline."; \
         >>>     echo $?
         1
     '
@@ -432,12 +432,12 @@ bl_doctest_eval() {
     local -r function_name="${5-}"
     local -i result=0
 
-    local -r function_scope_name_prefix="$(bl.module.rewrite_function_scope_name "$(
-        bl.module.remove_known_file_extension "$module_name"
+    local -r function_scope_name_prefix="$(bl.module.rewrite-function-scope-name "$(
+        bl.module.remove-known-file-extension "$module_name"
     )")"
     local -r alternate_function_scope_name_prefix="${function_scope_name_prefix//./_}"
-    local -r global_scope_name_prefix="$(bl.module.rewrite_global_scope_name "$(
-        bl.module.remove_known_file_extension "${module_name^^}"
+    local -r global_scope_name_prefix="$(bl.module.rewrite-global-scope-name "$(
+        bl.module.remove-known-file-extension "${module_name^^}"
     )")"
     local -r setup_identifier="${global_scope_name_prefix}"__DOCTEST_SETUP__
 
@@ -477,7 +477,7 @@ $(
 )
 BL_MODULE_PREVENT_NAMESPACE_CHECK=false
 $setup_string
-bl.module.determine_declared_names >'$declared_names_before_run_file_path'
+bl.module.determine-declared-names >'$declared_names_before_run_file_path'
 $($BL_DOCTEST_NOUNSET && echo 'set -o nounset')
 # NOTE: We have to wrap the test context a function to ensure the "local"
 # keyword has an effect inside.
@@ -507,7 +507,7 @@ ${alternate_function_scope_name_prefix}_doctest_environment() {
     rm --force --recursive "\$${global_scope_name_prefix}_BL_DOCTEST_TEMPORARY_FILE_PATHS_FILE_PATH"
 }
 ${alternate_function_scope_name_prefix}_doctest_environment
-bl.module.determine_declared_names >'$declared_names_after_run_file_path'
+bl.module.determine-declared-names >'$declared_names_after_run_file_path'
 EOF
     )"
     # run in clean environment
@@ -531,12 +531,12 @@ EOF
     fi
     if [[ "$BL_DOCTEST_NEW_DECLARED_NAMES" != '' ]]; then
         local name
-        bl.string.get_unique_lines <<< "$BL_DOCTEST_NEW_DECLARED_NAMES" | \
+        bl.string.get-unique-lines <<< "$BL_DOCTEST_NEW_DECLARED_NAMES" | \
             while read -r name; do
                 if \
-                    ! bl.module.check_name \
+                    ! bl.module.check-name \
                         "$name" "$function_scope_name_prefix" function && \
-                    ! bl.module.check_name \
+                    ! bl.module.check-name \
                         "$name" "$global_scope_name_prefix" global
                 then
                     bl.logging.warn \
@@ -549,10 +549,10 @@ EOF
     rm "$declared_names_after_run_file_path"
     local reason
     if ! reason="$(
-        bl.doctest.compare_result "$output_buffer" "$output" 2>&1
+        bl.doctest.compare-result "$output_buffer" "$output" 2>&1
     )"; then
         # NOTE: We have to replace last pending test information line first.
-        bl.logging.is_enabled info && \
+        bl.logging.is-enabled info && \
             bl.logging.plain -n $'\r'
         bl.logging.plain "${BL_CLI_COLOR_LIGHT_RED}error:${BL_CLI_COLOR_DEFAULT} ${reason}"
         bl.logging.plain "${BL_CLI_COLOR_LIGHT_RED}test:${BL_CLI_COLOR_DEFAULT}"
@@ -566,26 +566,26 @@ EOF
             local diff=diff
             bl.dependency.check colordiff && diff=colordiff
             $diff --side-by-side <(echo -e "$(
-                bl.doctest.get_formatted_docstring_output "$output_buffer"
+                bl.doctest.get-formatted-docstring-output "$output_buffer"
             )") <(echo -e "$output")
         fi
         return 1
     fi
 }
-alias bl.doctest.get_formatted_docstring_output=bl_doctest_get_formatted_docstring_output
+alias bl.doctest.get-formatted-docstring-output=bl_doctest_get_formatted_docstring_output
 bl_doctest_get_formatted_docstring_output() {
     local -r __documentation__='
         Slices doctest modifier from given doctest output.
 
-        >>> bl.doctest.get_formatted_docstring_output ""
+        >>> bl.doctest.get-formatted-docstring-output ""
 
-        >>> bl.doctest.get_formatted_docstring_output "+bl.doctest.ellipsis
+        >>> bl.doctest.get-formatted-docstring-output "+bl.doctest.ellipsis
         >>> +bl.doctest.multiline_ellipsis
         >>> +bl.doctest.contains
         >>> test"
         test
 
-        >>> bl.doctest.get_formatted_docstring_output "+bl.doctest.ellipsis
+        >>> bl.doctest.get-formatted-docstring-output "+bl.doctest.ellipsis
         >>> +bl.doctest.multiline_ellipsis
         >>> +bl.doctest.contains
         >>> test
@@ -595,13 +595,13 @@ bl_doctest_get_formatted_docstring_output() {
     echo "$1" | \
         command sed --regexp-extended '/\+bl\.doc(umentation|test)\..+/d'
 }
-alias bl.doctest.get_function_docstring=bl_doctest_get_function_docstring
+alias bl.doctest.get-function-docstring=bl_doctest_get_function_docstring
 bl_doctest_get_function_docstring() {
     # NOTE: We have to overwrite this variable here so "-r" is not useful.
     local __documentation__='
         Retrieves the docstring from given function name in current scope.
 
-        >>> bl.doctest.get_function_docstring bl_doctest_get_function_docstring
+        >>> bl.doctest.get-function-docstring bl_doctest_get_function_docstring
         +bl.doctest.ellipsis
         ...
         Retrieves the docstring from given function name in current scope.
@@ -625,7 +625,7 @@ bl_doctest_get_function_docstring() {
         echo "${!BL_DOCTEST_NAME_INDICATOR}"
     )
 }
-alias bl.doctest.parse_docstring=bl_doctest_parse_docstring
+alias bl.doctest.parse-docstring=bl_doctest_parse_docstring
 bl_doctest_parse_docstring() {
     local -r __documentation__='
         >>> local docstring="
@@ -643,7 +643,7 @@ bl_doctest_parse_docstring() {
         >>>         fi
         >>>     done <<< "$output_buffer"
         >>> }
-        >>> bl.doctest.parse_docstring "$docstring" _ "(test)"
+        >>> bl.doctest.parse-docstring "$docstring" _ "(test)"
         block:
         output block
         >>> local docstring="
@@ -682,7 +682,7 @@ bl_doctest_parse_docstring() {
         >>>     [ ! -z "$output_buffer" ] && echo "$output_buffer"
         >>>     return 0
         >>> }
-        >>> bl.doctest.parse_docstring "$docstring" _ "(test)"
+        >>> bl.doctest.parse-docstring "$docstring" _ "(test)"
         text_buffer (block 1):
         Some text (block 1).
         empty_line
@@ -708,8 +708,8 @@ bl_doctest_parse_docstring() {
     '
     local preserve_prompt
     bl.arguments.set "$@"
-    bl.arguments.get_flag --preserve-prompt preserve_prompt
-    bl.arguments.apply_new
+    bl.arguments.get-flag --preserve-prompt preserve_prompt
+    bl.arguments.apply-new
     local docstring="$1"
     local -r parse_buffers_function="$2"
     local -r module_name="${4:-}"
@@ -823,21 +823,21 @@ bl_doctest_parse_docstring() {
         text_buffer="$(head --lines=-1 <<< "$text_buffer" )"
     bl_doctest_eval_buffers
 }
-alias bl.doctest.run_test=bl_doctest_run_test
+alias bl.doctest.run-test=bl_doctest_run_test
 bl_doctest_run_test() {
     local -r __documentation__='
         Parses given docstring, evaluates doctest and represents result.
 
-        >>> bl.doctest.run_test "" bashlink.doctest bl_doctest_get_function_docstring
+        >>> bl.doctest.run-test "" bashlink.doctest bl_doctest_get_function_docstring
 
-        >>> bl.doctest.run_test "test" bashlink.doctest bl_doctest_get_function_docstring
+        >>> bl.doctest.run-test "test" bashlink.doctest bl_doctest_get_function_docstring
 
         >>> BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST=bashlink.doctest
-        >>> bl.doctest.run_test ">>> echo a
+        >>> bl.doctest.run-test ">>> echo a
         >>> a" bashlink.doctest bl_doctest_get_function_docstring
 
         >>> BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST=bashlink.doctest
-        >>> bl.doctest.run_test ">>> echo a" bashlink.doctest bl_doctest_get_function_docstring &>/dev/null 3>&1 4>&1; echo $?
+        >>> bl.doctest.run-test ">>> echo a" bashlink.doctest bl_doctest_get_function_docstring &>/dev/null 3>&1 4>&1; echo $?
         1
     '
     local -r docstring="$1"
@@ -849,11 +849,11 @@ bl_doctest_run_test() {
     if $BL_DOCTEST_IS_SYNCHRONIZED; then
         bl.logging.info --no-new-line "$test_name ${BL_CLI_COLOR_LIGHT_YELLOW}${BL_CLI_POWERLINE_COG}${BL_CLI_COLOR_DEFAULT}"
     fi
-    if bl.doctest.parse_docstring "$docstring" bl_doctest_eval '>>>' \
+    if bl.doctest.parse-docstring "$docstring" bl_doctest_eval '>>>' \
         "$module_name" "$function_name"
     then
         $BL_DOCTEST_IS_SYNCHRONIZED && \
-            bl.logging.is_enabled info && \
+            bl.logging.is-enabled info && \
             bl.logging.plain -n $'\r'
         bl.logging.info \
             "$test_name" \
@@ -907,7 +907,7 @@ bl_doctest_test() {
         echo "$result" | command sed --regexp-extended 's:^.*/([^/]+)$:\1:'
     )"
     local function_scope_name_prefix="$(
-        bl.module.rewrite_function_scope_name "$module_name" | \
+        bl.module.rewrite-function-scope-name "$module_name" | \
             command sed --regexp-extended 's:\.:_:g'
     )"
     local -i success=0
@@ -947,7 +947,7 @@ bl_doctest_test() {
                     (( total++ ))
                     # shellcheck disable=SC1117
                     bl.doctest.test "$(
-                        bl.module.remove_known_file_extension "$(
+                        bl.module.remove-known-file-extension "$(
                             echo "$sub_file_path" | \
                                 command sed \
                                     --regexp-extended \
@@ -957,7 +957,7 @@ bl_doctest_test() {
                 else
                     # shellcheck disable=SC1117
                     bl.doctest.test "$(
-                        bl.module.remove_known_file_extension "$(
+                        bl.module.remove-known-file-extension "$(
                             echo "$sub_file_path" | \
                                 command sed \
                                     --regexp-extended \
@@ -976,7 +976,7 @@ bl_doctest_test() {
             done
         fi
         bl.logging.info "Total: passed $success/$total items in" \
-            "$(bl.time.get_elapsed) ms from \"$module_name\"."
+            "$(bl.time.get-elapsed) ms from \"$module_name\"."
         (( success != total )) && \
             return 1
         return 0
@@ -992,7 +992,7 @@ bl_doctest_test() {
         declare -g BL_MODULE_COMPLAIN_ABOUT_DIRTY_SCOPE_BEFORE_NAMESPACE_CHECK="$module_complain_about_dirty_scope_before_namespace_check_backup"
 
         function_scope_name_prefix="$(
-            bl.module.rewrite_function_scope_name "$module_name" | \
+            bl.module.rewrite-function-scope-name "$module_name" | \
                 command sed --regexp-extended 's:\.:_:g'
         )"
         local name
@@ -1025,13 +1025,13 @@ bl_doctest_test() {
                     command grep -e "^$function_scope_name_prefix"
             )"
         fi
-        function_names_to_test="$(bl.string.get_unique_lines <(
+        function_names_to_test="$(bl.string.get-unique-lines <(
             echo "$function_names_to_test"
         ))"
         bl.time.start
         if [ "$given_function_names_to_test" = '' ]; then
             global_scope_name_prefix="$(
-                bl.module.rewrite_global_scope_name "${module_name^^}" | \
+                bl.module.rewrite-global-scope-name "${module_name^^}" | \
                     command sed --regexp-extended 's:\.:_:g'
             )"
             # Module level tests
@@ -1039,11 +1039,11 @@ bl_doctest_test() {
             local docstring="${!module_documentation_variable_name}"
             if [ "$docstring" = '' ]; then
                 bl.logging.warn "Module \"${module_name}\" is not documented."
-            elif ! bl.doctest.contains_tests "$docstring"; then
+            elif ! bl.doctest.contains-tests "$docstring"; then
                 (( untested++ ))
             else
                 (( total++ ))
-                bl.doctest.run_test "$docstring" "$module_name" && \
+                bl.doctest.run-test "$docstring" "$module_name" && \
                     (( success++ ))
             fi
         fi
@@ -1051,15 +1051,15 @@ bl_doctest_test() {
         local name
         for name in $function_names_to_test; do
             # shellcheck disable=SC2089
-            local docstring="$(bl.doctest.get_function_docstring "$name")"
+            local docstring="$(bl.doctest.get-function-docstring "$name")"
             if \
                 [[ "$docstring" != '' ]] && \
-                ! bl.doctest.contains_tests "$docstring"
+                ! bl.doctest.contains-tests "$docstring"
             then
                 (( untested++ ))
             elif [[ "$docstring" != '' ]]; then
                 (( total++ ))
-                bl.doctest.run_test "$docstring" "$module_name" "$name" && \
+                bl.doctest.run-test "$docstring" "$module_name" "$name" && \
                     (( success++ ))
             elif [ "$given_function_names_to_test" != '' ]; then
                 (( total++ ))
@@ -1073,7 +1073,7 @@ bl_doctest_test() {
             untested_description=" (${untested} documented without tests)"
         bl.logging.info \
             "$module_name - passed $success/$total tests${untested_description}" \
-            "in $(bl.time.get_elapsed) ms from \"${module_name}\"."
+            "in $(bl.time.get-elapsed) ms from \"${module_name}\"."
         (( success != total )) && \
             exit 1
         exit 0
@@ -1100,9 +1100,9 @@ bl_doctest_main() {
 
     bl.arguments.set "$@"
     local help
-    bl.arguments.get_flag --help -h help
+    bl.arguments.get-flag --help -h help
     if $help; then
-        bl.documentation.get_formatted_docstring "$BL_DOCTEST__DOCUMENTATION__"
+        bl.documentation.get-formatted-docstring "$BL_DOCTEST__DOCUMENTATION__"
         return 0
     fi
     # NOTE: Without "diff" no declared functions and therefore no tests are
@@ -1114,21 +1114,21 @@ bl_doctest_main() {
         return 1
     fi
     local no_side_by_side
-    bl.arguments.get_flag --prevent-side-by-side no_side_by_side
+    bl.arguments.get-flag --prevent-side-by-side no_side_by_side
     if $no_side_by_side; then
         BL_DOCTEST_USE_SIDE_BY_SIDE_OUTPUT=false
     fi
     # Indicates if we should ran tests in parallel.
-    bl.arguments.get_flag --synchronized bl_doctest_synchronized
+    bl.arguments.get-flag --synchronized bl_doctest_synchronized
     # Configures if is should warn about undocumented functions.
-    bl.arguments.get_flag --no-check-undocumented bl_doctest_supress_undocumented
+    bl.arguments.get-flag --no-check-undocumented bl_doctest_supress_undocumented
     # Indicated if `set -o nounset` should be set inside test contexts.
-    bl.arguments.get_flag --use-nounset bl_doctest_nounset
+    bl.arguments.get-flag --use-nounset bl_doctest_nounset
     local verbose
-    bl.arguments.get_flag --verbose -v verbose
-    bl.arguments.apply_new
+    bl.arguments.get-flag --verbose -v verbose
+    bl.arguments.apply-new
     if $verbose; then
-        bl.logging.set_level info
+        bl.logging.set-level info
     fi
     BL_DOCTEST_IS_SYNCHRONIZED=true
     bl.time.start
@@ -1192,7 +1192,7 @@ bl_doctest_main() {
     declare -g BL_MODULE_NAME_RESOLVING_CACHE_FILE_PATH="$module_resolving_cache_file_path_backup"
 
     bl.logging.info \
-        "Total: passed $success/$total items in $(bl.time.get_elapsed) ms" \
+        "Total: passed $success/$total items in $(bl.time.get-elapsed) ms" \
         "from \"$item_names\""
     (( success != total )) && \
         return 1
@@ -1200,7 +1200,7 @@ bl_doctest_main() {
     return 0
 }
 # endregion
-if bl.tools.is_main; then
+if bl.tools.is-main; then
     bl.doctest.main "$@"
 fi
 # region vim modline

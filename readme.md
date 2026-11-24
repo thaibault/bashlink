@@ -123,21 +123,21 @@ greeting_greet() {
     echo "Hello ${1}!"
 }
 
-if bl.tools.is_main; then
+if bl.tools.is-main; then
     greeting.greet "${1:-World}"
 fi
 ```
 
-"bl.tools.is_main" is only true when the file is executed, not when it is
+"bl.tools.is-main" is only true when the file is executed, not when it is
 imported. Own modules next to a file are imported by their name, e.g.
 "bl.module.import helper" for "helper.sh".
 <!--deDE:
-    "bl.tools.is_main" ist nur wahr, wenn die Datei ausgeführt und nicht
+    "bl.tools.is-main" ist nur wahr, wenn die Datei ausgeführt und nicht
     importiert wird. Eigene Module neben einer Datei werden über ihren Namen
     importiert, z. B. "bl.module.import helper" für "helper.sh".
 -->
 <!--frFR:
-    "bl.tools.is_main" n'est vrai que lorsque le fichier est exécuté et non
+    "bl.tools.is-main" n'est vrai que lorsque le fichier est exécuté et non
     importé. Vos propres modules situés à côté d'un fichier s'importent par
     leur nom, par exemple "bl.module.import helper" pour "helper.sh".
 -->
@@ -208,9 +208,9 @@ bl.module.import bashlink.logging
 main() {
     local name verbose
     bl.arguments.set "$@"
-    bl.arguments.get_keyword name name
-    bl.arguments.get_flag --verbose verbose
-    $verbose && bl.logging.set_level info
+    bl.arguments.get-keyword name name
+    bl.arguments.get-flag --verbose verbose
+    $verbose && bl.logging.set-level info
 
     bl.exception.activate
     bl.exception.try {
