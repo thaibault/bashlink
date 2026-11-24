@@ -9,18 +9,18 @@ Different functions are provided in order to parse an arguments array.
 >>> _() {
 >>>     local value
 >>>     bl.arguments.set "$@"
->>>     bl.arguments.get_parameter param1 value
+>>>     bl.arguments.get-parameter param1 value
 >>>     echo "param1: $value"
->>>     bl.arguments.get_keyword keyword2 value
+>>>     bl.arguments.get-keyword keyword2 value
 >>>     echo "keyword2: $value"
->>>     bl.arguments.get_flag --flag4 value
+>>>     bl.arguments.get-flag --flag4 value
 >>>     echo "--flag4: $value"
 >>>     # NOTE: Get the positionals last
->>>     bl.arguments.get_positional 1 value
+>>>     bl.arguments.get-positional 1 value
 >>>     echo 1: "$value"
 >>>     # Alternative way to get positionals: Set the arguments array to
 >>>     # to all unparsed arguments.
->>>     bl.arguments.apply_new
+>>>     bl.arguments.apply-new
 >>>     echo 1: "$1"
 >>> }
 >>> _ param1 value1 keyword2=value2 positional3 --flag4
@@ -37,13 +37,13 @@ left.
 
 ```bash
 >>> bl.arguments.set a "b c"
->>> bl.arguments.apply_new
+>>> bl.arguments.apply-new
 >>> echo "$#: $2"
 2: b c
 ```
 ### Function bl_arguments_default_wrapper
 Wrapper function for
-`bl.arguments.wrapper_with_minimum_number_of_arguments` with second
+`bl.arguments.wrapper-with-minimum-number-of-arguments` with second
 parameter is setted to `1`.
 
 Runs `sub_program` with arguments `all`, `--log-level` and `warning` if
@@ -51,7 +51,7 @@ not at least one arguments are given to `program`.
 
 ```bash
 >>> _() {
->>>     echo sub_program $(bl.arguments.default_wrapper 3 all \
+>>>     echo sub_program $(bl.arguments.default-wrapper 3 all \
 >>>         --log-level warning $@)
 >>> }
 >>> _
@@ -66,15 +66,15 @@ Sets `variable_name` to `true` if flag (or on of its aliases) is
 contained in the argument array (see `bl.arguments.set`).
 
 ```bash
-bl.arguments.get_flag flag [flag_aliases...] variable_name
+bl.arguments.get-flag flag [flag_aliases...] variable_name
 ```
 
 ```bash
 >>> bl.arguments.set other_param1 --foo other_param2
 >>> local foo bar
->>> bl.arguments.get_flag --foo -f foo
+>>> bl.arguments.get-flag --foo -f foo
 >>> echo $foo
->>> bl.arguments.get_flag --bar bar
+>>> bl.arguments.get-flag --bar bar
 >>> echo $bar
 >>> echo "${BL_ARGUMENTS_NEW[@]}"
 true
@@ -84,7 +84,7 @@ other_param1 other_param2
 ```bash
 >>> bl.arguments.set -f
 >>> local foo
->>> bl.arguments.get_flag --foo -f foo
+>>> bl.arguments.get-flag --foo -f foo
 >>> echo $foo
 true
 ```
@@ -93,13 +93,13 @@ Sets `variable_name` to the value of `keyword` the argument array (see
 `bl.arguments.set`) contains `keyword=value`.
 
 ```bash
-bl.arguments.get_keyword keyword variable_name
+bl.arguments.get-keyword keyword variable_name
 ```
 
 ```bash
 >>> local foo
 >>> bl.arguments.set other_param1 foo=bar baz=baz other_param2
->>> bl.arguments.get_keyword foo foo
+>>> bl.arguments.get-keyword foo foo
 >>> echo $foo
 >>> echo "${BL_ARGUMENTS_NEW[@]}"
 bar
@@ -108,9 +108,9 @@ other_param1 baz=baz other_param2
 ```bash
 >>> local foo
 >>> bl.arguments.set other_param1 foo=bar baz=baz other_param2
->>> bl.arguments.get_keyword foo
+>>> bl.arguments.get-keyword foo
 >>> echo $foo
->>> bl.arguments.get_keyword baz foo
+>>> bl.arguments.get-keyword baz foo
 >>> echo $foo
 bar
 baz
@@ -120,17 +120,17 @@ Sets `variable_name` to the field following `parameter` (or one of the
 `parameter_aliases`) from the argument array (see `bl.arguments.set`).
 
 ```bash
-bl.arguments.get_parameter parameter [parameter_aliases...] variable_name
+bl.arguments.get-parameter parameter [parameter_aliases...] variable_name
 ```
 
 ```bash
-bl.arguments.get_parameter --log-level -l loglevel
+bl.arguments.get-parameter --log-level -l loglevel
 ```
 
 ```bash
 >>> local foo
 >>> bl.arguments.set other_param1 --foo bar other_param2
->>> bl.arguments.get_parameter --foo -f foo
+>>> bl.arguments.get-parameter --foo -f foo
 >>> echo $foo
 >>> echo "${BL_ARGUMENTS_NEW[@]}"
 bar
@@ -141,17 +141,17 @@ Get the positional parameter at `index`. Use after extracting
 parameters, keywords and flags.
 
 ```bash
-bl.arguments.get_positional index variable_name
+bl.arguments.get-positional index variable_name
 ```
 
 ```bash
 >>> bl.arguments.set parameter foo --flag pos1 pos2 --keyword=foo
->>> bl.arguments.get_flag --flag _
->>> bl.arguments.get_parameter parameter _
->>> bl.arguments.get_keyword --keyword _
+>>> bl.arguments.get-flag --flag _
+>>> bl.arguments.get-parameter parameter _
+>>> bl.arguments.get-keyword --keyword _
 >>> local positional1 positional2
->>> bl.arguments.get_positional 1 positional1
->>> bl.arguments.get_positional 2 positional2
+>>> bl.arguments.get-positional 1 positional1
+>>> bl.arguments.get-positional 2 positional2
 >>> echo "$positional1 $positional2"
 pos1 pos2
 ```
@@ -176,7 +176,7 @@ functions by wrapping them. Runs `sub_program` with arguments `all`,
 `program_name`:
 
 ```bash
-program_name $(bl.arguments.wrapper_with_minimum_number_of_arguments \
+program_name $(bl.arguments.wrapper-with-minimum-number-of-arguments \
 NUMBER_OF_DEFAULT_ARGUMENTS \
 MINIMUM_NUMBER_OF_ARGUMENTS_TO_OVERWRITE_DEFAULT_ARGUMENTS \
 DEFAULT_ARGUMENTS* \
@@ -187,7 +187,7 @@ $@
 ```bash
 >>> _() {
 >>>     echo sub_program \
->>>         $(bl.arguments.wrapper_with_minimum_number_of_arguments 3 2 \
+>>>         $(bl.arguments.wrapper-with-minimum-number-of-arguments 3 2 \
 >>>         all --log-level warning $@)
 >>> }
 >>> _
@@ -424,14 +424,14 @@ This module provides variables for printing colorful and unicode glyphs.
 The Terminal features are detected automatically but can also be
 enabled/disabled manually.
 
-[bl.cli.enable_color](#function-bl_cli_enable_color) and
-[bl.cli.enable_unicode_glyphs](#function-bl_cli_enable_unicode_glyphs)
+[bl.cli.enable-color](#function-bl_cli_enable_color) and
+[bl.cli.enable-unicode-glyphs](#function-bl_cli_enable_unicode_glyphs)
 ### Function bl_cli_disable_color
 Disables color output explicitly.
 
 ```bash
->>> bl.cli.enable_color
->>> bl.cli.disable_color
+>>> bl.cli.enable-color
+>>> bl.cli.disable-color
 >>> echo -E "$BL_CLI_COLOR_RED" red "$BL_CLI_COLOR_DEFAULT"
 red
 ```
@@ -439,8 +439,8 @@ red
 Disables unicode glyphs explicitly.
 
 ```bash
->>> bl.cli.enable_unicode_glyphs
->>> bl.cli.disable_unicode_glyphs
+>>> bl.cli.enable-unicode-glyphs
+>>> bl.cli.disable-unicode-glyphs
 >>> echo -E "$BL_CLI_POWERLINE_OK"
 +
 ```
@@ -448,8 +448,8 @@ Disables unicode glyphs explicitly.
 Enables color output explicitly.
 
 ```bash
->>> bl.cli.disable_color
->>> bl.cli.enable_color
+>>> bl.cli.disable-color
+>>> bl.cli.enable-color
 >>> echo -E $BL_CLI_COLOR_RED red $BL_CLI_COLOR_DEFAULT
 \033[0;31m red \033[0m
 ```
@@ -457,8 +457,8 @@ Enables color output explicitly.
 Enables unicode glyphs explicitly.
 
 ```bash
->>> bl.cli.disable_unicode_glyphs
->>> bl.cli.enable_unicode_glyphs
+>>> bl.cli.disable-unicode-glyphs
+>>> bl.cli.enable-unicode-glyphs
 >>> echo -E "$BL_CLI_POWERLINE_OK"
 \u2714
 ```
@@ -466,7 +466,7 @@ Enables unicode glyphs explicitly.
 Check if unicode glyphicons are available.
 
 ```bash
->>> bl.cli.glyph_available_in_font
+>>> bl.cli.glyph-available-in-font
 ```
 ## Module bashlink.dependency
 The dependency module implements utility functions to check current
@@ -528,19 +528,19 @@ a b c
 Get keys of a dictionary as array.
 
 ```bash
-bl.dictionary.get_keys dictionary_name
+bl.dictionary.get-keys dictionary_name
 ```
 
 ```bash
 >>> bl.dictionary.set map foo "a b c" bar 5
->>> bl.dictionary.get_keys map | sort --unique
+>>> bl.dictionary.get-keys map | sort --unique
 bar
 foo
 ```
 ```bash
 >>> bl.dictionary.set map foo "a b c" bar 5
 >>> local key
->>> for key in $(bl.dictionary.get_keys map | sort --unique); do
+>>> for key in $(bl.dictionary.get-keys map | sort --unique); do
 >>>     echo "$key": "$(bl.dictionary.get map "$key")"
 >>> done
 bar: 5
@@ -549,7 +549,7 @@ foo: a b c
 ```bash
 >>> BL_DICTIONARY_BASH_VERSION_TEST=true
 >>> bl.dictionary.set map foo "a b c" bar 5
->>> bl.dictionary.get_keys map | sort --unique
+>>> bl.dictionary.get-keys map | sort --unique
 bar
 foo
 ```
@@ -593,7 +593,7 @@ configuration.
 This functions loads all xinit source scripts.
 
 ``bash
-bl.display.load_xinit_sources
+bl.display.load-xinit-sources
 ```
 ## Module bashlink.doctest
 This module implements function and module level testing via documentation
@@ -618,10 +618,10 @@ Example output for `./doctest.sh --verbose arguments.sh`
 
 ```bash
 [info:doctest:xxx] bl.arguments:[PASS]
-[info:doctest:xxx] bl.arguments.get_flag:[PASS]
-[info:doctest:xxx] bl.arguments.get_keyword:[PASS]
-[info.doctedt:xxx] bl.arguments.get_parameter:[PASS]
-[info:doctest:xxx] bl.arguments.get_positional:[PASS]
+[info:doctest:xxx] bl.arguments.get-flag:[PASS]
+[info:doctest:xxx] bl.arguments.get-keyword:[PASS]
+[info.doctedt:xxx] bl.arguments.get-parameter:[PASS]
+[info:doctest:xxx] bl.arguments.get-positional:[PASS]
 [info:doctest:xxx] bl.arguments.set:[PASS]
 [info:doctest:xxx] bl.arguments - passed 6/6 tests in 918 ms
 [info:doctest:xxx] Total: passed 1/1 items in 941 ms
@@ -750,7 +750,7 @@ Compares specified result with given one.
 >>> line 2"
 >>> local got="line 1
 >>> line 2"
->>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+>>> bl.doctest.compare-result "$buffer" "$got"; echo $?
 0
 ```
 ```bash
@@ -758,7 +758,7 @@ Compares specified result with given one.
 >>> foo"
 >>> local got="line 1
 >>> line 2"
->>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+>>> bl.doctest.compare-result "$buffer" "$got"; echo $?
 +bl.doctest.contains
 "line 2" is not "foo".
 4
@@ -769,7 +769,7 @@ Compares specified result with given one.
 >>> line"
 >>> local got="line 1
 >>> line 2"
->>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+>>> bl.doctest.compare-result "$buffer" "$got"; echo $?
 0
 ```
 ```bash
@@ -778,7 +778,7 @@ Compares specified result with given one.
 >>> foo"
 >>> local got="line 1
 >>> line 2"
->>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+>>> bl.doctest.compare-result "$buffer" "$got"; echo $?
 +bl.doctest.contains
 "line 2" is not "foo".
 4
@@ -791,7 +791,7 @@ Compares specified result with given one.
 >>> local got="line
 >>> line 2
 >>> "
->>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+>>> bl.doctest.compare-result "$buffer" "$got"; echo $?
 0
 ```
 ```bash
@@ -805,7 +805,7 @@ Compares specified result with given one.
 >>> ignore
 >>> line 2
 >>> "
->>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+>>> bl.doctest.compare-result "$buffer" "$got"; echo $?
 0
 ```
 ```bash
@@ -820,7 +820,7 @@ Compares specified result with given one.
 >>> line 2
 >>> line 3
 >>> "
->>> bl.doctest.compare_result "$buffer" "$got"; echo $?
+>>> bl.doctest.compare-result "$buffer" "$got"; echo $?
 +bl.doctest.contains
 "ignore" is not "line 2".
 4
@@ -829,7 +829,7 @@ Compares specified result with given one.
 Checks if given docstring contains at least one test.
 
 ```bash
->>> bl.doctest.contains_tests "
+>>> bl.doctest.contains-tests "
 >>>     Some text.
 >>>
 >>>     >>> echo test
@@ -838,7 +838,7 @@ Checks if given docstring contains at least one test.
 0
 ```
 ```bash
->>> bl.doctest.contains_tests "Only text mentioning >>> inline."; \
+>>> bl.doctest.contains-tests "Only text mentioning >>> inline."; \
 >>>     echo $?
 1
 ```
@@ -859,17 +859,17 @@ Checks if given docstring contains at least one test.
 Slices doctest modifier from given doctest output.
 
 ```bash
->>> bl.doctest.get_formatted_docstring_output ""
+>>> bl.doctest.get-formatted-docstring-output ""
 ```
 ```bash
->>> bl.doctest.get_formatted_docstring_output "+bl.doctest.ellipsis
+>>> bl.doctest.get-formatted-docstring-output "+bl.doctest.ellipsis
 >>> +bl.doctest.multiline_ellipsis
 >>> +bl.doctest.contains
 >>> test"
 test
 ```
 ```bash
->>> bl.doctest.get_formatted_docstring_output "+bl.doctest.ellipsis
+>>> bl.doctest.get-formatted-docstring-output "+bl.doctest.ellipsis
 >>> +bl.doctest.multiline_ellipsis
 >>> +bl.doctest.contains
 >>> test
@@ -880,7 +880,7 @@ test
 Retrieves the docstring from given function name in current scope.
 
 ```bash
->>> bl.doctest.get_function_docstring bl_doctest_get_function_docstring
+>>> bl.doctest.get-function-docstring bl_doctest_get_function_docstring
 +bl.doctest.ellipsis
 ...
 Retrieves the docstring from given function name in current scope.
@@ -920,7 +920,7 @@ error: Module file path for "non_existing_module" could not be
 >>>         fi
 >>>     done <<< "$output_buffer"
 >>> }
->>> bl.doctest.parse_docstring "$docstring" _ "(test)"
+>>> bl.doctest.parse-docstring "$docstring" _ "(test)"
 block:
 output block
 ```
@@ -961,7 +961,7 @@ output block
 >>>     [ ! -z "$output_buffer" ] && echo "$output_buffer"
 >>>     return 0
 >>> }
->>> bl.doctest.parse_docstring "$docstring" _ "(test)"
+>>> bl.doctest.parse-docstring "$docstring" _ "(test)"
 text_buffer (block 1):
 Some text (block 1).
 empty_line
@@ -989,19 +989,19 @@ output_buffer (block 4):
 Parses given docstring, evaluates doctest and represents result.
 
 ```bash
->>> bl.doctest.run_test "" bashlink.doctest bl_doctest_get_function_docstring
+>>> bl.doctest.run-test "" bashlink.doctest bl_doctest_get_function_docstring
 ```
 ```bash
->>> bl.doctest.run_test "test" bashlink.doctest bl_doctest_get_function_docstring
+>>> bl.doctest.run-test "test" bashlink.doctest bl_doctest_get_function_docstring
 ```
 ```bash
 >>> BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST=bashlink.doctest
->>> bl.doctest.run_test ">>> echo a
+>>> bl.doctest.run-test ">>> echo a
 >>> a" bashlink.doctest bl_doctest_get_function_docstring
 ```
 ```bash
 >>> BL_DOCTEST_MODULE_REFERENCE_UNDER_TEST=bashlink.doctest
->>> bl.doctest.run_test ">>> echo a" bashlink.doctest bl_doctest_get_function_docstring &>/dev/null 3>&1 4>&1; echo $?
+>>> bl.doctest.run-test ">>> echo a" bashlink.doctest bl_doctest_get_function_docstring &>/dev/null 3>&1 4>&1; echo $?
 1
 ```
 ### Function bl_doctest_test
@@ -1035,7 +1035,7 @@ Converts given docstring into markdown compatible code description
 block.
 
 ```bash
->>> bl.documentation.format_buffers a b c
+>>> bl.documentation.format-buffers a b c
 c
 ```bash
 a
@@ -1047,7 +1047,7 @@ Removes doctest documentation exclude modifier and their content from
 given docstring and converts doctest to markdown code blocks.
 
 ```bash
->>> bl.documentation.format_buffers "echo a"
+>>> bl.documentation.format-buffers "echo a"
 ```bash
 echo a
 ```
@@ -1068,7 +1068,7 @@ Prints given docstring without sliced elements specified by their
 modifier.
 
 ```bash
->>> bl.documentation.get_formatted_docstring test
+>>> bl.documentation.get-formatted-docstring test
 test
 ```
 ### Function bl_documentation_main
@@ -1245,7 +1245,7 @@ Different syntax variations are possible.
 ```bash
 >>> bl.exception.try
 >>>     false
->>> bl.exception.catch_single {
+>>> bl.exception.catch-single {
 >>>     echo caught
 >>> }
 caught
@@ -1253,7 +1253,7 @@ caught
 ```bash
 >>> bl.exception.try
 >>>     false
->>> bl.exception.catch_single
+>>> bl.exception.catch-single
 >>>     echo caught
 caught
 ```
@@ -1261,7 +1261,7 @@ caught
 >>> bl.exception.try {
 >>>     false
 >>> }
->>> bl.exception.catch_single {
+>>> bl.exception.catch-single {
 >>>     echo caught
 >>> }
 caught
@@ -1270,7 +1270,7 @@ caught
 >>> bl.exception.try {
 >>>     false
 >>> }
->>> bl.exception.catch_single
+>>> bl.exception.catch-single
 >>> {
 >>>     echo caught
 >>> }
@@ -1331,7 +1331,7 @@ echo $foo
 Catches exceptions for following code blocks.
 
 ```bash
->>> bl.exception.enter_try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; {
+>>> bl.exception.enter-try; alias bl.exception.try_wrapper=bl_exception_try_wrapper; bl_exception_try_wrapper() { bl.exception.activate; {
 >>>     false
 >>> } bl.exception.catch {
 >>>     echo caught
@@ -1342,7 +1342,7 @@ caught
 Error handler for captured exceptions.
 
 ```bash
->>> bl.exception.error_handler
+>>> bl.exception.error-handler
 +bl.doctest.contains
 +bl.doctest.multiline_ellipsis
 Traceback (most recent call first):
@@ -1354,7 +1354,7 @@ Introduces an exception handling code block.
 ```bash
 >>> bl.exception.try {
 >>>     false
->>> }; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit_try $? || {
+>>> }; return 0; }; bl_exception_try_wrapper "$@"; bl.exception.exit-try $? || {
 >>>     echo caught
 >>> }
 caught
@@ -1365,28 +1365,28 @@ Provides filesystem aware utility functions.
 Returns absolute path to btrfs root.
 
 ```bash
->>> bl.filesystem.btrfs_find_root /root/__active
+>>> bl.filesystem.btrfs-find-root /root/__active
 /root
 ```
 ```bash
->>> bl.filesystem.btrfs_find_root /root/__snapshot/backup_last
+>>> bl.filesystem.btrfs-find-root /root/__snapshot/backup_last
 /root
 ```
 ```bash
->>> bl.filesystem.btrfs_find_root /not/a/valid/mountpoint; echo $?
+>>> bl.filesystem.btrfs-find-root /not/a/valid/mountpoint; echo $?
 1
 ```
 ### Function bl_filesystem_btrfs_get_child_volumes
 Returns absolute paths to subvolumes.
 
 ```bash
->>> bl.filesystem.btrfs_get_child_volumes /root/__active
+>>> bl.filesystem.btrfs-get-child-volumes /root/__active
 /root/__active/var
 /root/__active/usr
 /root/__active/home
 ```
 ```bash
->>> bl.filesystem.btrfs_get_child_volumes /root/__snapshot/backup_last
+>>> bl.filesystem.btrfs-get-child-volumes /root/__snapshot/backup_last
 /root/__snapshot/backup_last/var
 /root/__snapshot/backup_last/usr
 /root/__snapshot/backup_last/home
@@ -1394,20 +1394,20 @@ Returns absolute paths to subvolumes.
 ### Function bl_filesystem_btrfs_get_subvolume_list_field
 ```bash
 >>> local entry="$(btrfs subvolume list /root | head -n1)"
->>> bl.filesystem.btrfs_get_subvolume_list_field path "$entry"
->>> bl.filesystem.btrfs_get_subvolume_list_field ID "$entry"
->>> bl.filesystem.btrfs_get_subvolume_list_field parent "$entry"
+>>> bl.filesystem.btrfs-get-subvolume-list-field path "$entry"
+>>> bl.filesystem.btrfs-get-subvolume-list-field ID "$entry"
+>>> bl.filesystem.btrfs-get-subvolume-list-field parent "$entry"
 __active
 256
 5
 ```
 ### Function bl_filesystem_btrfs_is_root
 ```bash
->>> bl.filesystem.btrfs_is_root /root; echo $?
+>>> bl.filesystem.btrfs-is-root /root; echo $?
 0
 ```
 ```bash
->>> bl.filesystem.btrfs_is_root /root/foo; echo $?
+>>> bl.filesystem.btrfs-is-root /root/foo; echo $?
 1
 ```
 ### Function bl_filesystem_btrfs_is_subvolume
@@ -1415,26 +1415,26 @@ Checks if path is a subvolume. Note: The btrfs root is also a
 subvolume.
 
 ```bash
->>> bl.filesystem.btrfs_is_subvolume /root; echo $?
+>>> bl.filesystem.btrfs-is-subvolume /root; echo $?
 0
 ```
 ```bash
->>> bl.filesystem.btrfs_is_subvolume /root/__active; echo $?
+>>> bl.filesystem.btrfs-is-subvolume /root/__active; echo $?
 0
 ```
 ```bash
->>> bl.filesystem.btrfs_is_subvolume /root/__active/usr; echo $?
+>>> bl.filesystem.btrfs-is-subvolume /root/__active/usr; echo $?
 0
 ```
 ```bash
->>> bl.filesystem.btrfs_is_subvolume /root/__active/etc; echo $?
+>>> bl.filesystem.btrfs-is-subvolume /root/__active/etc; echo $?
 1
 ```
 ### Function bl_filesystem_btrfs_send
 Sends snapshots.
 
 ```bash
->>> bl.filesystem.btrfs_send /root/__active /backup/__active_backup
+>>> bl.filesystem.btrfs-send /root/__active /backup/__active_backup
 btrfs send /root/__active | pv | btrfs receive /backup
 btrfs send /root/__active/var | pv | btrfs receive /backup/__active
 btrfs send /root/__active/usr | pv | btrfs receive /backup/__active
@@ -1445,7 +1445,7 @@ mv /backup/__active /backup/__active_backup
 Update snapshot (needs backing snapshot).
 
 ```bash
->>> bl.filesystem.btrfs_send_update /root/__active \
+>>> bl.filesystem.btrfs-send-update /root/__active \
 >>>     /root/backing \
 >>>     /backup
 btrfs send -p /root/backing /root/__active | pv | btrfs receive /backup
@@ -1460,7 +1460,7 @@ btrfs send -p /root/backing/home /root/__active/home | pv | btrfs receive /backu
 Make snapshot of subvolume.
 
 ```bash
->>> bl.filesystem.btrfs_snapshot /root/__active /backup/__active_backup
+>>> bl.filesystem.btrfs-snapshot /root/__active /backup/__active_backup
 btrfs subvolume snapshot /root/__active /backup/__active_backup
 rmdir /backup/__active_backup/var
 btrfs subvolume snapshot /root/__active/var /backup/__active_backup/var
@@ -1471,7 +1471,7 @@ btrfs subvolume snapshot /root/__active/home /backup/__active_backup/home
 ```
 Third parameter can be used to exclude a subvolume (currently only one)
 ```bash
->>> bl.filesystem.btrfs_snapshot /root/__active /backup/__active_backup usr
+>>> bl.filesystem.btrfs-snapshot /root/__active /backup/__active_backup usr
 btrfs subvolume snapshot /root/__active /backup/__active_backup
 rmdir /backup/__active_backup/var
 btrfs subvolume snapshot /root/__active/var /backup/__active_backup/var
@@ -1482,35 +1482,35 @@ btrfs subvolume snapshot /root/__active/home /backup/__active_backup/home
 Create, delete or list system backups.
 
 ```bash
-bl.filesystem.btrfs_subvolume_backup
+bl.filesystem.btrfs-subvolume-backup
 ```
 
 ```bash
-bl.filesystem.btrfs_subvolume_backup help
+bl.filesystem.btrfs-subvolume-backup help
 ```
 
 ```bash
-bl.filesystem.btrfs_subvolume_backup list
+bl.filesystem.btrfs-subvolume-backup list
 ```
 
 ```bash
-bl.filesystem.btrfs_subvolume_backup list /
+bl.filesystem.btrfs-subvolume-backup list /
 ```
 
 ```bash
-bl.filesystem.btrfs_subvolume_backup create
+bl.filesystem.btrfs-subvolume-backup create
 ```
 
 ```bash
-bl.filesystem.btrfs_subvolume_backup create /dev/sda
+bl.filesystem.btrfs-subvolume-backup create /dev/sda
 ```
 
 ```bash
-bl.filesystem.btrfs_subvolume_backup create PARTLABEL=system
+bl.filesystem.btrfs-subvolume-backup create PARTLABEL=system
 ```
 
 ```bash
-bl.filesystem.btrfs_subvolume_backup delete /dev/sda root-backup
+bl.filesystem.btrfs-subvolume-backup delete /dev/sda root-backup
 ```
 ### Function bl_filesystem_btrfs_subvolume_backup_autocomplete
 Autocompletion function for `bl.filesystem.subvolume_backup`.
@@ -1518,22 +1518,22 @@ Autocompletion function for `bl.filesystem.subvolume_backup`.
 Delete a subvolume. Also deletes child subvolumes.
 
 ```bash
->>> bl.filesystem.btrfs_subvolume_delete /root/__snapshot/backup_last; echo $?
+>>> bl.filesystem.btrfs-subvolume-delete /root/__snapshot/backup_last; echo $?
 0
 ```
 ```bash
->>> bl.filesystem.btrfs_subvolume_delete /root/__snapshot/foo; echo $?
+>>> bl.filesystem.btrfs-subvolume-delete /root/__snapshot/foo; echo $?
 1
 ```
 ### Function bl_filesystem_btrfs_subvolume_filter
 ```bash
->>> bl.filesystem.btrfs_subvolume_filter /root parent 256
+>>> bl.filesystem.btrfs-subvolume-filter /root parent 256
 ID 259 parent 256 top level 256 path __active/var
 ID 258 parent 256 top level 256 path __active/usr
 ID 257 parent 256 top level 256 path __active/home
 ```
 ```bash
->>> bl.filesystem.btrfs_subvolume_filter /root id 256
+>>> bl.filesystem.btrfs-subvolume-filter /root id 256
 ID 256 parent 5 top level 5 path __active
 ```
 ### Function bl_filesystem_btrfs_subvolume_set_read_only
@@ -1542,60 +1542,60 @@ Make subvolume writable or readonly. Also applies to child subvolumes.
 Mounts encrypted blockdevices as analyzable blockdevice.
 
 ```bash
-bl.filesystem.close_crypt_blockdevice test
+bl.filesystem.close-crypt-blockdevice test
 ```
 ### Function bl_filesystem_create_partition_via_offset
 Creates a partition after given disk offset.
 ### Function bl_filesystem_find_block_device
 ```bash
->>> bl.filesystem.find_block_device "boot_partition"
+>>> bl.filesystem.find-block-device "boot_partition"
 /dev/sdb1
 ```
 ```bash
->>> bl.filesystem.find_block_device "boot_partition" /dev/sda
+>>> bl.filesystem.find-block-device "boot_partition" /dev/sda
 /dev/sda2
 ```
 ```bash
->>> bl.filesystem.find_block_device "discoverable by blkid"
+>>> bl.filesystem.find-block-device "discoverable by blkid"
 /dev/sda2
 ```
 ```bash
->>> bl.filesystem.find_block_device "_partition"
+>>> bl.filesystem.find-block-device "_partition"
 /dev/sdb1 /dev/sdb2
 ```
 ```bash
->>> bl.filesystem.find_block_device "not matching anything" || echo not found
+>>> bl.filesystem.find-block-device "not matching anything" || echo not found
 not found
 ```
 ```bash
->>> bl.filesystem.find_block_device "" || echo not found
+>>> bl.filesystem.find-block-device "" || echo not found
 not found
 ```
 ### Function bl_filesystem_find_hardlinks
 Finds same files as given file (hardlinks).
 
 ```bash
-bl.filesystem.find_hardlinks /home/user/test.txt
+bl.filesystem.find-hardlinks /home/user/test.txt
 ```
 ### Function bl_filesystem_make_crypt_blockdevice
 Creates encrypted blockdevices.
 
 ```bash
-bl.filesystem.make_crypt_blockdevice /dev/sda
+bl.filesystem.make-crypt-blockdevice /dev/sda
 ```
 ### Function bl_filesystem_make_uefi_boot_entry
 Creates an uefi boot entry.
 
 ```bash
-bl.filesystem.make_uefi_boot_entry archLinux
+bl.filesystem.make-uefi-boot-entry archLinux
 ```
 
 ```bash
-bl.filesystem.make_uefi_boot_entry archLinuxFallback
+bl.filesystem.make-uefi-boot-entry archLinuxFallback
 ```
 
 ```bash
-bl.filesystem.make_uefi_boot_entry \
+bl.filesystem.make-uefi-boot-entry \
 archLinuxLTSFallback \
 vmlinuz-linux-lts
 ```
@@ -1603,14 +1603,14 @@ vmlinuz-linux-lts
 Mounts encrypted blockdevices as analyzable blockdevice.
 
 ```bash
-bl.filesystem.open_crypt_blockdevice /dev/sdb test
+bl.filesystem.open-crypt-blockdevice /dev/sdb test
 ```
 ### Function bl_filesystem_overlay_location
 Mounts an overlay over given location. This could be useful if we have a
 read only system caused by physical reasons.
 
 ```bash
-bl.filesystem.overlay_location /usr/bin/
+bl.filesystem.overlay-location /usr/bin/
 ```
 ### Function bl_filesystem_repair
 Finds filesystem errors on linux based filesystem and repairs them.
@@ -1623,18 +1623,18 @@ Sets the maximum number of concurrent allowed file observations via
 inotify.
 
 ```bash
-bl.filesystem.set_maximum_user_watches 500000
+bl.filesystem.set-maximum-user-watches 500000
 ```
 ### Function bl_filesystem_show_symbolic_links
 Shows symbolic links in current directory if no argument is provided or
 in given location and their subdirectories (recursive).
 
 ```bash
-bl.filesystem.show_symbolic_links
+bl.filesystem.show-symbolic-links
 ```
 
 ```bash
-bl.filesystem.show_symbolic_links /home
+bl.filesystem.show-symbolic-links /home
 ```
 
 ```bash
@@ -1643,7 +1643,7 @@ bl.filesystem.show_symbolic_links /home
 >>> ln --symbolic target "${directory_path}/link"
 >>> mkdir "${directory_path}/sub"
 >>> ln --symbolic ../target "${directory_path}/sub/link"
->>> bl.filesystem.show_symbolic_links "$directory_path" | \
+>>> bl.filesystem.show-symbolic-links "$directory_path" | \
 >>>     sed "s:${directory_path}/::" | \
 >>>         sort
 link -> target
@@ -1652,14 +1652,14 @@ sub/link -> ../target
 ```bash
 >>> cd "$(bl_filesystem_bl_doctest_mktemp --directory)"
 >>> ln --symbolic target link
->>> bl.filesystem.show_symbolic_links
+>>> bl.filesystem.show-symbolic-links
 ./link -> target
 ```
 ### Function bl_filesystem_write_blockdevice_to_image
 Writes a given backup from given blockdevice.
 
 ```bash
-bl.filesystem.write_blockdevice_to_image \
+bl.filesystem.write-blockdevice-to-image \
 /dev/mmcblk0 \
 /data/private/backup/image.img
 ```
@@ -1667,7 +1667,7 @@ bl.filesystem.write_blockdevice_to_image \
 Writes a given image to given blockdevice.
 
 ```bash
-bl.filesystem.write_image_to_blockdevice \
+bl.filesystem.write-image-to-blockdevice \
 /data/private/backup/image.img \
 /dev/mmcblk0
 ```
@@ -1699,7 +1699,7 @@ Supported type of configurable logging files
 NOTE: this module saves and provided given standard und error file
 descriptors to descriptors to "5" and "6". So you can enforce corresponding
 output via `command 1>&5 2>&6`.
-This is needed to restore them later via `bl.logging.set_file_descriptors`.
+This is needed to restore them later via `bl.logging.set-file-descriptors`.
 Logging outputs are alway piped through file descriptor "3" and "4". So
 your able to write your own logging function by logging to this
 descriptors: `custom_logging_function 1>&3 2&>4`.
@@ -1707,13 +1707,13 @@ descriptors: `custom_logging_function 1>&3 2&>4`.
 The standard loglevel is critical
 
 ```bash
->>> bl.logging.get_level
->>> bl.logging.get_command_level
+>>> bl.logging.get-level
+>>> bl.logging.get-command-level
 critical
 critical
 ```
 ```bash
->>> bl.logging.is_enabled error; echo $?
+>>> bl.logging.is-enabled error; echo $?
 0
 ```
 ```bash
@@ -1730,13 +1730,13 @@ If the output of commands should be printed, the commands_level needs to be
 greater than or equal to the log_level.
 
 ```bash
->>> bl.logging.set_level critical
->>> bl.logging.set_command_level debug
+>>> bl.logging.set-level critical
+>>> bl.logging.set-command-level debug
 >>> echo foo
 ```
 ```bash
->>> bl.logging.set_level info
->>> bl.logging.set_command_level info
+>>> bl.logging.set-level info
+>>> bl.logging.set-command-level info
 >>> echo foo
 foo
 ```
@@ -1763,23 +1763,23 @@ foo
 Retrieves current command output level.
 
 ```bash
->>> bl.logging.set_command_level critical
->>> bl.logging.get_command_level
+>>> bl.logging.set-command-level critical
+>>> bl.logging.get-command-level
 critical
 ```
 ### Function bl_logging_get_level
 Retrieves current logging level.
 
 ```bash
->>> bl.logging.set_level critical
->>> bl.logging.get_level
+>>> bl.logging.set-level critical
+>>> bl.logging.get-level
 critical
 ```
 ### Function bl_logging_get_prefix
 Determines logging prefix string.
 
 ```bash
->>> bl.logging.get_prefix critical
+>>> bl.logging.get-prefix critical
 +bl.doctest.contains
 critical
 ```
@@ -1787,9 +1787,9 @@ critical
 Checks if given logging level is enabled.
 
 ```bash
->>> bl.logging.set_level critical
->>> bl.logging.is_enabled critical; echo $?
->>> bl.logging.is_enabled info; echo $?
+>>> bl.logging.set-level critical
+>>> bl.logging.is-enabled critical; echo $?
+>>> bl.logging.is-enabled info; echo $?
 0
 1
 ```
@@ -1817,14 +1817,14 @@ This function prints a given string in evaluated representation at any
 log level and without prefix.
 
 ```bash
->>> bl.logging.set_level critical
->>> bl.logging.set_command_level debug
+>>> bl.logging.set-level critical
+>>> bl.logging.set-command-level debug
 >>> bl.logging.plain foo
 foo
 ```
 ```bash
->>> bl.logging.set_level info
->>> bl.logging.set_command_level debug
+>>> bl.logging.set-level info
+>>> bl.logging.set-command-level debug
 >>> bl.logging.debug "not shown"
 >>> echo "not shown"
 >>> bl.logging.plain "shown"
@@ -1834,37 +1834,37 @@ shown
 This function prints at any log level and without prefix.
 
 ```bash
->>> bl.logging.set_level critical
->>> bl.logging.set_command_level debug
->>> bl.logging.plain_raw foo
+>>> bl.logging.set-level critical
+>>> bl.logging.set-command-level debug
+>>> bl.logging.plain-raw foo
 foo
 ```
 ```bash
->>> bl.logging.set_level info
->>> bl.logging.set_command_level debug
+>>> bl.logging.set-level info
+>>> bl.logging.set-command-level debug
 >>> bl.logging.debug "not shown"
 >>> echo "not shown"
->>> bl.logging.plain_raw "shown"
+>>> bl.logging.plain-raw "shown"
 shown
 ```
 ### Function bl_logging_set_command_level
 Enables each command output.
 
 ```bash
->>> bl.logging.set_command_level critical
->>> bl.logging.set_level critical
+>>> bl.logging.set-command-level critical
+>>> bl.logging.set-level critical
 >>> echo test
 test
 ```
 ```bash
->>> bl.logging.set_command_level warning
+>>> bl.logging.set-command-level warning
 >>> echo test
 ```
 ### Function bl_logging_set_command_output_off
 Disables each command output.
 
 ```bash
->>> bl.logging.set_command_output_off
+>>> bl.logging.set-command-output-off
 >>> echo test
 >>> bl.logging.plain logging output is still shown
 logging output is still shown
@@ -1873,17 +1873,17 @@ logging output is still shown
 Enables each command output.
 
 ```bash
->>> bl.logging.set_command_output_on
+>>> bl.logging.set-command-output-on
 >>> echo test
 test
 ```
 ### Function bl_logging_set_file
 ```bash
 >>> local test_file_path="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file "$test_file_path"
+>>> bl.logging.set-file "$test_file_path"
 >>> bl.logging.plain test
 >>> echo test
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> bl.logging.cat "$test_file_path"
 +bl.doctest.multiline_ellipsis
 +bl.doctest.contains
@@ -1900,43 +1900,43 @@ descriptors "3" and "4".
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
 >>> bl.logging.plain test >"$test_file"
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> bl.logging.cat "$test_file"
 test
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --logging-output-target=tee
+>>> bl.logging.set-file-descriptors "$test_file" --logging-output-target=tee
 >>> bl.logging.plain foo
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> bl.logging.cat "$test_file"
 foo
 foo
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file --logging-output-target=off
+>>> bl.logging.set-file-descriptors "$test_file" --command-output-target=file --logging-output-target=off
 >>> bl.logging.plain not shown
 >>> echo foo
 >>> bl.logging.info test
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> cat "$test_file"
 foo
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --logging-output-target=off
+>>> bl.logging.set-file-descriptors "$test_file" --logging-output-target=off
 >>> bl.logging.plain not shown
 >>> echo foo
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> bl.logging.cat "$test_file"
 foo
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --command-output-target=tee
+>>> bl.logging.set-file-descriptors "$test_file" --command-output-target=tee
 >>> echo test
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> bl.logging.plain test
 >>> bl.logging.cat "$test_file"
 test
@@ -1945,40 +1945,40 @@ test
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file
+>>> bl.logging.set-file-descriptors "$test_file" --command-output-target=file
 >>> bl.logging.plain test
 >>> echo test
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> bl.logging.cat "$test_file"
 test
 test
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file --logging-output-target=file
+>>> bl.logging.set-file-descriptors "$test_file" --command-output-target=file --logging-output-target=file
 >>> bl.logging.plain test
 >>> echo test
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> bl.logging.cat "$test_file"
 test
 test
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --command-output-target=file --logging-output-target=file
+>>> bl.logging.set-file-descriptors "$test_file" --command-output-target=file --logging-output-target=file
 >>> bl.logging.plain test
 >>> echo test
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> bl.logging.cat "$test_file"
 test
 test
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --command-output-target=tee --logging-output-target=file
+>>> bl.logging.set-file-descriptors "$test_file" --command-output-target=tee --logging-output-target=file
 >>> echo test
 >>> bl.logging.plain test
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> bl.logging.cat "$test_file"
 test
 test
@@ -1986,19 +1986,19 @@ test
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --command-output-target=off --logging-output-target=file
+>>> bl.logging.set-file-descriptors "$test_file" --command-output-target=off --logging-output-target=file
 >>> bl.logging.plain logging
 >>> echo echo
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> bl.logging.cat "$test_file"
 logging
 ```
 ```bash
 >>> local test_file="$(bl_logging_bl_doctest_mktemp)"
->>> bl.logging.set_file_descriptors "$test_file" --command-output-target=tee --logging-output-target=tee
+>>> bl.logging.set-file-descriptors "$test_file" --command-output-target=tee --logging-output-target=tee
 >>> bl.logging.plain test
 >>> echo test
->>> bl.logging.set_file_descriptors
+>>> bl.logging.set-file-descriptors
 >>> bl.logging.cat "$test_file"
 test
 test
@@ -2007,15 +2007,15 @@ test
 ```
 ### Function bl_logging_set_level
 ```bash
->>> bl.logging.set_command_level info
->>> bl.logging.set_level info
+>>> bl.logging.set-command-level info
+>>> bl.logging.set-level info
 >>> echo $BL_LOGGING_LEVEL
 >>> echo $BL_LOGGING_COMMAND_LEVEL
 3
 3
 ```
 ```bash
->>> bl.logging.set_level info --omit-command-output-configuration
+>>> bl.logging.set-level info --omit-command-output-configuration
 >>> echo $BL_LOGGING_LEVEL
 3
 ```
@@ -2028,43 +2028,43 @@ argument selects which allowed scope name prefixes are accepted
 additionally: "function", "global", "none" or both if not set.
 
 ```bash
->>> bl.module.check_name "bl_module_check_name" "bl_module"; echo $?
+>>> bl.module.check-name "bl_module_check_name" "bl_module"; echo $?
 0
 ```
 ```bash
->>> bl.module.check_name "BL_MODULE_CHECK_NAME" "BL_MODULE"; echo $?
+>>> bl.module.check-name "BL_MODULE_CHECK_NAME" "BL_MODULE"; echo $?
 0
 ```
 Scope names are case sensitive:
 
 ```bash
->>> bl.module.check_name "BL_MODULE_CHECK_NAME" "bl_module"; echo $?
+>>> bl.module.check-name "BL_MODULE_CHECK_NAME" "bl_module"; echo $?
 1
 ```
 ```bash
->>> bl.module.check_name "bl_module_check_name" "bl_other_module"; echo $?
+>>> bl.module.check-name "bl_module_check_name" "bl_other_module"; echo $?
 1
 ```
 ```bash
->>> bl.module.check_name "bl_other_module_not_existing" "bl_module"; echo $?
+>>> bl.module.check-name "bl_other_module_not_existing" "bl_module"; echo $?
 1
 ```
 ```bash
->>> bl.module.check_name "BL_OTHER_MODULE_NOT_EXISTING" "bl_module"; echo $?
+>>> bl.module.check-name "BL_OTHER_MODULE_NOT_EXISTING" "bl_module"; echo $?
 1
 ```
 A scope has to be followed by a delimiter:
 
 ```bash
->>> bl.module.check_name "bl_modules" "bl_module"; echo $?
+>>> bl.module.check-name "bl_modules" "bl_module"; echo $?
 1
 ```
 ```bash
->>> bl.module.check_name "bl_cli_enable_color" "bl.c"; echo $?
+>>> bl.module.check-name "bl_cli_enable_color" "bl.c"; echo $?
 1
 ```
 ```bash
->>> bl.module.check_name "bl_c_enable_color" "bl.c"; echo $?
+>>> bl.module.check-name "bl_c_enable_color" "bl.c"; echo $?
 0
 ```
 Names starting with an allowed function or global scope name prefix
@@ -2073,13 +2073,13 @@ are accepted as well (case sensitive):
 ```bash
 >>> local BL_MODULE_ALLOWED_FUNCTION_SCOPE_NAME_PREFIXES=(abc)
 >>> local BL_MODULE_ALLOWED_GLOBAL_SCOPE_NAME_PREFIXES=(ABC)
->>> bl.module.check_name "abc_foo" "bl_module" function; echo $?
->>> bl.module.check_name "ABC_FOO" "bl_module" function; echo $?
->>> bl.module.check_name "ABC_FOO" "bl_module" global; echo $?
->>> bl.module.check_name "abc_foo" "bl_module" global; echo $?
->>> bl.module.check_name "abc_foo" "bl_module"; echo $?
->>> bl.module.check_name "abc_foo" "bl_module" none; echo $?
->>> bl.module.check_name "xyz_foo" "bl_module"; echo $?
+>>> bl.module.check-name "abc_foo" "bl_module" function; echo $?
+>>> bl.module.check-name "ABC_FOO" "bl_module" function; echo $?
+>>> bl.module.check-name "ABC_FOO" "bl_module" global; echo $?
+>>> bl.module.check-name "abc_foo" "bl_module" global; echo $?
+>>> bl.module.check-name "abc_foo" "bl_module"; echo $?
+>>> bl.module.check-name "abc_foo" "bl_module" none; echo $?
+>>> bl.module.check-name "xyz_foo" "bl_module"; echo $?
 0
 1
 0
@@ -2093,8 +2093,8 @@ Returns all defined aliases in the current scope.
 
 ```bash
 >>> alias bl_module_test_alias=true
->>> bl.module.determine_aliases | grep --line-regexp bl_module_test_alias
->>> bl.module.determine_aliases | grep --line-regexp bl.module.import
+>>> bl.module.determine-aliases | grep --line-regexp bl_module_test_alias
+>>> bl.module.determine-aliases | grep --line-regexp bl.module.import
 bl_module_test_alias
 bl.module.import
 ```
@@ -2102,19 +2102,19 @@ bl.module.import
 Return all declared variables and function in the current scope.
 
 ```bash
-declarations="$(bl.module.determine_declared_names)"
+declarations="$(bl.module.determine-declared-names)"
 
 declarations="$(
-bl.module.determine_declared_names --only-functions
+bl.module.determine-declared-names --only-functions
 )"
 ```
 
 ```bash
 >>> bl_module_test_function() { :; }
 >>> declare -g BL_MODULE_TEST_VARIABLE=1
->>> bl.module.determine_declared_names | \
+>>> bl.module.determine-declared-names | \
 >>>     grep --line-regexp bl_module_test_function
->>> bl.module.determine_declared_names | \
+>>> bl.module.determine-declared-names | \
 >>>     grep --line-regexp BL_MODULE_TEST_VARIABLE
 bl_module_test_function
 BL_MODULE_TEST_VARIABLE
@@ -2122,9 +2122,9 @@ BL_MODULE_TEST_VARIABLE
 ```bash
 >>> bl_module_test_function() { :; }
 >>> declare -g BL_MODULE_TEST_VARIABLE=1
->>> bl.module.determine_declared_names --only-functions | \
+>>> bl.module.determine-declared-names --only-functions | \
 >>>     grep --line-regexp bl_module_test_function
->>> bl.module.determine_declared_names --only-functions | \
+>>> bl.module.determine-declared-names --only-functions | \
 >>>     grep --count --line-regexp BL_MODULE_TEST_VARIABLE
 bl_module_test_function
 0
@@ -2143,7 +2143,7 @@ level (see "BL_MODULE_NESTED_DECLARED_NAMES").
 ```bash
 >>> local BL_MODULE_IMPORT_LEVEL=1
 >>> local BL_MODULE_NESTED_DECLARED_NAMES=$'1 a\n2 b\n3 c\n'
->>> bl.module.get_nested_declared_names
+>>> bl.module.get-nested-declared-names
 b
 c
 ```
@@ -2229,7 +2229,7 @@ warning: Module "bashlink.mockup.e" introduces a global unprefixed name: "unpref
 Imports given module into current scope.
 
 ```bash
->>> bl.module.import_raw bashlink.not_existing; echo $?
+>>> bl.module.import-raw bashlink.not_existing; echo $?
 +bl.doctest.ellipsis
 ...
 error: Failed to source module "bashlink.not_existing".
@@ -2240,7 +2240,7 @@ Sources a script and checks variable definitions before and after
 sourcing.
 
 ```bash
->>> bl.module.import_with_namespace_check test bashlink.module; echo $?
+>>> bl.module.import-with-namespace-check test bashlink.module; echo $?
 +bl.doctest.multiline_contains
 warning: Namespace "bl_module" in "bashlink.module" is not clean: Name "
 ```
@@ -2249,7 +2249,7 @@ Imports given module without any namespace checks. Needed for internal
 usage.
 
 ```bash
->>> bl.module.import_without_namespace_check bashlink.module; echo $?
+>>> bl.module.import-without-namespace-check bashlink.module; echo $?
 0
 ```
 ### Function bl_module_is_defined
@@ -2257,61 +2257,69 @@ Tests if variable is defined (can also be empty)
 
 ```bash
 >>> local foo=bar
->>> bl.module.is_defined foo; echo $?
+>>> bl.module.is-defined foo; echo $?
 >>> [[ -v foo ]]; echo $?
 0
 0
 ```
 ```bash
 >>> local defined_but_empty=""
->>> bl.module.is_defined defined_but_empty; echo $?
+>>> bl.module.is-defined defined_but_empty; echo $?
 0
 ```
 ```bash
->>> bl.module.is_defined undefined_variable; echo $?
+>>> bl.module.is-defined undefined_variable; echo $?
 1
 ```
 ```bash
 >>> set -o nounset
->>> bl.module.is_defined undefined_variable; echo $?
+>>> bl.module.is-defined undefined_variable; echo $?
 1
 ```
 # Same Tests for bash < 4.3
 ```bash
 >>> BL_MODULE_BASH_VERSION_TEST=true
 >>> local foo="bar"
->>> bl.module.is_defined foo; echo $?
+>>> bl.module.is-defined foo; echo $?
 0
 ```
 ```bash
 >>> BL_MODULE_BASH_VERSION_TEST=true
 >>> local defined_but_empty=""
->>> bl.module.is_defined defined_but_empty; echo $?
+>>> bl.module.is-defined defined_but_empty; echo $?
 0
 ```
 ```bash
 >>> BL_MODULE_BASH_VERSION_TEST=true
->>> bl.module.is_defined undefined_variable; echo $?
+>>> bl.module.is-defined undefined_variable; echo $?
 1
 ```
 ```bash
 >>> BL_MODULE_BASH_VERSION_TEST=true
 >>> set -o nounset
->>> bl.module.is_defined undefined_variable; echo $?
+>>> bl.module.is-defined undefined_variable; echo $?
 1
 ```
 ### Function bl_module_is_imported
 Checks if giveb module is already imported.
 
 ```bash
->>> bl.module.is_imported bashlink.module; echo $?
+>>> bl.module.is-imported bashlink.module; echo $?
 0
 ```
 ```bash
->>> bl.module.is_imported bashlink.not_existing; echo $?
+>>> bl.module.is-imported bashlink.not_existing; echo $?
 +bl.doctest.contains
 error: Module file path for "bashlink.not_existing" could not be
 1
+```
+### Function bl_module_load_name_resolving_cache
+Loads all entries of the resolving cache file into memory (first entry
+per key wins as in "bl.module.resolve"). Uses builtins only.
+
+```bash
+>>> bl.module.load-name-resolving-cache; echo $?
+0
 ```
 ### Function bl_module_log
 Logs arbitrary strings with given level.
@@ -2324,14 +2332,14 @@ info: test
 Prints arbitrary strings, no matter which output descriptor is defined.
 
 ```bash
->>> bl.module.log_plain test
+>>> bl.module.log-plain test
 test
 ```
 ### Function bl_module_remove_known_file_extension
 Removes known file extension from given module references.
 
 ```bash
->>> bl.module.remove_known_file_extension module.sh
+>>> bl.module.remove-known-file-extension module.sh
 module
 ```
 ### Function bl_module_resolve
@@ -2358,38 +2366,64 @@ Relative references resolve to the same scope:
 +bl.doctest.contains
 /bashlink/mockup/a.sh/bashlink.mockup.a
 ```
+### Function bl_module_resolve_cached
+Like "bl.module.resolve" but stores the result in
+"BL_MODULE_RESOLVED" instead of printing it. Already known references
+are answered from memory without forking a subshell. Callers should
+pass the caller file path explicitly (as last argument) since the
+caller can not be derived via "BASH_SOURCE" through this wrapper.
+
+```bash
+>>> bl.module.resolve-cached bashlink.module; echo $?
+>>> echo "$BL_MODULE_RESOLVED"
++bl.doctest.multiline_contains
+0
+/bashlink/module.sh
+```
+```bash
+>>> bl.module.resolve-cached bashlink.module
+>>> [ "$BL_MODULE_RESOLVED" = "$(bl.module.resolve bashlink.module)" ]
+>>> echo $?
+0
+```
+```bash
+>>> bl.module.resolve-cached bashlink.not_existing; echo $?
++bl.doctest.contains
+error: Module file path for "bashlink.not_existing" could not be
+1
+```
 ### Function bl_module_rewrite_function_scope_name
 Rewrite scope name. Usually needed to shorten a scope name.
 
 ```bash
->>> bl.module.rewrite_function_scope_name bashlink.module
+>>> bl.module.rewrite-function-scope-name bashlink.module
 bl.module
 ```
 ```bash
->>> bl.module.rewrite_function_scope_name bashlink.prompt.main
+>>> bl.module.rewrite-function-scope-name bashlink.prompt.main
 bl.prompt.main
 ```
 ```bash
->>> bl.module.rewrite_function_scope_name bashlink
+>>> bl.module.rewrite-function-scope-name bashlink
 bashlink
 ```
 ```bash
->>> bl.module.rewrite_function_scope_name a-b+a
+>>> bl.module.rewrite-function-scope-name a-b+a
 a.b.a
 ```
 ### Function bl_module_rewrite_global_scope_name
 Rewrite scope name. Usually needed to shorten a scope name.
 
 ```bash
->>> bl.module.rewrite_global_scope_name BASHLINK_MODULE
+>>> bl.module.rewrite-global-scope-name BASHLINK_MODULE
 BL_MODULE
 ```
 ```bash
->>> bl.module.rewrite_global_scope_name BASHLINK.PROMPT.MAIN
+>>> bl.module.rewrite-global-scope-name BASHLINK.PROMPT.MAIN
 BL_PROMPT_MAIN
 ```
 ```bash
->>> bl.module.rewrite_global_scope_name a-b+a
+>>> bl.module.rewrite-global-scope-name a-b+a
 a_b_a
 ```
 ## Module bashlink.number
@@ -2405,39 +2439,39 @@ Calculates percent of second argument from the first argument.
 Normalizes given version number to a raw number.
 
 ```bash
->>> bl.number.normalize_version "database/openssl-1.1.0.g-1"
+>>> bl.number.normalize-version "database/openssl-1.1.0.g-1"
 1101000000000
 ```
 ```bash
->>> bl.number.normalize_version "database/openssl-1.1.0.g-1" 4
+>>> bl.number.normalize-version "database/openssl-1.1.0.g-1" 4
 1101
 ```
 ```bash
->>> bl.number.normalize_version 1.1.0.1 4
+>>> bl.number.normalize-version 1.1.0.1 4
 1101
 ```
 ```bash
->>> bl.number.normalize_version 1101 4
+>>> bl.number.normalize-version 1101 4
 1101000
 ```
 ```bash
->>> bl.number.normalize_version 0 4
+>>> bl.number.normalize-version 0 4
 0
 ```
 ```bash
->>> bl.number.normalize_version 0 10
+>>> bl.number.normalize-version 0 10
 0
 ```
 ```bash
->>> bl.number.normalize_version abc-0.1.1.0.1 6
+>>> bl.number.normalize-version abc-0.1.1.0.1 6
 11010
 ```
 ```bash
->>> bl.number.normalize_version 19.1-1-x86_64 10
+>>> bl.number.normalize-version 19.1-1-x86_64 10
 27774000000
 ```
 ```bash
->>> bl.number.normalize_version abc-0.1.1.0.1 2; echo $?
+>>> bl.number.normalize-version abc-0.1.1.0.1 2; echo $?
 1
 0
 ```
@@ -2448,7 +2482,7 @@ This module implements utility functions concerning the package manager
 Shows all config backups created by pacman.
 
 ```bash
-bl.pacman.show_config_backups
+bl.pacman.show-config-backups
 ```
 ### Function bl_pacman_show_not_maintained_by_pacman_system_files
 Shows all files which are not maintained by pacman on currently running
@@ -2484,7 +2518,7 @@ Volatile locations like "tmp" are excluded:
 Converts given path into an absolute one.
 
 ```bash
->>> bl.path.convert_to_absolute ./
+>>> bl.path.convert-to-absolute ./
 +bl.doctest.contains
 /
 ```
@@ -2492,51 +2526,51 @@ Converts given path into an absolute one.
 Computes relative path from first given argument to second one.
 
 ```bash
->>> bl.path.convert_to_relative /A/B/C /A
+>>> bl.path.convert-to-relative /A/B/C /A
 ../..
 ```
 ```bash
->>> bl.path.convert_to_relative /A/B/C /A/B
+>>> bl.path.convert-to-relative /A/B/C /A/B
 ..
 ```
 ```bash
->>> bl.path.convert_to_relative /A/B/C /A/B/C/D
+>>> bl.path.convert-to-relative /A/B/C /A/B/C/D
 D
 ```
 ```bash
->>> bl.path.convert_to_relative /A/B/C /A/B/C/D/E
+>>> bl.path.convert-to-relative /A/B/C /A/B/C/D/E
 D/E
 ```
 ```bash
->>> bl.path.convert_to_relative /A/B/C /A/B/D
+>>> bl.path.convert-to-relative /A/B/C /A/B/D
 ../D
 ```
 ```bash
->>> bl.path.convert_to_relative /A/B/C /A/B/D/E
+>>> bl.path.convert-to-relative /A/B/C /A/B/D/E
 ../D/E
 ```
 ```bash
->>> bl.path.convert_to_relative /A/B/C /A/D
+>>> bl.path.convert-to-relative /A/B/C /A/D
 ../../D
 ```
 ```bash
->>> bl.path.convert_to_relative /A/B/C /A/D/E
+>>> bl.path.convert-to-relative /A/B/C /A/D/E
 ../../D/E
 ```
 ```bash
->>> bl.path.convert_to_relative /A/B/C /D/E/F
+>>> bl.path.convert-to-relative /A/B/C /D/E/F
 ../../../D/E/F
 ```
 ```bash
->>> bl.path.convert_to_relative / /
+>>> bl.path.convert-to-relative / /
 .
 ```
 ```bash
->>> bl.path.convert_to_relative /A/B/C /A/B/C
+>>> bl.path.convert-to-relative /A/B/C /A/B/C
 .
 ```
 ```bash
->>> bl.path.convert_to_relative /A/B/C /
+>>> bl.path.convert-to-relative /A/B/C /
 ../../../
 ```
 ### Function bl_path_open
@@ -2628,7 +2662,7 @@ Changes current working directory to given program path and runs the
 program.
 
 ```bash
-bl.path.run_in_programs_location /usr/bin/python3.2
+bl.path.run-in-programs-location /usr/bin/python3.2
 ```
 
 ```bash
@@ -2636,12 +2670,12 @@ bl.path.run_in_programs_location /usr/bin/python3.2
 >>> echo "echo \"\$(basename \"\$(pwd)\"): \$*\"" \
 >>>     >"${directory_path}/program"
 >>> chmod +x "${directory_path}/program"
->>> bl.path.run_in_programs_location "${directory_path}/program" a b \
+>>> bl.path.run-in-programs-location "${directory_path}/program" a b \
 >>>     | sed "s:$(basename "$directory_path"):directory:"
 directory: a b
 ```
 ```bash
->>> bl.path.run_in_programs_location not_existing
+>>> bl.path.run-in-programs-location not_existing
 Please insert a path to an executable file.
 ```
 ### Function bl_path_unpack
@@ -2650,7 +2684,7 @@ Unpack archives in various formats.
 ```bash
 unpack path/to/archiv.zip`
 ```
-# Package /Users/torben.sickert/local/public/project/repository/bashlink.prompt
+# Package /__w/bashlink.bashlink/prompt
 ## Module bashlink.prompt.main
 This module produces a command prompt to be set as output for "$PS0":
 
@@ -2695,22 +2729,22 @@ This module implements utility functions concerning strings.
 Generates a random string with given length.
 
 ```bash
->>> local output="$(bl.string.generate_random 5)"
+>>> local output="$(bl.string.generate-random 5)"
 >>> echo ${#output}
 5
 ```
 ```bash
->>> bl.string.generate_random 0
+>>> bl.string.generate-random 0
 ```
 ```bash
->>> local output="$(bl.string.generate_random 1)"
+>>> local output="$(bl.string.generate-random 1)"
 >>> echo ${#output}
 1
 ```
 ### Function bl_string_get_unique_lines
 ```bash
 >>> local foo="a\nb\na\nb\nc\nb\nc"
->>> echo -e "$foo" | bl.string.get_unique_lines
+>>> echo -e "$foo" | bl.string.get-unique-lines
 a
 b
 c
@@ -2726,7 +2760,7 @@ bl.string.images_to_css_casses \
 ```
 
 ```bash
-bl.string.images_to_css_classes \
+bl.string.images-to-css-classes \
 /path/to/image/directory/ \
 .*\.\(png\|jpg\|jpeg\) \
 /first/exclude/location \
@@ -2734,20 +2768,20 @@ bl.string.images_to_css_classes \
 ```
 
 ```bash
-bl.string.images_to_css_classes
+bl.string.images-to-css-classes
 ```
 
 ```bash
 >>> local directory_path="$(bl_string_bl_doctest_mktemp -d)"
 >>> printf "\x89PNG\r\n\x1a\n" >"${directory_path}/logo.png"
->>> bl.string.images_to_css_classes "$directory_path"
+>>> bl.string.images-to-css-classes "$directory_path"
 +bl.doctest.contains
 -logo-png{background-image: url("data:
 ```
 ```bash
 >>> local directory_path="$(bl_string_bl_doctest_mktemp -d)"
 >>> touch "${directory_path}/logo.png"
->>> bl.string.images_to_css_classes "$directory_path" ".*\.png" \
+>>> bl.string.images-to-css-classes "$directory_path" ".*\.png" \
 >>>     "$directory_path"
 ```
 ### Function bl_string_ltrim
@@ -2773,30 +2807,30 @@ hans
 Generates a new user prompt with useful runtime parameters.
 
 ```bash
-bl.string.make_command_prompt_prefix
+bl.string.make-command-prompt-prefix
 > ...@$... (...) ...
 
-bl.string.make_command_prompt_prefix 0
+bl.string.make-command-prompt-prefix 0
 > ...@$... (...) ...
 
-bl.string.make_command_prompt_prefix -s 0
+bl.string.make-command-prompt-prefix -s 0
 (1) ... ...@$... ...
 
-bl.string.make_command_prompt_prefix --simple 1
+bl.string.make-command-prompt-prefix --simple 1
 (1) ... ...@$... ...
 
-bl.string.make_command_prompt_prefix --simple 123
+bl.string.make-command-prompt-prefix --simple 123
 (123) ... ...@$... ...
 ```
 ### Function bl_string_merge_text_files
 Concatenate files and print on the standard output.
 
 ```bash
-bl.string.merge_text_files a.txt b.txt
+bl.string.merge-text-files a.txt b.txt
 ```
 
 ```bash
-bl.string.merge_text_files \
+bl.string.merge-text-files \
 a.txt \
 b.txt \
 c.txt \
@@ -2810,7 +2844,7 @@ c.txt \
 >>> echo a >"${directory_path}/a.txt"
 >>> echo b >"${directory_path}/b.txt"
 >>> cd "$directory_path"
->>> bl.string.merge_text_files a.txt b.txt --prepend "[%s]\n" \
+>>> bl.string.merge-text-files a.txt b.txt --prepend "[%s]\n" \
 >>>     --between "[%s]\n" --append "[end]\n"
 [a.txt]
 a
@@ -2884,17 +2918,17 @@ hans
 Validates a given bash argument.
 
 ```bash
->>> bl.string.validate_argument hans
+>>> bl.string.validate-argument hans
 +bl.doctest.contains
 hans
 ```
 ```bash
->>> bl.string.validate_argument "\"ha\"ns"
+>>> bl.string.validate-argument "\"ha\"ns"
 +bl.doctest.contains
 "ha"ns
 ```
 ```bash
->>> bl.string.validate_argument h\"a\"ns
+>>> bl.string.validate-argument h\"a\"ns
 +bl.doctest.contains
 h"a"ns
 ```
@@ -2903,16 +2937,16 @@ This functions escapes every special meaning character for a sed
 replacement.
 
 ```bash
-sed "s/myInputString/$(bl.string.validate_regular_expression_replacement "\hans/peter&klaus")/g"
+sed "s/myInputString/$(bl.string.validate-regular-expression-replacement "\hans/peter&klaus")/g"
 ```
 
 ```bash
->>> bl.string.validate_regular_expression_replacement "a/b&c"
+>>> bl.string.validate-regular-expression-replacement "a/b&c"
 a\/b\&c
 ```
 ```bash
 >>> echo foo | sed "s/foo/$(
->>>     bl.string.validate_regular_expression_replacement "a/b&c\\d"
+>>>     bl.string.validate-regular-expression-replacement "a/b&c\\d"
 >>> )/"
 a/b&c\d
 ```
@@ -2922,13 +2956,13 @@ The time module implements utility functions concerning time measurments.
 Prints elapsed time in milliseconds since last `bl.time.start` call.
 
 ```bash
->>> local time=$(bl.time.get_elapsed)
+>>> local time=$(bl.time.get-elapsed)
 >>> (( time > 0 )); echo $?
 0
 ```
 ```bash
 >>> bl.time.start
->>> local time=$(bl.time.get_elapsed)
+>>> local time=$(bl.time.get-elapsed)
 >>> (( time > 0 )); echo $?
 0
 ```
@@ -2938,7 +2972,7 @@ Prints elapsed time in milliseconds since last `bl.time.start` call.
 ```bash
 >>> bl.time.start
 >>> bl.time.start
->>> local time=$(bl.time.get_elapsed)
+>>> local time=$(bl.time.get-elapsed)
 >>> (( time > 0 )); echo $?
 0
 ```
@@ -2949,52 +2983,52 @@ Compiles and installs a program by its given source code. Your have to
 be inside the source code folder to run this function.
 
 ```bash
-bl.tools.compile_and_install_without_root /home/user/myUser/
+bl.tools.compile-and-install-without-root /home/user/myUser/
 ```
 ### Function bl_tools_is_empty
 Tests if variable is empty (undefined variables are not empty)
 
 ```bash
 >>> local foo="bar"
->>> bl.tools.is_empty foo; echo $?
+>>> bl.tools.is-empty foo; echo $?
 1
 ```
 ```bash
 >>> local defined_and_empty=""
->>> bl.tools.is_empty defined_and_empty; echo $?
+>>> bl.tools.is-empty defined_and_empty; echo $?
 0
 ```
 ```bash
->>> bl.tools.is_empty undefined_variable; echo $?
+>>> bl.tools.is-empty undefined_variable; echo $?
 1
 ```
 ```bash
 >>> set -u
->>> bl.tools.is_empty undefined_variable; echo $?
+>>> bl.tools.is-empty undefined_variable; echo $?
 1
 ```
 ### Function bl_tools_is_main
 Returns true if current script is being executed.
 
-NOTE: This test passes because `bl.tools.is_main` is called by
+NOTE: This test passes because `bl.tools.is-main` is called by
 "doctest.sh" which is being executed as entry script.
 
 ```bash
->>> bl.tools.is_main && echo yes
+>>> bl.tools.is-main && echo yes
 yes
 ```
 ### Function bl_tools_make_openssl_pem_file
 Creates a concatenated pem file needed for server with https support.
 
 ```bash
-bl.tools.make_openssl_pem_file
+bl.tools.make-openssl-pem-file
 ```
 ### Function bl_tools_make_single_executable
 Creates a bsd and virtually posix shell compatible single executable
 file from an application directory.
 
 ```bash
-bl.tools.make_single_executable /applicationDirectory startFile
+bl.tools.make-single-executable /applicationDirectory startFile
 ```
 
 ```bash
@@ -3004,7 +3038,7 @@ bl.tools.make_single_executable /applicationDirectory startFile
 >>>     >"${directory_path}/application/index"
 >>> chmod +x "${directory_path}/application/index"
 >>> cd "$directory_path"
->>> bl.tools.make_single_executable \
+>>> bl.tools.make-single-executable \
 >>>     "${directory_path}/application" run.sh 1>/dev/null
 >>> rm --recursive "${directory_path}/application"
 >>> ./run.sh a b; echo $?
@@ -3017,13 +3051,13 @@ This function reads and returns the shebang from given file if exist.
 ```bash
 /usr/bin/env python -O /path/to/script.py
 
-bl.tools.run_with_appended_shebang -O -- /path/to/script.py
+bl.tools.run-with-appended-shebang -O -- /path/to/script.py
 ```
 
 ```bash
 /usr/bin/env python -O /path/to/script.py argument1 argument2
 
-bl.tools.run_with_appended_shebang -O -- \
+bl.tools.run-with-appended-shebang -O -- \
 /path/to/script.py \
 argument1 \
 argument2
@@ -3033,7 +3067,7 @@ argument2
 >>> local file_path="$(bl_tools_bl_doctest_mktemp)"
 >>> echo "#!/usr/bin/env bash" >"$file_path"
 >>> echo "echo \"\$#: \$2\"; exit 4" >>"$file_path"
->>> bl.tools.run_with_appended_shebang -- "$file_path" a "b c"; echo $?
+>>> bl.tools.run-with-appended-shebang -- "$file_path" a "b c"; echo $?
 2: b c
 4
 ```
@@ -3043,7 +3077,7 @@ Arguments before "--" are appended to the shebang command:
 >>> local file_path="$(bl_tools_bl_doctest_mktemp)"
 >>> echo "#!/usr/bin/env cat" >"$file_path"
 >>> echo content >>"$file_path"
->>> bl.tools.run_with_appended_shebang -e -- "$file_path"
+>>> bl.tools.run-with-appended-shebang -e -- "$file_path"
 #!/usr/bin/env cat$
 content$
 ```
@@ -3051,11 +3085,11 @@ content$
 Sends an email.
 
 ```bash
-bl.tools.send_e_mail subject content address
+bl.tools.send-e-mail subject content address
 ```
 
 ```bash
-bl.tools.send_e_mail \
+bl.tools.send-e-mail \
 subject \
 content \
 address \
@@ -3100,15 +3134,15 @@ Shows a password input dialog box. Forwards all given parameter to
 dialog.
 
 ```
-bl.ui.input_password >/plain_password.txt
+bl.ui.input-password >/plain_password.txt
 ```
 
 ```
-bl.ui.input_password "Give me a password" >/plain_password.txt
+bl.ui.input-password "Give me a password" >/plain_password.txt
 ```
 ### Function bl_ui_input_text
 Shows a text input dialog box. Forwards all given parameter to dialog.
 
 ```
-bl.ui.input_text "Give me a your name" >/input.txt
+bl.ui.input-text "Give me a your name" >/input.txt
 ```

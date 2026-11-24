@@ -75,27 +75,27 @@ bl_dictionary_get() {
     else
         store="BL_DICTIONARY_STORE_${name}[${key}]"
     fi
-    bl.tools.is_defined "$store" || \
+    bl.tools.is-defined "$store" || \
         return 1
     echo "${!store}"
 }
-alias bl.dictionary.get_keys=bl_dictionary_get_keys
+alias bl.dictionary.get-keys=bl_dictionary_get_keys
 bl_dictionary_get_keys() {
     local -r __documentation__='
         Get keys of a dictionary as array.
 
         ```bash
-            bl.dictionary.get_keys dictionary_name
+            bl.dictionary.get-keys dictionary_name
         ```
 
         >>> bl.dictionary.set map foo "a b c" bar 5
-        >>> bl.dictionary.get_keys map | sort --unique
+        >>> bl.dictionary.get-keys map | sort --unique
         bar
         foo
 
         >>> bl.dictionary.set map foo "a b c" bar 5
         >>> local key
-        >>> for key in $(bl.dictionary.get_keys map | sort --unique); do
+        >>> for key in $(bl.dictionary.get-keys map | sort --unique); do
         >>>     echo "$key": "$(bl.dictionary.get map "$key")"
         >>> done
         bar: 5
@@ -103,7 +103,7 @@ bl_dictionary_get_keys() {
 
         >>> BL_DICTIONARY_BASH_VERSION_TEST=true
         >>> bl.dictionary.set map foo "a b c" bar 5
-        >>> bl.dictionary.get_keys map | sort --unique
+        >>> bl.dictionary.get-keys map | sort --unique
         bar
         foo
     '

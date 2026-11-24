@@ -23,13 +23,13 @@ declare -gr BL_DISPLAY__DOCUMENTATION__='
 '
 # endregion
 # region functions
-alias bl.display.load_xinit_sources=bl_display_load_xinit_sources
+alias bl.display.load-xinit-sources=bl_display_load_xinit_sources
 bl_display_load_xinit_sources() {
     local -r __documentation__='
         This functions loads all xinit source scripts.
 
         ``bash
-            bl.display.load_xinit_sources
+            bl.display.load-xinit-sources
         ```
     '
     local -r xinit_rc_path=/etc/X11/xinit/xinitrc.d

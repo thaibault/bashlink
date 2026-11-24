@@ -69,7 +69,7 @@ bl_ui_dialog() {
         return_code=$?
         cat "$output_buffer_file_path"
     }
-    bl.exception.catch_single
+    bl.exception.catch-single
     {
         rm --force "$output_buffer_file_path"
         # shellcheck disable=SC2086,SC2154
@@ -80,7 +80,7 @@ bl_ui_dialog() {
     # shellcheck disable=SC2317
     return "$return_code"
 }
-alias bl.ui.input_password=bl_ui_input_password
+alias bl.ui.input-password=bl_ui_input_password
 bl_ui_input_password() {
     # shellcheck disable=SC1004
     local -r __documentation__='
@@ -88,11 +88,11 @@ bl_ui_input_password() {
         dialog.
 
         ```
-            bl.ui.input_password >/plain_password.txt
+            bl.ui.input-password >/plain_password.txt
         ```
 
         ```
-            bl.ui.input_password "Give me a password" >/plain_password.txt
+            bl.ui.input-password "Give me a password" >/plain_password.txt
         ```
     '
     local title=Password
@@ -101,15 +101,15 @@ bl_ui_input_password() {
     fi
     bl.ui.dialog --clear --insecure --title "$title" --passwordbox '' 0 0
 }
-alias bl.ui.input_text='bl.ui.dialog --clear --inputbox RZ-Login 0 0'
-alias bl.ui.input_text=bl_ui_input_text
+alias bl.ui.input-text='bl.ui.dialog --clear --inputbox RZ-Login 0 0'
+alias bl.ui.input-text=bl_ui_input_text
 bl_ui_input_text() {
     # shellcheck disable=SC1004
     local -r __documentation__='
         Shows a text input dialog box. Forwards all given parameter to dialog.
 
         ```
-            bl.ui.input_text "Give me a your name" >/input.txt
+            bl.ui.input-text "Give me a your name" >/input.txt
         ```
     '
     local title=Login

@@ -21,8 +21,8 @@ declare -gr BL_CLI__DOCUMENTATION__='
     The Terminal features are detected automatically but can also be
     enabled/disabled manually.
 
-    [bl.cli.enable_color](#function-bl_cli_enable_color) and
-    [bl.cli.enable_unicode_glyphs](#function-bl_cli_enable_unicode_glyphs)
+    [bl.cli.enable-color](#function-bl_cli_enable_color) and
+    [bl.cli.enable-unicode-glyphs](#function-bl_cli_enable_unicode_glyphs)
 '
 declare -g BL_CLI_COLOR_ENABLED=false
 ## region color
@@ -112,13 +112,20 @@ declare -g BL_CLI_POWERLINE_THUMBSUP=+
 declare -g BL_CLI_UNICODE_ENABLED=false
 # endregion
 # region functions
-alias bl.cli.glyph_available_in_font=bl_cli_glyph_available_in_font
+alias bl.cli.glyph-available-in-font=bl_cli_glyph_available_in_font
 bl_cli_glyph_available_in_font() {
     local -r __documentation__='
         Check if unicode glyphicons are available.
 
-        >>> bl.cli.glyph_available_in_font
+        >>> bl.cli.glyph-available-in-font
     '
+    # NOTE: Check needed tools first (without forking) since this function
+    # runs on every module import and would otherwise fork several processes
+    # before failing anyway (e.g. on systems without font inspection tools).
+    hash fc-match &>/dev/null || \
+        return 1
+    hash otfinfo &>/dev/null || hash ttfdump &>/dev/null || \
+        return 1
     local current_font
     if ! current_font="$(
         xrdb -q 2>/dev/null | \
@@ -127,8 +134,6 @@ bl_cli_glyph_available_in_font() {
     )"; then
         return 1
     fi
-    hash fc-match &>/dev/null || \
-        return 1
     local -r font_file_name="$(fc-match "$current_font" | cut -d: -f1)"
     local -r font_file_extension="${font_file_name##*.}"
     if [ "$font_file_extension" = otf ]; then
@@ -146,13 +151,13 @@ bl_cli_glyph_available_in_font() {
     fi
     return 0
 }
-alias bl.cli.disable_color=bl_cli_disable_color
+alias bl.cli.disable-color=bl_cli_disable_color
 bl_cli_disable_color() {
     local -r __documentation__='
         Disables color output explicitly.
 
-        >>> bl.cli.enable_color
-        >>> bl.cli.disable_color
+        >>> bl.cli.enable-color
+        >>> bl.cli.disable-color
         >>> echo -E "$BL_CLI_COLOR_RED" red "$BL_CLI_COLOR_DEFAULT"
         red
     '
@@ -193,13 +198,13 @@ bl_cli_disable_color() {
         eval "BL_CLI_COLOR_MASKED_${name}=''"
     done
 }
-alias bl.cli.enable_color=bl_cli_enable_color
+alias bl.cli.enable-color=bl_cli_enable_color
 bl_cli_enable_color() {
     local -r __documentation__='
         Enables color output explicitly.
 
-        >>> bl.cli.disable_color
-        >>> bl.cli.enable_color
+        >>> bl.cli.disable-color
+        >>> bl.cli.enable-color
         >>> echo -E $BL_CLI_COLOR_RED red $BL_CLI_COLOR_DEFAULT
         \033[0;31m red \033[0m
     '
@@ -242,13 +247,13 @@ bl_cli_enable_color() {
     done
 }
 ## region glyphs
-alias bl.cli.disable_unicode_glyphs=bl_cli_disable_unicode_glyphs
+alias bl.cli.disable-unicode-glyphs=bl_cli_disable_unicode_glyphs
 bl_cli_disable_unicode_glyphs() {
     local -r __documentation__='
         Disables unicode glyphs explicitly.
 
-        >>> bl.cli.enable_unicode_glyphs
-        >>> bl.cli.disable_unicode_glyphs
+        >>> bl.cli.enable-unicode-glyphs
+        >>> bl.cli.disable-unicode-glyphs
         >>> echo -E "$BL_CLI_POWERLINE_OK"
         +
     '
@@ -279,13 +284,13 @@ bl_cli_disable_unicode_glyphs() {
         fi
     done
 }
-alias bl.cli.enable_unicode_glyphs=bl_cli_enable_unicode_glyphs
+alias bl.cli.enable-unicode-glyphs=bl_cli_enable_unicode_glyphs
 bl_cli_enable_unicode_glyphs() {
     local -r __documentation__='
         Enables unicode glyphs explicitly.
 
-        >>> bl.cli.disable_unicode_glyphs
-        >>> bl.cli.enable_unicode_glyphs
+        >>> bl.cli.disable-unicode-glyphs
+        >>> bl.cli.enable-unicode-glyphs
         >>> echo -E "$BL_CLI_POWERLINE_OK"
         \u2714
     '
@@ -342,11 +347,11 @@ else
 fi
 # NOTE: this breaks dracut (segfault)
 #(echo -e $'\u1F3B7' | command grep -v F3B7) &> /dev/null
-# NOTE: "bl.tools.is_defined" results in an dependency cycle.
-if bl.module.is_defined NO_UNICODE || ! bl.cli.glyph_available_in_font; then
-    bl.cli.disable_unicode_glyphs
+# NOTE: "bl.tools.is-defined" results in an dependency cycle.
+if bl.module.is-defined NO_UNICODE || ! bl.cli.glyph-available-in-font; then
+    bl.cli.disable-unicode-glyphs
 else
-    bl.cli.enable_unicode_glyphs
+    bl.cli.enable-unicode-glyphs
 fi
 # endregion
 # region vim modline

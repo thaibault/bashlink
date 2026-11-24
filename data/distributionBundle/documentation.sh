@@ -38,13 +38,13 @@ declare -gr BL_DOCUMENTATION__DOCUMENTATION__='
 '
 # endregion
 # region functions
-alias bl.documentation.format_buffers=bl_documentation_format_buffers
+alias bl.documentation.format-buffers=bl_documentation_format_buffers
 bl_documentation_format_buffers() {
     local -r __documentation__='
         Converts given docstring into markdown compatible code description
         block.
 
-        >>> bl.documentation.format_buffers a b c
+        >>> bl.documentation.format-buffers a b c
         c
         ```bash
         a
@@ -65,13 +65,13 @@ bl_documentation_format_buffers() {
         echo '```'
     fi
 }
-alias bl.documentation.format_docstring=bl_documentation_format_docstring
+alias bl.documentation.format-docstring=bl_documentation_format_docstring
 bl_documentation_format_docstring() {
     local -r __documentation__='
         Removes doctest documentation exclude modifier and their content from
         given docstring and converts doctest to markdown code blocks.
 
-        >>> bl.documentation.format_buffers "echo a"
+        >>> bl.documentation.format-buffers "echo a"
         ```bash
         echo a
         ```
@@ -82,7 +82,7 @@ bl_documentation_format_docstring() {
                 command sed '/-bl.documentation.exclude_print/d' | \
                     command sed \
                         '/+bl.documentation.exclude/,/-bl.documentation.exclude/d')"
-    bl.doctest.parse_docstring "$docstring" bl_documentation_format_buffers \
+    bl.doctest.parse-docstring "$docstring" bl_documentation_format_buffers \
         --preserve-prompt
 }
 alias bl.documentation.generate=bl_documentation_generate
@@ -106,7 +106,7 @@ bl_documentation_generate() {
         echo "$result" | \
             command sed --regexp-extended 's:^.*/([^/]+)$:\1:')"
     local function_scope_name="$(
-        bl.module.rewrite_function_scope_name "$module_name" | \
+        bl.module.rewrite-function-scope-name "$module_name" | \
             command sed --regexp-extended 's:\.:_:g'
     )"
     if [ -d "$file_path" ]; then
@@ -132,7 +132,7 @@ bl_documentation_generate() {
             if ! $excluded; then
                 # shellcheck disable=SC1117
                 local name="$(
-                    bl.module.remove_known_file_extension "$(
+                    bl.module.remove-known-file-extension "$(
                         echo "$sub_file_path" | \
                             command sed \
                                 --regexp-extended \
@@ -149,11 +149,11 @@ bl_documentation_generate() {
         # NOTE: Determined after import since the module can add its own scope
         # rewrites.
         function_scope_name="$(
-            bl.module.rewrite_function_scope_name "$module_name" | \
+            bl.module.rewrite-function-scope-name "$module_name" | \
                 command sed --regexp-extended 's:\.:_:g'
         )"
         local -r globals_scope_name="$(
-            bl.module.rewrite_global_scope_name "${module_name^^}" | \
+            bl.module.rewrite-global-scope-name "${module_name^^}" | \
                 command sed --regexp-extended 's:\.:_:g'
         )"
         # NOTE: Get all external module prefix and unprefixed function names.
@@ -162,7 +162,7 @@ bl_documentation_generate() {
             ! declare -F | cut -d' ' -f3 | command grep -e "^$function_scope_name"
         )"
         # NOTE: Removes duplicates.
-        declared_function_names="$(bl.string.get_unique_lines <(
+        declared_function_names="$(bl.string.get-unique-lines <(
             echo "$declared_function_names"
         ))"
         # Module level documentation
@@ -175,18 +175,18 @@ bl_documentation_generate() {
                 "No top level documentation for module \"$module_name\" referenced by \"$module_reference\"." \
                     1>&2
         else
-            bl.documentation.format_docstring "$docstring"
+            bl.documentation.format-docstring "$docstring"
         fi
         # Function level documentation
         local name
         for name in $declared_function_names; do
             # shellcheck disable=SC2089
-            docstring="$(bl.doctest.get_function_docstring "$name")"
+            docstring="$(bl.doctest.get-function-docstring "$name")"
             if [ "$docstring" = '' ]; then
                 bl.logging.warn "No documentation for function \"$name\"." 1>&2
             else
                 echo "### Function $name"
-                bl.documentation.format_docstring "$docstring"
+                bl.documentation.format-docstring "$docstring"
             fi
         done
     )
@@ -212,13 +212,13 @@ bl_documentation_main() {
     fi
     return 0
 }
-alias bl.documentation.get_formatted_docstring=bl_documentation_get_formatted_docstring
+alias bl.documentation.get-formatted-docstring=bl_documentation_get_formatted_docstring
 bl_documentation_get_formatted_docstring() {
     local -r __documentation__='
         Prints given docstring without sliced elements specified by their
         modifier.
 
-        >>> bl.documentation.get_formatted_docstring test
+        >>> bl.documentation.get-formatted-docstring test
         test
     '
     echo "$1" | \
@@ -227,9 +227,9 @@ bl_documentation_get_formatted_docstring() {
                 command sed '/```/d'
 }
 # endregion
-if bl.tools.is_main; then
-    bl.logging.set_level debug
-    bl.logging.set_command_level info
+if bl.tools.is-main; then
+    bl.logging.set-level debug
+    bl.logging.set-command-level info
     bl.documentation.main "$@"
 fi
 # region vim modline

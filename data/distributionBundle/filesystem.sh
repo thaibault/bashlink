@@ -128,12 +128,12 @@ EOF
 # endregion
 # region functions
 ## region btrfs
-alias bl.filesystem.btrfs_is_root=bl_filesystem_btrfs_is_root
+alias bl.filesystem.btrfs-is-root=bl_filesystem_btrfs_is_root
 bl_filesystem_btrfs_is_root() {
     local -r __documentation__='
-        >>> bl.filesystem.btrfs_is_root /root; echo $?
+        >>> bl.filesystem.btrfs-is-root /root; echo $?
         0
-        >>> bl.filesystem.btrfs_is_root /root/foo; echo $?
+        >>> bl.filesystem.btrfs-is-root /root/foo; echo $?
         1
     '
     (
@@ -150,22 +150,22 @@ bl_filesystem_btrfs_is_root() {
             ) &>/dev/null || \
                 return 1
 }
-# NOTE: Depends on "bl.filesystem.btrfs_is_root"
-alias bl.filesystem.btrfs_find_root=bl_filesystem_btrfs_find_root
+# NOTE: Depends on "bl.filesystem.btrfs-is-root"
+alias bl.filesystem.btrfs-find-root=bl_filesystem_btrfs_find_root
 bl_filesystem_btrfs_find_root() {
     local -r __documentation__='
         Returns absolute path to btrfs root.
 
-        >>> bl.filesystem.btrfs_find_root /root/__active
+        >>> bl.filesystem.btrfs-find-root /root/__active
         /root
-        >>> bl.filesystem.btrfs_find_root /root/__snapshot/backup_last
+        >>> bl.filesystem.btrfs-find-root /root/__snapshot/backup_last
         /root
-        >>> bl.filesystem.btrfs_find_root /not/a/valid/mountpoint; echo $?
+        >>> bl.filesystem.btrfs-find-root /not/a/valid/mountpoint; echo $?
         1
     '
     local path="$1"
     while true; do
-        if bl.filesystem.btrfs_is_root "$path"; then
+        if bl.filesystem.btrfs-is-root "$path"; then
             echo "$path"
             return 0
         fi
@@ -174,19 +174,19 @@ bl_filesystem_btrfs_find_root() {
         path="$(dirname "$path")"
     done
 }
-# NOTE: Depends on "bl.filesystem.btrfs_is_root"
-alias bl.filesystem.btrfs_subvolume_filter=bl_filesystem_btrfs_subvolume_filter
+# NOTE: Depends on "bl.filesystem.btrfs-is-root"
+alias bl.filesystem.btrfs-subvolume-filter=bl_filesystem_btrfs_subvolume_filter
 bl_filesystem_btrfs_subvolume_filter() {
     local -r __documentation__='
-        >>> bl.filesystem.btrfs_subvolume_filter /root parent 256
+        >>> bl.filesystem.btrfs-subvolume-filter /root parent 256
         ID 259 parent 256 top level 256 path __active/var
         ID 258 parent 256 top level 256 path __active/usr
         ID 257 parent 256 top level 256 path __active/home
-        >>> bl.filesystem.btrfs_subvolume_filter /root id 256
+        >>> bl.filesystem.btrfs-subvolume-filter /root id 256
         ID 256 parent 5 top level 5 path __active
     '
     local -r btrfs_root="$(readlink --canonicalize "$1")"
-    bl.filesystem.btrfs_is_root "$btrfs_root" || \
+    bl.filesystem.btrfs-is-root "$btrfs_root" || \
         return 1
     local -r target_key="$2"
     local -r target_value="$3"
@@ -194,7 +194,7 @@ bl_filesystem_btrfs_subvolume_filter() {
     btrfs subvolume list -p "$btrfs_root" | \
         while read -r entry; do
             local value="$(
-                bl.filesystem.btrfs_get_subvolume_list_field \
+                bl.filesystem.btrfs-get-subvolume-list-field \
                     "$target_key" \
                     "$entry"
             )"
@@ -203,61 +203,61 @@ bl_filesystem_btrfs_subvolume_filter() {
             fi
         done
 }
-alias bl.filesystem.btrfs_is_subvolume=bl_filesystem_btrfs_is_subvolume
+alias bl.filesystem.btrfs-is-subvolume=bl_filesystem_btrfs_is_subvolume
 bl_filesystem_btrfs_is_subvolume() {
     local -r __documentation__='
         Checks if path is a subvolume. Note: The btrfs root is also a
         subvolume.
 
-        >>> bl.filesystem.btrfs_is_subvolume /root; echo $?
+        >>> bl.filesystem.btrfs-is-subvolume /root; echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /root/__active; echo $?
+        >>> bl.filesystem.btrfs-is-subvolume /root/__active; echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /root/__active/usr; echo $?
+        >>> bl.filesystem.btrfs-is-subvolume /root/__active/usr; echo $?
         0
-        >>> bl.filesystem.btrfs_is_subvolume /root/__active/etc; echo $?
+        >>> bl.filesystem.btrfs-is-subvolume /root/__active/etc; echo $?
         1
     '
     btrfs subvolume show "$1" &>/dev/null
 }
-# NOTE: Depends on "bl.filesystem.btrfs_subvolume", "bl.filesystem.btrfs_subvolume_filter"
-alias bl.filesystem.btrfs_get_child_volumes=bl_filesystem_btrfs_get_child_volumes
+# NOTE: Depends on "bl.filesystem.btrfs_subvolume", "bl.filesystem.btrfs-subvolume-filter"
+alias bl.filesystem.btrfs-get-child-volumes=bl_filesystem_btrfs_get_child_volumes
 bl_filesystem_btrfs_get_child_volumes() {
     local -r __documentation__='
         Returns absolute paths to subvolumes.
 
-        >>> bl.filesystem.btrfs_get_child_volumes /root/__active
+        >>> bl.filesystem.btrfs-get-child-volumes /root/__active
         /root/__active/var
         /root/__active/usr
         /root/__active/home
-        >>> bl.filesystem.btrfs_get_child_volumes /root/__snapshot/backup_last
+        >>> bl.filesystem.btrfs-get-child-volumes /root/__snapshot/backup_last
         /root/__snapshot/backup_last/var
         /root/__snapshot/backup_last/usr
         /root/__snapshot/backup_last/home
     '
     local -r volume="$1"
-    bl.filesystem.btrfs_is_subvolume "${volume}" || \
+    bl.filesystem.btrfs-is-subvolume "${volume}" || \
         return 1
-    local -r btrfs_root="$(bl.filesystem.btrfs_find_root "$volume")"
+    local -r btrfs_root="$(bl.filesystem.btrfs-find-root "$volume")"
     local -r volume_relative="$(
-        bl.path.convert_to_relative "$btrfs_root" "$volume")"
+        bl.path.convert-to-relative "$btrfs_root" "$volume")"
     local entry="$(
-        bl.filesystem.btrfs_subvolume_filter "$btrfs_root" path "$volume_relative")"
+        bl.filesystem.btrfs-subvolume-filter "$btrfs_root" path "$volume_relative")"
     local -r volume_id="$(
-        bl.filesystem.btrfs_get_subvolume_list_field id "$entry")"
-    bl.filesystem.btrfs_subvolume_filter "$btrfs_root" parent "$volume_id" | \
+        bl.filesystem.btrfs-get-subvolume-list-field id "$entry")"
+    bl.filesystem.btrfs-subvolume-filter "$btrfs_root" parent "$volume_id" | \
         while read -r entry; do
             echo "${btrfs_root}/$(
-                bl.filesystem.btrfs_get_subvolume_list_field path "$entry")"
+                bl.filesystem.btrfs-get-subvolume-list-field path "$entry")"
         done
 }
-alias bl.filesystem.btrfs_get_subvolume_list_field=bl_filesystem_btrfs_get_subvolume_list_field
+alias bl.filesystem.btrfs-get-subvolume-list-field=bl_filesystem_btrfs_get_subvolume_list_field
 bl_filesystem_btrfs_get_subvolume_list_field() {
     local -r __documentation__='
         >>> local entry="$(btrfs subvolume list /root | head -n1)"
-        >>> bl.filesystem.btrfs_get_subvolume_list_field path "$entry"
-        >>> bl.filesystem.btrfs_get_subvolume_list_field ID "$entry"
-        >>> bl.filesystem.btrfs_get_subvolume_list_field parent "$entry"
+        >>> bl.filesystem.btrfs-get-subvolume-list-field path "$entry"
+        >>> bl.filesystem.btrfs-get-subvolume-list-field ID "$entry"
+        >>> bl.filesystem.btrfs-get-subvolume-list-field parent "$entry"
         __active
         256
         5
@@ -278,7 +278,7 @@ bl_filesystem_btrfs_get_subvolume_list_field() {
         fi
     done
 }
-alias bl.filesystem.btrfs_subvolume_set_read_only=bl_filesystem_btrfs_subvolume_set_read_only
+alias bl.filesystem.btrfs-subvolume-set-read-only=bl_filesystem_btrfs_subvolume_set_read_only
 bl_filesystem_btrfs_subvolume_set_read_only() {
     local -r __documentation__='
         Make subvolume writable or readonly. Also applies to child subvolumes.
@@ -291,7 +291,7 @@ bl_filesystem_btrfs_subvolume_set_read_only() {
     $read_only || \
         btrfs property set -ts "$volume" ro "$read_only"
     local child
-    bl.filesystem.btrfs_get_child_volumes "$volume" | \
+    bl.filesystem.btrfs-get-child-volumes "$volume" | \
         while read -r child; do
             btrfs property set -ts "$child" ro "$read_only"
         done
@@ -300,13 +300,13 @@ bl_filesystem_btrfs_subvolume_set_read_only() {
         btrfs property set -ts "$volume" ro "$read_only"
     fi
 }
-# NOTE: Depends on "bl.filesystem.btrfs_subvolume_set_read_only"
-alias bl.filesystem.btrfs_send=bl_filesystem_btrfs_send
+# NOTE: Depends on "bl.filesystem.btrfs-subvolume-set-read-only"
+alias bl.filesystem.btrfs-send=bl_filesystem_btrfs_send
 bl_filesystem_btrfs_send() {
     local -r __documentation__='
         Sends snapshots.
 
-        >>> bl.filesystem.btrfs_send /root/__active /backup/__active_backup
+        >>> bl.filesystem.btrfs-send /root/__active /backup/__active_backup
         btrfs send /root/__active | pv | btrfs receive /backup
         btrfs send /root/__active/var | pv | btrfs receive /backup/__active
         btrfs send /root/__active/usr | pv | btrfs receive /backup/__active
@@ -318,30 +318,30 @@ bl_filesystem_btrfs_send() {
     local -r target_path="$2"
     local -r target_directory_path="$(dirname "$2")"
     # Note btrfs send can only operate on read-only snapshots
-    bl.filesystem.btrfs_subvolume_set_read_only "$volume" true
+    bl.filesystem.btrfs-subvolume-set-read-only "$volume" true
     btrfs send "$volume" | \
         pv --progress --timer --rate --average-rate --bytes | \
         btrfs receive "$target_directory_path"
     # Note btrfs receive can only create the subdirs if not read-only
-    bl.filesystem.btrfs_subvolume_set_read_only \
+    bl.filesystem.btrfs-subvolume-set-read-only \
         "${target_directory_path}/$volume_name" false
     local child
-    bl.filesystem.btrfs_get_child_volumes "$volume" | while read -r child; do
+    bl.filesystem.btrfs-get-child-volumes "$volume" | while read -r child; do
         btrfs send "$child" | \
             pv --progress --timer --rate --average-rate --bytes | \
             btrfs receive "${target_directory_path}/${volume_name}"
     done
     mv "${target_directory_path}/$volume_name" "$target_path"
-    bl.filesystem.btrfs_subvolume_set_read_only "$volume" false
+    bl.filesystem.btrfs-subvolume-set-read-only "$volume" false
 }
-# NOTE: Depends on "bl.filesystem.btrfs_subvolume_set_read_only"
-alias bl.filesystem.btrfs_send_update=bl_filesystem_btrfs_send_update
+# NOTE: Depends on "bl.filesystem.btrfs-subvolume-set-read-only"
+alias bl.filesystem.btrfs-send-update=bl_filesystem_btrfs_send_update
 bl_filesystem_btrfs_send_update() {
     # shellcheck disable=SC1004
     local -r __documentation__='
         Update snapshot (needs backing snapshot).
 
-        >>> bl.filesystem.btrfs_send_update /root/__active \
+        >>> bl.filesystem.btrfs-send-update /root/__active \
         >>>     /root/backing \
         >>>     /backup
         btrfs send -p /root/backing /root/__active | pv | btrfs receive /backup
@@ -357,29 +357,29 @@ bl_filesystem_btrfs_send_update() {
     local -r backing_snapshot="$2"
     local -r target="$3"
     # Note btrfs send can only operate on read-only snapshots
-    bl.filesystem.btrfs_subvolume_set_read_only "$volume" true
-    bl.filesystem.btrfs_subvolume_set_read_only "$backing_snapshot" true
+    bl.filesystem.btrfs-subvolume-set-read-only "$volume" true
+    bl.filesystem.btrfs-subvolume-set-read-only "$backing_snapshot" true
     btrfs send -p "$backing_snapshot" "$volume" | \
         pv --progress --timer --rate --average-rate --bytes | \
         btrfs receive "$target"
     # Note btrfs receive can only create the subdirs if not read-only
-    bl.filesystem.btrfs_subvolume_set_read_only "${target}/${volume_name}" false
+    bl.filesystem.btrfs-subvolume-set-read-only "${target}/${volume_name}" false
     local child child_relative
-    bl.filesystem.btrfs_get_child_volumes "$volume" | while read -r child; do
-        child_relative="$(bl.path.convert_to_relative "$volume" "$child")"
+    bl.filesystem.btrfs-get-child-volumes "$volume" | while read -r child; do
+        child_relative="$(bl.path.convert-to-relative "$volume" "$child")"
         rmdir "${target}/${volume_name}/${child_relative}"
         btrfs send -p "${backing_snapshot}/${child_relative}" "$child" | \
             pv --progress --timer --rate --average-rate --bytes | \
             btrfs receive "${target}/${volume_name}"
     done
-    bl.filesystem.btrfs_subvolume_set_read_only "$volume" false
+    bl.filesystem.btrfs-subvolume-set-read-only "$volume" false
 }
-alias bl.filesystem.btrfs_snapshot=bl_filesystem_btrfs_snapshot
+alias bl.filesystem.btrfs-snapshot=bl_filesystem_btrfs_snapshot
 bl_filesystem_btrfs_snapshot() {
     local -r __documentation__='
         Make snapshot of subvolume.
 
-        >>> bl.filesystem.btrfs_snapshot /root/__active /backup/__active_backup
+        >>> bl.filesystem.btrfs-snapshot /root/__active /backup/__active_backup
         btrfs subvolume snapshot /root/__active /backup/__active_backup
         rmdir /backup/__active_backup/var
         btrfs subvolume snapshot /root/__active/var /backup/__active_backup/var
@@ -389,7 +389,7 @@ bl_filesystem_btrfs_snapshot() {
         btrfs subvolume snapshot /root/__active/home /backup/__active_backup/home
 
         Third parameter can be used to exclude a subvolume (currently only one)
-        >>> bl.filesystem.btrfs_snapshot /root/__active /backup/__active_backup usr
+        >>> bl.filesystem.btrfs-snapshot /root/__active /backup/__active_backup usr
         btrfs subvolume snapshot /root/__active /backup/__active_backup
         rmdir /backup/__active_backup/var
         btrfs subvolume snapshot /root/__active/var /backup/__active_backup/var
@@ -401,49 +401,49 @@ bl_filesystem_btrfs_snapshot() {
     local -r exclude="$3"
     btrfs subvolume snapshot "${volume}" "${target}"
     local child child_relative
-    bl.filesystem.btrfs_get_child_volumes "$volume" | while read -r child; do
-        child_relative="$(bl.path.convert_to_relative "$volume" "$child")"
+    bl.filesystem.btrfs-get-child-volumes "$volume" | while read -r child; do
+        child_relative="$(bl.path.convert-to-relative "$volume" "$child")"
         if [ "$child_relative" != "$exclude" ]; then
             rmdir "${target}/${child_relative}"
             btrfs subvolume snapshot "${child}" "${target}/${child_relative}"
         fi
     done
 }
-alias bl.filesystem.btrfs_subvolume_backup=bl_filesystem_btrfs_subvolume_backup
+alias bl.filesystem.btrfs-subvolume-backup=bl_filesystem_btrfs_subvolume_backup
 bl_filesystem_btrfs_subvolume_backup() {
     local -r __documentation__='
         Create, delete or list system backups.
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup
+            bl.filesystem.btrfs-subvolume-backup
         ```
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup help
+            bl.filesystem.btrfs-subvolume-backup help
         ```
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup list
+            bl.filesystem.btrfs-subvolume-backup list
         ```
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup list /
+            bl.filesystem.btrfs-subvolume-backup list /
         ```
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup create
+            bl.filesystem.btrfs-subvolume-backup create
         ```
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup create /dev/sda
+            bl.filesystem.btrfs-subvolume-backup create /dev/sda
         ```
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup create PARTLABEL=system
+            bl.filesystem.btrfs-subvolume-backup create PARTLABEL=system
         ```
 
         ```bash
-            bl.filesystem.btrfs_subvolume_backup delete /dev/sda root-backup
+            bl.filesystem.btrfs-subvolume-backup delete /dev/sda root-backup
         ```
     '
     local action=list
@@ -482,11 +482,11 @@ bl_filesystem_btrfs_subvolume_backup() {
         sudo btrfs subvolume list "$target"
     else
         bl.logging.cat << EOF
-bl.filesystem.btrfs_subvolume_backup create|delete|help|list [DEVICE|LOCATION] [SUBVOLUME_NAME]
+bl.filesystem.btrfs-subvolume-backup create|delete|help|list [DEVICE|LOCATION] [SUBVOLUME_NAME]
 EOF
     fi
 }
-alias bl.filesystem.btrfs_subvolume_backup_autocomplete=bl_filesystem_btrfs_subvolume_backup_autocomplete
+alias bl.filesystem.btrfs-subvolume-backup-autocomplete=bl_filesystem_btrfs_subvolume_backup_autocomplete
 bl_filesystem_btrfs_subvolume_backup_autocomplete() {
     local -r __documentation__='
         Autocompletion function for `bl.filesystem.subvolume_backup`.
@@ -502,45 +502,45 @@ bl_filesystem_btrfs_subvolume_backup_autocomplete() {
         [ "$last_complete_argument" = delete ]
     then
         read -r -a COMPREPLY <<< "$(compgen -W "$(
-            bl.filesystem.btrfs_subvolume_backup list | \
+            bl.filesystem.btrfs-subvolume-backup list | \
             cut --delimiter ' ' --field 9 | tr '\n' ' '
         )" -- "$current_argument")"
     fi
     return 0
 }
 complete -F bl_filesystem_btrfs_subvolume_backup_autocomplete bl_filesystem_btrfs_subvolume_backup
-alias bl.filesystem.btrfs_subvolume_delete=bl_filesystem_btrfs_subvolume_delete
+alias bl.filesystem.btrfs-subvolume-delete=bl_filesystem_btrfs_subvolume_delete
 bl_filesystem_btrfs_subvolume_delete() {
     local -r __documentation__='
         Delete a subvolume. Also deletes child subvolumes.
 
-        >>> bl.filesystem.btrfs_subvolume_delete /root/__snapshot/backup_last; echo $?
+        >>> bl.filesystem.btrfs-subvolume-delete /root/__snapshot/backup_last; echo $?
         0
-        >>> bl.filesystem.btrfs_subvolume_delete /root/__snapshot/foo; echo $?
+        >>> bl.filesystem.btrfs-subvolume-delete /root/__snapshot/foo; echo $?
         1
     '
     local -r volume="$1"
     local child
-    bl.filesystem.btrfs_subvolume_set_read_only "$volume" false
-    bl.filesystem.btrfs_get_child_volumes "$volume" | \
+    bl.filesystem.btrfs-subvolume-set-read-only "$volume" false
+    bl.filesystem.btrfs-get-child-volumes "$volume" | \
         while read -r child; do
             btrfs subvolume delete "$child"
         done
     btrfs subvolume delete "$volume"
 }
 ## endregion
-alias bl.filesystem.close_crypt_blockdevice=bl_filesystem_close_crypt_blockdevice
+alias bl.filesystem.close-crypt-blockdevice=bl_filesystem_close_crypt_blockdevice
 bl_filesystem_close_crypt_blockdevice() {
     local -r __documentation__='
         Mounts encrypted blockdevices as analyzable blockdevice.
 
         ```bash
-            bl.filesystem.close_crypt_blockdevice test
+            bl.filesystem.close-crypt-blockdevice test
         ```
     '
     sudo cryptsetup luksClose "$1"
 }
-alias bl.filesystem.create_partition_via_offset=bl_filesystem_create_partition_via_offset
+alias bl.filesystem.create-partition-via-offset=bl_filesystem_create_partition_via_offset
 bl_filesystem_create_partition_via_offset() {
     local -r __documentation__='
         Creates a partition after given disk offset.
@@ -556,7 +556,7 @@ bl_filesystem_create_partition_via_offset() {
         echo "$partition_info" | \
             cut --delimiter ' ' --fields 1)"
     if [ "$offset_sectors" = '' ]; then
-        bl.logging.error_exception \
+        bl.logging.error-exception \
             "Could not find partition with label/uuid \"$name_or_uuid\" on device \"$device\""
         return 1
     fi
@@ -566,25 +566,25 @@ bl_filesystem_create_partition_via_offset() {
     losetup --offset "$offset_bytes" "$loop_device" "$device"
     echo "$loop_device"
 }
-alias bl.filesystem.find_block_device=bl_filesystem_find_block_device
+alias bl.filesystem.find-block-device=bl_filesystem_find_block_device
 bl_filesystem_find_block_device() {
     local -r __documentation__='
-        >>> bl.filesystem.find_block_device "boot_partition"
+        >>> bl.filesystem.find-block-device "boot_partition"
         /dev/sdb1
 
-        >>> bl.filesystem.find_block_device "boot_partition" /dev/sda
+        >>> bl.filesystem.find-block-device "boot_partition" /dev/sda
         /dev/sda2
 
-        >>> bl.filesystem.find_block_device "discoverable by blkid"
+        >>> bl.filesystem.find-block-device "discoverable by blkid"
         /dev/sda2
 
-        >>> bl.filesystem.find_block_device "_partition"
+        >>> bl.filesystem.find-block-device "_partition"
         /dev/sdb1 /dev/sdb2
 
-        >>> bl.filesystem.find_block_device "not matching anything" || echo not found
+        >>> bl.filesystem.find-block-device "not matching anything" || echo not found
         not found
 
-        >>> bl.filesystem.find_block_device "" || echo not found
+        >>> bl.filesystem.find-block-device "" || echo not found
         not found
     '
     local -r partition_pattern="$1"
@@ -650,29 +650,29 @@ bl_filesystem_find_block_device() {
     echo "${candidates[0]}"
 }
 ## region file links
-alias bl.filesystem.find_hardlinks=bl_filesystem_find_hardlinks
+alias bl.filesystem.find-hardlinks=bl_filesystem_find_hardlinks
 bl_filesystem_find_hardlinks() {
     local -r __documentation__='
         Finds same files as given file (hardlinks).
 
         ```bash
-            bl.filesystem.find_hardlinks /home/user/test.txt
+            bl.filesystem.find-hardlinks /home/user/test.txt
         ```
     '
     sudo find / -samefile "$1" 2>/dev/null
 }
-alias bl.filesystem.show_symbolic_links=bl_filesystem_show_symbolic_links
+alias bl.filesystem.show-symbolic-links=bl_filesystem_show_symbolic_links
 bl_filesystem_show_symbolic_links() {
     local -r __documentation__='
         Shows symbolic links in current directory if no argument is provided or
         in given location and their subdirectories (recursive).
 
         ```bash
-            bl.filesystem.show_symbolic_links
+            bl.filesystem.show-symbolic-links
         ```
 
         ```bash
-            bl.filesystem.show_symbolic_links /home
+            bl.filesystem.show-symbolic-links /home
         ```
 
         >>> local directory_path="$(bl_filesystem_bl_doctest_mktemp --directory)"
@@ -680,7 +680,7 @@ bl_filesystem_show_symbolic_links() {
         >>> ln --symbolic target "${directory_path}/link"
         >>> mkdir "${directory_path}/sub"
         >>> ln --symbolic ../target "${directory_path}/sub/link"
-        >>> bl.filesystem.show_symbolic_links "$directory_path" | \
+        >>> bl.filesystem.show-symbolic-links "$directory_path" | \
         >>>     sed "s:${directory_path}/::" | \
         >>>         sort
         link -> target
@@ -688,7 +688,7 @@ bl_filesystem_show_symbolic_links() {
 
         >>> cd "$(bl_filesystem_bl_doctest_mktemp --directory)"
         >>> ln --symbolic target link
-        >>> bl.filesystem.show_symbolic_links
+        >>> bl.filesystem.show-symbolic-links
         ./link -> target
     '
     local element
@@ -698,13 +698,13 @@ bl_filesystem_show_symbolic_links() {
     done
 }
 ## endregion
-alias bl.filesystem.make_crypt_blockdevice=bl_filesystem_make_crypt_blockdevice
+alias bl.filesystem.make-crypt-blockdevice=bl_filesystem_make_crypt_blockdevice
 bl_filesystem_make_crypt_blockdevice() {
     local -r __documentation__='
         Creates encrypted blockdevices.
 
         ```bash
-            bl.filesystem.make_crypt_blockdevice /dev/sda
+            bl.filesystem.make-crypt-blockdevice /dev/sda
         ```
     '
     sudo cryptsetup \
@@ -716,22 +716,22 @@ bl_filesystem_make_crypt_blockdevice() {
         --use-random luksFormat \
         "$@"
 }
-alias bl.filesystem.make_uefi_boot_entry=bl_filesystem_make_uefi_boot_entry
+alias bl.filesystem.make-uefi-boot-entry=bl_filesystem_make_uefi_boot_entry
 bl_filesystem_make_uefi_boot_entry() {
     # shellcheck disable=SC1004
     local -r __documentation__='
         Creates an uefi boot entry.
 
         ```bash
-            bl.filesystem.make_uefi_boot_entry archLinux
+            bl.filesystem.make-uefi-boot-entry archLinux
         ```
 
         ```bash
-            bl.filesystem.make_uefi_boot_entry archLinuxFallback
+            bl.filesystem.make-uefi-boot-entry archLinuxFallback
         ```
 
         ```bash
-            bl.filesystem.make_uefi_boot_entry \
+            bl.filesystem.make-uefi-boot-entry \
                 archLinuxLTSFallback \
                 vmlinuz-linux-lts
         ```
@@ -747,28 +747,28 @@ bl_filesystem_make_uefi_boot_entry() {
         eval "$command"
         return $?
     fi
-    bl.logging.error_exception \
+    bl.logging.error-exception \
         "Error: file \"${kernel_parameter_file_path}\" doesn't exists."
 }
-alias bl.filesystem.open_crypt_blockdevice=bl_filesystem_open_crypt_blockdevice
+alias bl.filesystem.open-crypt-blockdevice=bl_filesystem_open_crypt_blockdevice
 bl_filesystem_open_crypt_blockdevice() {
     local -r __documentation__='
         Mounts encrypted blockdevices as analyzable blockdevice.
 
         ```bash
-            bl.filesystem.open_crypt_blockdevice /dev/sdb test
+            bl.filesystem.open-crypt-blockdevice /dev/sdb test
         ```
     '
     sudo cryptsetup luksOpen "$@"
 }
-alias bl.filesystem.overlay_location=bl_filesystem_overlay_location
+alias bl.filesystem.overlay-location=bl_filesystem_overlay_location
 bl_filesystem_overlay_location() {
     local -r __documentation__='
         Mounts an overlay over given location. This could be useful if we have a
         read only system caused by physical reasons.
 
         ```bash
-            bl.filesystem.overlay_location /usr/bin/
+            bl.filesystem.overlay-location /usr/bin/
         ```
     '
     mkdir --parents /tmp/overlayfsDifferences
@@ -791,27 +791,27 @@ bl_filesystem_repair() {
     sudo badblocks "$target"
     sudo fsck -a "$target"
 }
-alias bl.filesystem.set_maximum_user_watches=bl_filesystem_set_maximum_user_watches
+alias bl.filesystem.set-maximum-user-watches=bl_filesystem_set_maximum_user_watches
 bl_filesystem_set_maximum_user_watches() {
     local -r __documentation__='
         Sets the maximum number of concurrent allowed file observations via
         inotify.
 
         ```bash
-            bl.filesystem.set_maximum_user_watches 500000
+            bl.filesystem.set-maximum-user-watches 500000
         ```
     '
     echo "$1" | \
         sudo tee /proc/sys/fs/inotify/max_user_watches
 }
-alias bl.filesystem.write_blockdevice_to_image=bl_filesystem_write_blockdevice_to_image
+alias bl.filesystem.write-blockdevice-to-image=bl_filesystem_write_blockdevice_to_image
 bl_filesystem_write_blockdevice_to_image() {
     # shellcheck disable=SC1004
     local -r __documentation__='
         Writes a given backup from given blockdevice.
 
         ```bash
-            bl.filesystem.write_blockdevice_to_image \
+            bl.filesystem.write-blockdevice-to-image \
                 /dev/mmcblk0 \
                 /data/private/backup/image.img
         ```
@@ -826,14 +826,14 @@ bl_filesystem_write_blockdevice_to_image() {
     fi
     sudo dd bs=4M conv=fdatasync if="$source" of="$target" status=progress
 }
-alias bl.filesystem.write_image_to_blockdevice=bl_filesystem_write_image_to_blockdevice
+alias bl.filesystem.write-image-to-blockdevice=bl_filesystem_write_image_to_blockdevice
 bl_filesystem_write_image_to_blockdevice() {
     # shellcheck disable=SC1004
     local -r __documentation__='
         Writes a given image to given blockdevice.
 
         ```bash
-            bl.filesystem.write_image_to_blockdevice \
+            bl.filesystem.write-image-to-blockdevice \
                 /data/private/backup/image.img \
                 /dev/mmcblk0
         ```

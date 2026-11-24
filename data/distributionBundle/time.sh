@@ -18,17 +18,17 @@ declare -gr BL_TIME__DOCUMENTATION__='
 declare -gi BL_TIME_START=0
 # endregion
 # region functions
-alias bl.time.get_elapsed=bl_time_get_elapsed
+alias bl.time.get-elapsed=bl_time_get_elapsed
 bl_time_get_elapsed() {
     local -r __documentation__='
         Prints elapsed time in milliseconds since last `bl.time.start` call.
 
-        >>> local time=$(bl.time.get_elapsed)
+        >>> local time=$(bl.time.get-elapsed)
         >>> (( time > 0 )); echo $?
         0
 
         >>> bl.time.start
-        >>> local time=$(bl.time.get_elapsed)
+        >>> local time=$(bl.time.get-elapsed)
         >>> (( time > 0 )); echo $?
         0
     '
@@ -43,7 +43,7 @@ bl_time_start() {
 
         >>> bl.time.start
         >>> bl.time.start
-        >>> local time=$(bl.time.get_elapsed)
+        >>> local time=$(bl.time.get-elapsed)
         >>> (( time > 0 )); echo $?
         0
     '

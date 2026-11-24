@@ -25,14 +25,14 @@ declare -gr BL_TOOLS__DOCUMENTATION__='
 '
 # endregion
 # region functions
-alias bl.tools.compile_and_install_without_root=bl_tools_compile_and_install_without_root
+alias bl.tools.compile-and-install-without-root=bl_tools_compile_and_install_without_root
 bl_tools_compile_and_install_without_root() {
     local -r __documentation__='
         Compiles and installs a program by its given source code. Your have to
         be inside the source code folder to run this function.
 
         ```bash
-            bl.tools.compile_and_install_without_root /home/user/myUser/
+            bl.tools.compile-and-install-without-root /home/user/myUser/
         ```
     '
     local install_location=~/system/
@@ -45,50 +45,50 @@ bl_tools_compile_and_install_without_root() {
     # "make install DESTDIR=$1"
     make install
 }
-alias bl.tools.is_defined=bl_module_is_defined
-alias bl.tools.is_empty=bl_tools_is_empty
+alias bl.tools.is-defined=bl_module_is_defined
+alias bl.tools.is-empty=bl_tools_is_empty
 bl_tools_is_empty() {
     local -r __documentation__='
         Tests if variable is empty (undefined variables are not empty)
 
         >>> local foo="bar"
-        >>> bl.tools.is_empty foo; echo $?
+        >>> bl.tools.is-empty foo; echo $?
         1
         >>> local defined_and_empty=""
-        >>> bl.tools.is_empty defined_and_empty; echo $?
+        >>> bl.tools.is-empty defined_and_empty; echo $?
         0
-        >>> bl.tools.is_empty undefined_variable; echo $?
+        >>> bl.tools.is-empty undefined_variable; echo $?
         1
         >>> set -u
-        >>> bl.tools.is_empty undefined_variable; echo $?
+        >>> bl.tools.is-empty undefined_variable; echo $?
         1
     '
     local -r variable_name="$1"
-    bl.tools.is_defined "$variable_name" || \
+    bl.tools.is-defined "$variable_name" || \
         return 1
     [ "${!variable_name}" = '' ] || \
         return 1
 }
-alias bl.tools.is_main=bl_tools_is_main
+alias bl.tools.is-main=bl_tools_is_main
 bl_tools_is_main() {
     local -r __documentation__='
         Returns true if current script is being executed.
 
-        NOTE: This test passes because `bl.tools.is_main` is called by
+        NOTE: This test passes because `bl.tools.is-main` is called by
         "doctest.sh" which is being executed as entry script.
 
-        >>> bl.tools.is_main && echo yes
+        >>> bl.tools.is-main && echo yes
         yes
     '
     [ "${BASH_SOURCE[1]}" = "$0" ]
 }
-alias bl.tools.make_openssl_pem_file=bl_tools_make_openssl_pem_file
+alias bl.tools.make-openssl-pem-file=bl_tools_make_openssl_pem_file
 bl_tools_make_openssl_pem_file() {
     local -r __documentation__='
         Creates a concatenated pem file needed for server with https support.
 
         ```bash
-            bl.tools.make_openssl_pem_file
+            bl.tools.make-openssl-pem-file
         ```
     '
     local host=localhost
@@ -110,14 +110,14 @@ bl_tools_make_openssl_pem_file() {
     bl.logging.info Creating a pem file.
     cat "${host}.key" "${host}.crt" 1>"${host}.pem"
 }
-alias bl.tools.make_single_executable=bl_tools_make_single_executable
+alias bl.tools.make-single-executable=bl_tools_make_single_executable
 bl_tools_make_single_executable() {
     local -r __documentation__='
         Creates a bsd and virtually posix shell compatible single executable
         file from an application directory.
 
         ```bash
-            bl.tools.make_single_executable /applicationDirectory startFile
+            bl.tools.make-single-executable /applicationDirectory startFile
         ```
 
         >>> local directory_path="$(bl_tools_bl_doctest_mktemp --directory)"
@@ -126,7 +126,7 @@ bl_tools_make_single_executable() {
         >>>     >"${directory_path}/application/index"
         >>> chmod +x "${directory_path}/application/index"
         >>> cd "$directory_path"
-        >>> bl.tools.make_single_executable \
+        >>> bl.tools.make-single-executable \
         >>>     "${directory_path}/application" run.sh 1>/dev/null
         >>> rm --recursive "${directory_path}/application"
         >>> ./run.sh a b; echo $?
@@ -172,7 +172,7 @@ EOF
     rm "$temporary_archiv_file_path"
     chmod +x "$file_name"
 }
-alias bl.tools.run_with_appended_shebang=bl_tools_run_with_appended_shebang
+alias bl.tools.run-with-appended-shebang=bl_tools_run_with_appended_shebang
 bl_tools_run_with_appended_shebang() {
     # shellcheck disable=SC1004
     local -r __documentation__='
@@ -181,13 +181,13 @@ bl_tools_run_with_appended_shebang() {
         ```bash
             /usr/bin/env python -O /path/to/script.py
 
-            bl.tools.run_with_appended_shebang -O -- /path/to/script.py
+            bl.tools.run-with-appended-shebang -O -- /path/to/script.py
         ```
 
         ```bash
             /usr/bin/env python -O /path/to/script.py argument1 argument2
 
-            bl.tools.run_with_appended_shebang -O -- \
+            bl.tools.run-with-appended-shebang -O -- \
                 /path/to/script.py \
                 argument1 \
                 argument2
@@ -196,7 +196,7 @@ bl_tools_run_with_appended_shebang() {
         >>> local file_path="$(bl_tools_bl_doctest_mktemp)"
         >>> echo "#!/usr/bin/env bash" >"$file_path"
         >>> echo "echo \"\$#: \$2\"; exit 4" >>"$file_path"
-        >>> bl.tools.run_with_appended_shebang -- "$file_path" a "b c"; echo $?
+        >>> bl.tools.run-with-appended-shebang -- "$file_path" a "b c"; echo $?
         2: b c
         4
 
@@ -205,7 +205,7 @@ bl_tools_run_with_appended_shebang() {
         >>> local file_path="$(bl_tools_bl_doctest_mktemp)"
         >>> echo "#!/usr/bin/env cat" >"$file_path"
         >>> echo content >>"$file_path"
-        >>> bl.tools.run_with_appended_shebang -e -- "$file_path"
+        >>> bl.tools.run-with-appended-shebang -e -- "$file_path"
         #!/usr/bin/env cat$
         content$
     '
@@ -243,18 +243,18 @@ bl_tools_run_with_appended_shebang() {
     )$shebang_arguments '$application_file_path' $arguments"
     eval "$command"
 }
-alias bl.tools.send_e_mail=bl_tools_send_e_mail
+alias bl.tools.send-e-mail=bl_tools_send_e_mail
 bl_tools_send_e_mail() {
     # shellcheck disable=SC1004
     local -r __documentation__='
         Sends an email.
 
         ```bash
-            bl.tools.send_e_mail subject content address
+            bl.tools.send-e-mail subject content address
         ```
 
         ```bash
-            bl.tools.send_e_mail \
+            bl.tools.send-e-mail \
                 subject \
                 content \
                 address \

@@ -24,13 +24,13 @@ declare -gr BL_PACMAN__DOCUMENTATION__='
 '
 # endregion
 # region functions
-alias bl.pacman.show_config_backups=bl_pacman_show_config_backups
+alias bl.pacman.show-config-backups=bl_pacman_show_config_backups
 bl_pacman_show_config_backups() {
     local -r __documentation__='
         Shows all config backups created by pacman.
 
         ```bash
-            bl.pacman.show_config_backups
+            bl.pacman.show-config-backups
         ```
     '
     pushd / 1>/dev/null && \
@@ -41,7 +41,7 @@ bl_pacman_show_config_backups() {
     # shellcheck disable=SC2164
     popd 1>/dev/null
 }
-alias bl.pacman.show_not_maintained_by_pacman_system_files=bl_pacman_show_not_maintained_by_pacman_system_files
+alias bl.pacman.show-not-maintained-by-pacman-system-files=bl_pacman_show_not_maintained_by_pacman_system_files
 bl_pacman_show_not_maintained_by_pacman_system_files() {
     local -r __documentation__='
         Shows all files which are not maintained by pacman on currently running
@@ -90,8 +90,8 @@ bl_pacman_show_not_maintained_by_pacman_system_files() {
     bl.logging.cat << EOF
 
 Number of files: $number_of_files 100%
-Number of maintained files: $number_of_maintained_files $(bl.number.calculate_percent $number_of_files $number_of_maintained_files)%
-Number of not maintained files: $number_of_not_maintained_files $(bl.number.calculate_percent $number_of_files $number_of_not_maintained_files)%
+Number of maintained files: $number_of_maintained_files $(bl.number.calculate-percent $number_of_files $number_of_maintained_files)%
+Number of not maintained files: $number_of_not_maintained_files $(bl.number.calculate-percent $number_of_files $number_of_not_maintained_files)%
 EOF
 }
 # endregion
